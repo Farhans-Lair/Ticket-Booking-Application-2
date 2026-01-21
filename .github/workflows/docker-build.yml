@@ -9,23 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: ticket_db
-          MYSQL_USER: ticket_user
-          MYSQL_PASSWORD: ticket_password
-        ports:
-          - 3306:3306
-        options: >-
-          --default-authentication-plugin=mysql_native_password
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
