@@ -9,6 +9,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # ✅ MySQL service MUST be here
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: ticket_db
+          MYSQL_USER: ticket_user
+          MYSQL_PASSWORD: ticket_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        command: >
+          --default-authentication-plugin=mysql_native_password
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,6 +36,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # ✅ Wait for MySQL to be ready (CRITICAL)
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
+            sleep 2
+          done
 
       - name: Install dependencies
         run: |
