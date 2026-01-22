@@ -1,13 +1,18 @@
-name: Docker Build & Test (Backend)
+name: CI - Test, Build & Push Backend Image
 
 on:
   push:
     branches:
       - main
+      
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
 
     services:
       mysql:
@@ -24,6 +29,15 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      env:
+       AWS_REGION: ap-south-1
+       ECR_REPOSITORY: ticket-backend
+       DB_HOST: 127.0.0.1
+       DB_PORT: 3306
+       DB_NAME: ticket_db
+       DB_USER: ticket_user
+       DB_PASSWORD: ticket_password
+       NODE_ENV: test     
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +45,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
 
       - name: Wait for MySQL
         run: |
@@ -56,9 +76,18 @@ jobs:
           cd backend
           npm test
 
-      - uses: docker/setup-buildx-action@v3
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
+          aws-region: ap-south-1
 
-      - name: Build backend Docker image
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
         run: |
           cd backend
-          docker build -t ticket-backend:ci .
+          docker build -t $ECR_REPOSITORY:latest .
+          docker tag $ECR_REPOSITORY:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
+          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
