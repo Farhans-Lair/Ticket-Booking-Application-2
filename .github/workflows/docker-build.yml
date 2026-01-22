@@ -1,4 +1,4 @@
-name: CI - Test & Build Backend
+name: Docker Build & Test (Backend)
 
 on:
   push:
@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # ✅ MySQL service for DB-aware tests
     services:
       mysql:
         image: mysql:8.0
@@ -21,31 +20,18 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpassword"          
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpassword"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
-    # ✅ CRITICAL: environment variables used by Sequelize + Jest
-    env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_NAME: ticket_db
-      DB_USER: ticket_user
-      DB_PASSWORD: ticket_password
-      JWT_SECRET: test_jwt_secret
-      NODE_ENV: test
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # ✅ Wait for MySQL to be ready (CRITICAL)
-      
+
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
@@ -53,25 +39,24 @@ jobs:
             sleep 2
           done
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: |
           cd backend
           npm install
 
-      - name: Run backend tests (with MySQL)
+      - name: Run tests
         env:
+          NODE_ENV: test
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_USER: ticket_user
           DB_PASSWORD: ticket_password
           DB_NAME: ticket_db
-          NODE_ENV: test
         run: |
           cd backend
           npm test
 
       - uses: docker/setup-buildx-action@v3
-
 
       - name: Build backend Docker image
         run: |
