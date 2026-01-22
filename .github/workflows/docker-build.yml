@@ -88,6 +88,6 @@ jobs:
       - name: Build and push Docker image
         run: |
           cd backend
-          docker build -t $ECR_REPOSITORY:latest .
-          docker tag $ECR_REPOSITORY:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
-          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
+          docker build -t $:latest .
+          docker tag ticket-backend:latest 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+          docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
