@@ -45,6 +45,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          # ✅ Wait for MySQL to be ready (CRITICAL)
+      
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
+            sleep 2
+          done
 
       - name: Install backend dependencies
         run: |
