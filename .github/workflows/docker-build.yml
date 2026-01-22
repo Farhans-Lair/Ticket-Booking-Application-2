@@ -60,9 +60,19 @@ jobs:
           npm install
 
       - name: Run backend tests (with MySQL)
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: ticket_user
+          DB_PASSWORD: ticket_password
+          DB_NAME: ticket_db
+          NODE_ENV: test
         run: |
           cd backend
           npm test
+
+      - uses: docker/setup-buildx-action@v3
+
 
       - name: Build backend Docker image
         run: |
