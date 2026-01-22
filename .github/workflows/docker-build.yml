@@ -39,55 +39,55 @@ jobs:
        DB_PASSWORD: ticket_password
        NODE_ENV: test     
 
-    steps:
-      - uses: actions/checkout@v4
+      steps:
+       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+       - uses: actions/setup-node@v4
+         with:
+           node-version: 20
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+       - name: Set up Node.js
+         uses: actions/setup-node@v4
+         with:
+           node-version: 20
 
 
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
-            sleep 2
-          done
+       - name: Wait for MySQL
+         run: |
+           for i in {1..30}; do
+           mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
+           sleep 2
+           done
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm install
+       - name: Install dependencies
+         run: |
+           cd backend
+           npm install
 
-      - name: Run tests
-        env:
-          NODE_ENV: test
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_USER: ticket_user
-          DB_PASSWORD: ticket_password
-          DB_NAME: ticket_db
-        run: |
-          cd backend
-          npm test
+       - name: Run tests
+         env:
+           NODE_ENV: test
+           DB_HOST: 127.0.0.1
+           DB_PORT: 3306
+           DB_USER: ticket_user
+           DB_PASSWORD: ticket_password
+           DB_NAME: ticket_db
+         run: |
+           cd backend
+           npm test
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
-          aws-region: ap-south-1
+       - name: Configure AWS credentials (OIDC)
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+           role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
+           aws-region: ap-south-1
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+       - name: Login to Amazon ECR
+         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
-        run: |
-          cd backend
-          docker build -t $:latest .
-          docker tag ticket-backend:latest 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
-          docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+       - name: Build and push Docker image
+         run: |
+           cd backend
+           docker build -t $:latest .
+           docker tag ticket-backend:latest 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+           docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
