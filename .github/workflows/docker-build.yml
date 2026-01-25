@@ -70,6 +70,12 @@ jobs:
           role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
           aws-region: ap-south-1
 
+      - name: Create ECR repository if it does not exist
+        id: ecr-repo
+        uses: int128/create-ecr-repository-action@v1
+        with:
+          repository: ticket-backend
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
