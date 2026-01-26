@@ -18,3 +18,9 @@ yarn-debug.log*
 # Terraform (later)
 .terraform/
 terraform.tfstate*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
