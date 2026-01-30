@@ -1,5 +1,5 @@
 // CHANGE THIS ONCE WHEN BACKEND URL CHANGES
-const API_BASE_URL = "ticket-alb-526492414.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "ticket-alb-639627099.ap-south-1.elb.amazonaws.com";
 
 function getToken() {
   return localStorage.getItem("token");
