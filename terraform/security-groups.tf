@@ -70,6 +70,15 @@ resource "aws_security_group" "rds_sg" {
     security_groups = [aws_security_group.backend_sg.id]
   }
 
+  ingress {
+  description = "Allow MySQL from local machine"
+  from_port   = 3306
+  to_port     = 3306
+  protocol    = "tcp"
+  cidr_blocks = ["223.185.38.240/32"]
+}
+
+
   egress {
     from_port   = 0
     to_port     = 0
