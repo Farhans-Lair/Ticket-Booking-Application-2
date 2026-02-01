@@ -1,7 +1,7 @@
 # ---------------------------
 # IAM Role for EC2
 # ---------------------------
-resource "aws_iam_role" "ec2_role" {
+resource "aws_iam_role" "backend_ec2_role" {
   name = "${var.project_name}-ec2-role"
 
   assume_role_policy = jsonencode({
@@ -15,7 +15,7 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecr_read" {
-  role       = aws_iam_role.ec2_role.name
+  role       = aws_iam_role.backend_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
