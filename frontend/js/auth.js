@@ -1,14 +1,23 @@
-async function register() {
+async function register() 
+{
+
+  const name = document.getElementById("registerName").value;
   const email = document.getElementById("reg-email").value;
   const password = document.getElementById("reg-password").value;
 
+ if (!name || !email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
   try {
     await apiRequest("/auth/register", "POST", {
+      name,
       email,
       password
     });
 
-    alert("Registration successful. Please log in.");
+    alert("Registration successful");
   } catch (err) {
     alert("Registration failed: " + err.message);
   }
