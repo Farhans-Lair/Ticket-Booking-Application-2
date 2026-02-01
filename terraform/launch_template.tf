@@ -19,7 +19,7 @@ resource "aws_launch_template" "backend_lt" {
   instance_type = "t3.micro"
 
   iam_instance_profile {
-    name = aws_iam_instance_profile.ec2_profile.name
+    name = aws_iam_instance_profile.backend_instance_profile.name
   }
 
   network_interfaces {
