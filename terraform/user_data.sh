@@ -46,4 +46,4 @@ docker run -d \
   --restart always \
   --env-file $APP_DIR/.env \
   -p 3000:3000 \
-  ${ECR_REPO_URL}:latest
+  ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
