@@ -1,11 +1,9 @@
-async function register() 
-{
-
+async function register() {
   const name = document.getElementById("registerName").value;
-  const email = document.getElementById("reg-email").value;
-  const password = document.getElementById("reg-password").value;
+  const email = document.getElementById("registerEmail").value;
+  const password = document.getElementById("registerPassword").value;
 
- if (!name || !email || !password) {
+  if (!name || !email || !password) {
     alert("Please fill all fields");
     return;
   }
@@ -17,15 +15,26 @@ async function register()
       password
     });
 
-    alert("Registration successful");
+    alert("Registration successful. Please login.");
+
+    // Optional: clear fields
+    document.getElementById("registerName").value = "";
+    document.getElementById("registerEmail").value = "";
+    document.getElementById("registerPassword").value = "";
+
   } catch (err) {
     alert("Registration failed: " + err.message);
   }
 }
 
 async function login() {
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
 
   try {
     const response = await apiRequest("/auth/login", "POST", {
@@ -33,10 +42,8 @@ async function login() {
       password
     });
 
-    // Save JWT
     localStorage.setItem("token", response.token);
 
-    // Redirect to events page
     window.location.href = "events.html";
   } catch (err) {
     alert("Login failed: " + err.message);
