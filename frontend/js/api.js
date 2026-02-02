@@ -1,9 +1,4 @@
-// CHANGE THIS ONCE WHEN BACKEND URL CHANGES
-const API_BASE_URL = "ticket-alb-639627099.ap-south-1.elb.amazonaws.com";
-
-function getToken() {
-  return localStorage.getItem("token");
-}
+const API_BASE_URL = "http://ticket-alb-1949641595.ap-south-1.elb.amazonaws.com";
 
 async function apiRequest(path, method = "GET", body = null, auth = false) {
   const headers = {
@@ -11,7 +6,7 @@ async function apiRequest(path, method = "GET", body = null, auth = false) {
   };
 
   if (auth) {
-    const token = getToken();
+    const token = localStorage.getItem("token");
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -23,10 +18,18 @@ async function apiRequest(path, method = "GET", body = null, auth = false) {
     body: body ? JSON.stringify(body) : null
   });
 
+  const contentType = response.headers.get("content-type");
+
+  // 🔑 CRITICAL FIX
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await response.text();
+    throw new Error(`Backend returned non-JSON response:\n${text}`);
+  }
+
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || "API request failed");
+    throw new Error(data.error || "Request failed");
   }
 
   return data;
