@@ -1,19 +1,25 @@
 require("dotenv").config();
 const express = require("express");
-const app = express();
 const cors = require("cors");
+
+const app = express();
 
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false
 }));
+
+/* 🔥 HANDLE PREFLIGHT EXPLICITLY */
+app.options("*", cors());
+
+app.use(express.json());
 
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
 
-app.use(express.json());
 
 app.get("/health", ( _re, res) => {
   res.json({ status: "OK" });
