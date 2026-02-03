@@ -11,9 +11,6 @@ app.use(cors({
   credentials: false
 }));
 
-/* 🔥 HANDLE PREFLIGHT EXPLICITLY */
-app.options("*", cors());
-
 app.use(express.json());
 
 const authRoutes = require("./routes/auth.routes");
