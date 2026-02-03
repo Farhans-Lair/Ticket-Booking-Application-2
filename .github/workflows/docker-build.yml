@@ -84,4 +84,4 @@ jobs:
           cd backend
           docker build -t ticket-backend:latest .
           docker tag ticket-backend:latest 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
-          docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+          docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest1
