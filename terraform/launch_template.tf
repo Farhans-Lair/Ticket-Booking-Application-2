@@ -8,6 +8,7 @@ data "template_file" "user_data" {
     DB_USER     = var.db_username
     DB_PASSWORD = var.db_password
     JWT_SECRET  = "super_secret_jwt_key_123"
+
   }
 }
 
