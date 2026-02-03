@@ -59,6 +59,11 @@ jobs:
           cd backend
           npm install
 
+      - name: Run tests
+        run: |
+          cd backend
+          npm test
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
