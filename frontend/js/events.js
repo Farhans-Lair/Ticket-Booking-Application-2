@@ -5,7 +5,6 @@ if (!token)
   {
   alert("Please login first");
   window.location.href = "/";
-  throw new Error("No token, redirecting");
   }
 
 async function fetchEvents() {
@@ -14,7 +13,6 @@ async function fetchEvents() {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
       }
     });
 
@@ -25,16 +23,14 @@ async function fetchEvents() {
       return;
     }
 
-    if (!res.ok && res.status !== 304) {
+    if (!res.ok) {
       const text = await res.text();
       console.error("Backend error:", text);
       alert("Failed to load events");
       return;
     }
 
-    const events = res.status === 304 ? [] : await res.json();
-
-    
+    const events = await res.json();
     const list = document.getElementById("events-list");
     list.innerHTML = "";
 

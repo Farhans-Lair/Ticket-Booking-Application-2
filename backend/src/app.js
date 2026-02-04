@@ -4,6 +4,8 @@ const cors = require("cors");
 
 const app = express();
 
+app.disable("etag");
+
 /**
  * ✅ UNIVERSAL CORS (Express 5 safe)
  */
