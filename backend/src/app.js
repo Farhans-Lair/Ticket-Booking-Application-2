@@ -5,32 +5,31 @@ const cors = require("cors");
 const app = express();
 
 /**
- * ✅ UNIVERSAL CORS CONFIG
- * - Works in browser
- * - Works in CI/CD
- * - Works behind ALB
- * - No wildcard crashes
+ * ✅ UNIVERSAL CORS (Express 5 safe)
  */
 app.use(cors({
-  origin: true, // reflect request origin safely
+  origin: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: false
 }));
 
 /**
- * ✅ REQUIRED for Authorization header
- * Browsers send OPTIONS before GET/POST
+ * ✅ IMPORTANT:
+ * Express 5 DOES NOT LIKE app.options("*")
+ * This handles preflight safely
  */
-app.options("*", cors());
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
-/**
- * ✅ JSON parsing
- */
 app.use(express.json());
 
 /**
- * ✅ Health check (ALB + CI)
+ * ✅ Health check (CI + ALB)
  */
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "OK" });
@@ -48,8 +47,7 @@ app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
 
 /**
- * ✅ CI/CD SAFE ERROR HANDLER
- * Prevents pipeline crashes
+ * ✅ CI SAFE error handler
  */
 app.use((err, _req, res, _next) => {
   console.error("GLOBAL ERROR:", err.message);
