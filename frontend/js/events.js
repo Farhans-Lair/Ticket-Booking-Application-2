@@ -1,18 +1,29 @@
 // Auth guard
 const token = localStorage.getItem("token");
 
-if (!token) {
+if (!token) 
+  {
   alert("Please login first");
   window.location.href = "/";
-}
+  throw new Error("No token, redirecting");
+  }
 
 async function fetchEvents() {
   try {
     const res = await fetch(`${API_BASE_URL}/events`, {
+      method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
       }
     });
+
+    if (res.status === 401) {
+      alert("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return;
+    }
 
     if (!res.ok) {
       alert("Failed to load events");
@@ -32,7 +43,7 @@ async function fetchEvents() {
         Tickets: ${event.available_tickets}
         <hr/>
       `;
-      list.appendChild(li);
+      list.appendChild(div);
     });
 
   } catch (err) {
@@ -45,3 +56,7 @@ function logout() {
   localStorage.removeItem("token");
   window.location.href = "/";
 }
+
+// Load events on page load
+fetchEvents();
+

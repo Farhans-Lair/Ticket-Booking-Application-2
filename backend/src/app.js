@@ -4,36 +4,58 @@ const cors = require("cors");
 
 const app = express();
 
-const corsOptions = {
-  origin: "http://localhost:3000", // 👈 frontend origin
+/**
+ * ✅ UNIVERSAL CORS CONFIG
+ * - Works in browser
+ * - Works in CI/CD
+ * - Works behind ALB
+ * - No wildcard crashes
+ */
+app.use(cors({
+  origin: true, // reflect request origin safely
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: false
-};
+}));
 
-app.use(cors(corsOptions));
+/**
+ * ✅ REQUIRED for Authorization header
+ * Browsers send OPTIONS before GET/POST
+ */
+app.options("*", cors());
 
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
-
+/**
+ * ✅ JSON parsing
+ */
 app.use(express.json());
 
+/**
+ * ✅ Health check (ALB + CI)
+ */
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "OK" });
+});
+
+/**
+ * ✅ Routes
+ */
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
 
-
-app.get("/health", ( _req, res) => {
-  res.json({ status: "OK" });
-});
-
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
+
+/**
+ * ✅ CI/CD SAFE ERROR HANDLER
+ * Prevents pipeline crashes
+ */
+app.use((err, _req, res, _next) => {
+  console.error("GLOBAL ERROR:", err.message);
+  res.status(err.statusCode || 500).json({
+    error: err.message || "Internal Server Error"
+  });
+});
 
 module.exports = app;
