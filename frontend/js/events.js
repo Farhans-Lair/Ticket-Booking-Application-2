@@ -25,18 +25,26 @@ async function fetchEvents() {
       return;
     }
 
-    if (!res.ok) {
+    if (!res.ok && res.status !== 304) {
+      const text = await res.text();
+      console.error("Backend error:", text);
       alert("Failed to load events");
       return;
     }
 
-    const events = await res.json();
-    const list = document.getElementById("events-list");
+    const events = res.status === 304 ? [] : await res.json();
 
+    
+    const list = document.getElementById("events-list");
     list.innerHTML = "";
 
+    if (events.length === 0) {
+      list.innerHTML = "<p>No events available</p>";
+      return;
+    }
+
     events.forEach(event => {
-      const li = document.createElement("li");
+      const div = document.createElement("div");
       li.innerHTML = `
         <strong>${event.name}</strong><br/>
         ${event.description}<br/>
@@ -47,6 +55,7 @@ async function fetchEvents() {
     });
 
   } catch (err) {
+    console.error("Fetch error:", err);
     alert("Error fetching events");
   }
 }
