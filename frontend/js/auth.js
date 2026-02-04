@@ -31,18 +31,24 @@ async function login() {
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  if (!email || !password) {
-    alert("Please enter email and password");
-    return;
-  }
-
   try {
-    const response = await apiRequest("/auth/login", "POST", {
-      email,
-      password
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
     });
 
-    localStorage.setItem("token", response.token);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Login failed");
+      return;
+    }
+
+    // ✅ STORE TOKEN
+    localStorage.setItem("token", data.token);
 
     window.location.href = "events.html";
   } catch (err) {
