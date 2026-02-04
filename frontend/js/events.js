@@ -13,13 +13,22 @@ async function fetchEvents() {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "Accept": "application/json",
+        "Cache-Control": "no-cache"
       }
     });
 
+    // Session expired
     if (res.status === 401) {
       alert("Session expired. Please login again.");
       localStorage.removeItem("token");
       window.location.href = "/";
+      return;
+    }
+
+    // 304 = cached + no body
+    if (res.status === 304) {
+      renderEmptyEvents();
       return;
     }
 
@@ -31,29 +40,38 @@ async function fetchEvents() {
     }
 
     const events = await res.json();
-    const list = document.getElementById("events-list");
-    list.innerHTML = "";
-
-    if (events.length === 0) {
-      list.innerHTML = "<p>No events available</p>";
-      return;
-    }
-
-    events.forEach(event => {
-      const div = document.createElement("div");
-      li.innerHTML = `
-        <strong>${event.name}</strong><br/>
-        ${event.description}<br/>
-        Tickets: ${event.available_tickets}
-        <hr/>
-      `;
-      list.appendChild(div);
-    });
+    renderEvents(events);
 
   } catch (err) {
-    console.error("Fetch error:", err);
-    alert("Error fetching events");
+    console.error("Fetch failed:", err);
+    alert("Network error while fetching events");
   }
+}
+
+function renderEvents(events) {
+  const list = document.getElementById("events-list");
+  list.innerHTML = "";
+
+  if (!events || events.length === 0) {
+    list.innerHTML = "<p>No events available</p>";
+    return;
+  }
+
+  events.forEach(event => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <strong>${event.name}</strong><br/>
+      ${event.description}<br/>
+      Tickets: ${event.available_tickets}
+      <hr/>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function renderEmptyEvents() {
+  const list = document.getElementById("events-list");
+  list.innerHTML = "<p>No events available</p>";
 }
 
 // Logout
