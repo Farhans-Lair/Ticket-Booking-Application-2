@@ -1,3 +1,5 @@
+console.log("events.js loaded");
+
 const API_BASE_URL = "http://ticket-alb-1397535065.ap-south-1.elb.amazonaws.com";
 
 document.addEventListener("DOMContentLoaded", () => {
