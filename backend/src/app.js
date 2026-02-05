@@ -11,11 +11,12 @@ const app = express();
  */
 app.use(
   cors({
-    origin: "http://localhost:3000", // frontend origin
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Authorization"],
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 /**
  * ✅ JSON parsing

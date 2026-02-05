@@ -1,10 +1,10 @@
-// Auth guard
 const token = localStorage.getItem("token");
 
 if (!token) {
   alert("Please login first");
   window.location.href = "/";
-  throw new Error("No token");
+} else {
+  fetchEvents();
 }
 
 async function fetchEvents() {
@@ -12,7 +12,7 @@ async function fetchEvents() {
     const res = await fetch(`${API_BASE_URL}/events`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`, // ✅ only header
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -60,11 +60,7 @@ function renderEvents(events) {
   });
 }
 
-// Logout
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "/";
 }
-
-// Load on page open
-fetchEvents();
