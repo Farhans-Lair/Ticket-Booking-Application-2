@@ -1,11 +1,3 @@
-// Auth guard
-const token = localStorage.getItem("token");
-
-if (!token) {
-  alert("Please login first");
-  window.location.href = "/";
-  throw new Error("No token");
-}
 
 // Auth guard
 const token = localStorage.getItem("token");
