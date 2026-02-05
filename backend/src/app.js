@@ -5,48 +5,43 @@ const cors = require("cors");
 const app = express();
 
 /**
- * 🔴 CRITICAL: Disable ETag
- * This PREVENTS 304 responses
+ * ✅ CORS (browser + ALB safe)
+ * - Only what we need
+ * - No wildcard OPTIONS
  */
-app.disable("etag");
+app.use(
+  cors({
+    origin: "http://localhost:3000", // frontend origin
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Authorization"],
+  })
+);
 
 /**
- * ✅ CORS (safe for browser + CI)
+ * ✅ JSON parsing
  */
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
-
-/**
- * ✅ Handle preflight
- */
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
 app.use(express.json());
 
 /**
  * ✅ Health check (CI + ALB)
  */
 app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "OK" });
+  res.status(200).json({ status: "ok" });
 });
 
 /**
  * ✅ Routes
  */
-app.use("/auth", require("./routes/auth.routes"));
-app.use("/events", require("./routes/event.routes"));
-app.use("/bookings", require("./routes/booking.routes"));
+const authRoutes = require("./routes/auth.routes");
+const eventRoutes = require("./routes/event.routes");
+const bookingRoutes = require("./routes/booking.routes");
+
+app.use("/auth", authRoutes);
+app.use("/events", eventRoutes);
+app.use("/bookings", bookingRoutes);
 
 /**
- * ✅ Error handler (CI safe)
+ * ✅ CI-safe error handler
  */
 app.use((err, _req, res, _next) => {
   console.error("GLOBAL ERROR:", err.message);
