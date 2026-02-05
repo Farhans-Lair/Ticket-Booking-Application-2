@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ticket Booking – Events</title>
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
-<body>
+  <title>Events</title>
 
+  <!-- ✅ MUST use defer -->
+  <script src="/js/events.js" defer></script>
+</head>
+
+<body>
   <h1>Available Events</h1>
 
   <button onclick="logout()">Logout</button>
 
-  <div id="events"></div>
-
-  <script src="js/api.js"></script>
-  <script src="js/events.js"></script>
+  <div id="events-list"></div>
 </body>
 </html>

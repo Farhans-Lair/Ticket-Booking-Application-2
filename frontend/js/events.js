@@ -1,14 +1,21 @@
-const token = localStorage.getItem("token");
+const API_BASE_URL = "http://ticket-alb-1397535065.ap-south-1.elb.amazonaws.com";
 
-if (!token) {
-  alert("Please login first");
-  window.location.href = "/";
-} else {
-  fetchEvents();
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
 
-async function fetchEvents() {
+  if (!token) {
+    alert("Please login first");
+    window.location.href = "/";
+    return;
+  }
+
+  fetchEvents(token);
+});
+
+async function fetchEvents(token) {
   try {
+    console.log("Calling /events API");
+
     const res = await fetch(`${API_BASE_URL}/events`, {
       method: "GET",
       headers: {
@@ -16,8 +23,10 @@ async function fetchEvents() {
       },
     });
 
+    console.log("Events status:", res.status);
+
     if (res.status === 401) {
-      alert("Session expired. Please login again.");
+      alert("Session expired");
       localStorage.removeItem("token");
       window.location.href = "/";
       return;
@@ -26,7 +35,6 @@ async function fetchEvents() {
     if (!res.ok) {
       const text = await res.text();
       console.error("Backend error:", text);
-      alert("Failed to load events");
       return;
     }
 
@@ -35,7 +43,6 @@ async function fetchEvents() {
 
   } catch (err) {
     console.error("Fetch failed:", err);
-    alert("Network error while fetching events");
   }
 }
 
