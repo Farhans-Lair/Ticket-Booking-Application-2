@@ -1,24 +1,32 @@
 // Auth guard
 const token = localStorage.getItem("token");
 
-if (!token) 
-  {
+if (!token) {
   alert("Please login first");
   window.location.href = "/";
-  }
+  throw new Error("No token");
+}
 
 async function fetchEvents() {
   try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first");
+      window.location.href = "/";
+      return;
+    }
+
     const res = await fetch(`${API_BASE_URL}/events`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
         "Cache-Control": "no-cache"
       }
     });
 
-    // Session expired
+    // 🔐 Session expired
     if (res.status === 401) {
       alert("Session expired. Please login again.");
       localStorage.removeItem("token");
@@ -26,9 +34,9 @@ async function fetchEvents() {
       return;
     }
 
-    // 304 = cached + no body
+    // 🟡 304 → cached, no body
     if (res.status === 304) {
-      renderEmptyEvents();
+      renderEvents([]); // empty list is valid
       return;
     }
 
@@ -69,10 +77,8 @@ function renderEvents(events) {
   });
 }
 
-function renderEmptyEvents() {
-  const list = document.getElementById("events-list");
-  list.innerHTML = "<p>No events available</p>";
-}
+fetchEvents();
+
 
 // Logout
 function logout() {
@@ -80,6 +86,5 @@ function logout() {
   window.location.href = "/";
 }
 
-// Load events on page load
+// Load on page open
 fetchEvents();
-
