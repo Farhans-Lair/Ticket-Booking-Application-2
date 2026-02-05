@@ -1,4 +1,3 @@
-
 // Auth guard
 const token = localStorage.getItem("token");
 
@@ -60,16 +59,6 @@ function renderEvents(events) {
     list.appendChild(div);
   });
 }
-
-// Logout
-function logout() {
-  localStorage.removeItem("token");
-  window.location.href = "/";
-}
-
-// Load on page open
-fetchEvents();
-
 
 // Logout
 function logout() {
