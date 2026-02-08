@@ -1,16 +1,16 @@
-import eventService from "../services/event.services.js";
+const eventService = require("../services/event.services");
 
-export const createEvent = async (req, res, next) => {
+const createEvent = async (req, res, next) => {
   try {
     const event = await eventService.createEvent(req.body);
     res.status(201).json(event);
   } catch (err) {
-    err.statusCode = 400;
+     err.statusCode = 400;
     next(err);
   }
 };
 
-export const getEvents = async (req, res, next) => {
+const getEvents = async (req, res, next) => {
   try {
     const events = await eventService.getAllEvents();
     res.json(events);
@@ -18,4 +18,9 @@ export const getEvents = async (req, res, next) => {
     err.statusCode = 500;
     next(err);
   }
+};
+
+module.exports = {
+  createEvent,
+  getEvents,
 };
