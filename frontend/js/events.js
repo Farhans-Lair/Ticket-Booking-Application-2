@@ -1,6 +1,6 @@
 console.log("events.js loaded");
 
-const API_BASE_URL = "http://ticket-alb-1397535065.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "http://ticket-alb-1292542882.ap-south-1.elb.amazonaws.com";
 
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
