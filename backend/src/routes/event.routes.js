@@ -1,15 +1,14 @@
-import express from "express";
-import authenticate from "../middleware/auth.middleware.js";
-import authorizeAdmin from "../middleware/authorizeadmin.js";
-import * as eventController from "../controllers/event.controllers.js";
-
+const express = require("express");
 const router = express.Router();
 
+const authenticate = require("../middleware/auth.middleware");
+const authorizeAdmin = require("../middleware/authorizeadmin");
+const eventController = require("../controllers/event.controllers");
 
-// Protected
+// Protected: any logged-in user
 router.get("/", authenticate, eventController.getEvents);
 
-// Protected
+// Protected: admin only
 router.post("/", authenticate, authorizeAdmin, eventController.createEvent);
 
-export default router;
+module.exports = router;

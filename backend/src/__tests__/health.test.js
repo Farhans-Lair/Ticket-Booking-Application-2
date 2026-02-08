@@ -1,5 +1,5 @@
 const request = require("supertest");
-import app from "../app.js";
+const app = require("../app");
 
 describe("Health Check", () => {
   it("should return 200 OK", async () => {
