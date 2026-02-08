@@ -1,8 +1,10 @@
-const express = require("express");
+import express from "express";
+import authenticate from "../middleware/auth.middleware.js";
+import authorizeAdmin from "../middleware/authorizeadmin.js";
+import * as eventController from "../controllers/event.controllers.js";
+
 const router = express.Router();
-const authenticate = require("../middleware/auth.middleware");
-const authorizeAdmin = require("../middleware/authorizeadmin");
-const eventController = require("../controllers/event.controllers");
+
 
 // Protected
 router.get("/", authenticate, eventController.getEvents);
@@ -10,4 +12,4 @@ router.get("/", authenticate, eventController.getEvents);
 // Protected
 router.post("/", authenticate, authorizeAdmin, eventController.createEvent);
 
-module.exports = router;
+export default router;
