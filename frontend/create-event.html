@@ -5,24 +5,35 @@
   <title>Create Event</title>
 </head>
 <body>
-
   <h2>Create Event</h2>
 
-  <input id="name" placeholder="Event name" />
+  <input id="title" placeholder="Event title" />
   <br /><br />
 
   <textarea id="description" placeholder="Description"></textarea>
   <br /><br />
 
-  <input id="tickets" type="number" placeholder="Tickets" />
+  <input id="location" placeholder="Location" />
+  <br /><br />
+
+  <label>Event Date</label><br />
+  <input id="event_date" type="date" />
+  <br /><br />
+
+  <input id="total_tickets" type="number" placeholder="Total tickets" />
+  <br /><br />
+
+  <input
+    id="available_tickets"
+    type="number"
+    placeholder="Available tickets"
+  />
   <br /><br />
 
   <button onclick="handleCreateEvent()">Create</button>
-  <br /><br />
-
   <button onclick="logout()">Logout</button>
 
-  <!-- ✅ FILE NAME MUST MATCH EXACTLY -->
-  <script src="create-event.js"></script>
+  <!-- IMPORTANT: correct path -->
+  <script src="js/create-event.js"></script>
 </body>
 </html>

@@ -1,3 +1,6 @@
+const API_BASE_URL =
+  "http://ticket-alb-1078491885.ap-south-1.elb.amazonaws.com";
+
 const token = localStorage.getItem("token");
 
 if (!token) {
@@ -5,17 +8,21 @@ if (!token) {
   window.location.href = "/";
 }
 
-// ✅ renamed to avoid DOM createEvent() collision
+// ✅ Create Event
 async function handleCreateEvent() {
   try {
-    const name = document.getElementById("name").value.trim();
-    const description = document.getElementById("description").value.trim();
-    const tickets = Number(document.getElementById("tickets").value);
-
-    if (!name || !tickets) {
-      alert("Name and tickets are required");
-      return;
-    }
+    const payload = {
+      title: document.getElementById("title").value,
+      description: document.getElementById("description").value,
+      location: document.getElementById("location").value,
+      event_date: document.getElementById("event_date").value,
+      total_tickets: Number(
+        document.getElementById("total_tickets").value
+      ),
+      available_tickets: Number(
+        document.getElementById("available_tickets").value
+      ),
+    };
 
     const res = await fetch(`${API_BASE_URL}/events`, {
       method: "POST",
@@ -23,11 +30,7 @@ async function handleCreateEvent() {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name,
-        description,
-        available_tickets: tickets,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (res.status === 403) {
@@ -36,20 +39,21 @@ async function handleCreateEvent() {
     }
 
     if (!res.ok) {
-      const text = await res.text();
-      alert(text);
+      const err = await res.text();
+      console.error("Create event failed:", err);
+      alert("Failed to create event");
       return;
     }
 
     alert("Event created successfully");
     window.location.href = "/events";
-
   } catch (err) {
-    console.error("Create event failed:", err);
+    console.error("Network error:", err);
     alert("Network error");
   }
 }
 
+// ✅ Logout
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "/";

@@ -59,15 +59,20 @@ function renderEvents(events) {
 
   events.forEach(event => {
     const div = document.createElement("div");
+
     div.innerHTML = `
-      <strong>${event.name}</strong><br/>
-      ${event.description}<br/>
-      Tickets: ${event.available_tickets}
+      <strong>${event.title}</strong><br/>
+      ${event.description || ""}<br/>
+      <em>${event.location || ""}</em><br/>
+      Date: ${new Date(event.event_date).toLocaleDateString()}<br/>
+      Tickets Available: ${event.available_tickets} / ${event.total_tickets}
       <hr/>
     `;
+
     list.appendChild(div);
   });
 }
+
 
 function logout() {
   localStorage.removeItem("token");
