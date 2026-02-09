@@ -20,7 +20,13 @@ const User = sequelize.define("User", {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-}, {
+  role: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: "user",
+  },
+},
+ {
   tableName: "users",
   timestamps: true,
   createdAt: "created_at",
