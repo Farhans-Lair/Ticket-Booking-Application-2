@@ -8,35 +8,21 @@
 
   <h2>Create Event</h2>
 
-  <form id="create-event-form" onsubmit="createEvent(event)">
-    <input
-      id="name"
-      placeholder="Event name"
-      required
-    />
-    <br />
+  <input id="name" placeholder="Event name" />
+  <br /><br />
 
-    <textarea
-      id="description"
-      placeholder="Description"
-    ></textarea>
-    <br />
+  <textarea id="description" placeholder="Description"></textarea>
+  <br /><br />
 
-    <input
-      id="tickets"
-      type="number"
-      placeholder="Tickets"
-      min="1"
-      required
-    />
-    <br />
+  <input id="tickets" type="number" placeholder="Tickets" />
+  <br /><br />
 
-    <button type="submit">Create</button>
-  </form>
+  <button onclick="handleCreateEvent()">Create</button>
+  <br /><br />
 
-  <br />
   <button onclick="logout()">Logout</button>
 
+  <!-- ✅ FILE NAME MUST MATCH EXACTLY -->
   <script src="create-event.js"></script>
 </body>
 </html>
