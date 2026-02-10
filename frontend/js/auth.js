@@ -40,18 +40,28 @@ async function login() {
       body: JSON.stringify({ email, password })
     });
 
-    const data = await res.json();
-
+    // ❌ Stop immediately if credentials are invalid
     if (!res.ok) {
-      alert(data.message || "Login failed");
+      alert("Invalid credentials");
       return;
     }
 
-    // ✅ STORE TOKEN
-    localStorage.setItem("token", data.token);
+    // ✅ Parse response ONCE
+    const data = await res.json();
 
-    window.location.href = "events.html";
+    // ✅ Store auth data
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+
+    // 🔥 ROLE BASED REDIRECT
+    if (data.role === "admin") {
+      window.location.href = "/create-event";
+    } else {
+      window.location.href = "/events";
+    }
+
   } catch (err) {
-    alert("Login failed: " + err.message);
+    alert("Login failed");
   }
 }
+
