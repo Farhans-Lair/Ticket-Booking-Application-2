@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://<ALB-DNS>";
+const API_BASE_URL = "http://ticket-alb-1150398486.ap-south-1.elb.amazonaws.com";
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 
@@ -10,7 +10,7 @@ if (!token || role !== "admin") {
 document.addEventListener("DOMContentLoaded", loadEvents);
 
 async function loadEvents() {
-  const res = await fetch(`${API_BASE_URL}/events/admin`, {
+  const res = await fetch(`${API_BASE_URL}/events`, {
     headers: { Authorization: `Bearer ${token}` }
   });
 
