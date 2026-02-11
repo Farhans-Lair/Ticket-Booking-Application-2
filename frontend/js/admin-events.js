@@ -1,11 +1,17 @@
-const API_BASE_URL = "http://ticket-alb-1150398486.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "http://ticket-alb-230646725.ap-south-1.elb.amazonaws.com";
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 
-if (!token || role !== "admin") {
-  alert("Admin access only");
+if (!token) {
   window.location.href = "/";
 }
+
+if (role !== "admin") {
+  alert("Unauthorized");
+  localStorage.clear();
+  window.location.href = "/";
+}
+
 
 document.addEventListener("DOMContentLoaded", loadEvents);
 

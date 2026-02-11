@@ -40,14 +40,16 @@ async function login() {
       body: JSON.stringify({ email, password })
     });
 
+   // ✅ Parse response ONCE
+    const data = await res.json();
+
     // ❌ Stop immediately if credentials are invalid
     if (!res.ok) {
       alert("Invalid credentials");
       return;
     }
 
-    // ✅ Parse response ONCE
-    const data = await res.json();
+   
 
     // ✅ Store auth data
     localStorage.setItem("token", data.token);
