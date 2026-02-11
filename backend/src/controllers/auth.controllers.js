@@ -1,7 +1,3 @@
-const { User } = require("../models");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
 const authService = require("../services/auth.services");
 
 const register = async (req, res, next) => {
@@ -44,7 +40,7 @@ const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ token, role:User.role });
+    res.json({ token,role: user.role });
   } catch (err) {
     next (err);
   }
