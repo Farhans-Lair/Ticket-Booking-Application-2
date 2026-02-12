@@ -55,7 +55,7 @@ async function login() {
 
     // 🔥 ROLE BASED REDIRECT
     if (data.role === "admin") {
-      window.location.href = "/create-event";
+      window.location.href = "/admin";
     } 
     else {
       window.location.href = "/events";
