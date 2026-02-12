@@ -5,6 +5,17 @@ const sequelize = require("./config/database");
 
 const PORT = process.env.PORT || 3000;
 
+// ✅ Add route BEFORE app.listen()
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
+});
+
+// 🔹 Start server immediately
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// 🔹 Initialize DB asynchronously
 (async () => {
   try {
     await sequelize.authenticate();
@@ -12,12 +23,8 @@ const PORT = process.env.PORT || 3000;
 
     await sequelize.sync();
     console.log("Models synchronized successfully");
-
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   } catch (err) {
     console.error("Database initialization failed:", err.message);
-    process.exit(1);
+    // ❗ DO NOT exit — keep server alive for ALB health checks
   }
 })();
