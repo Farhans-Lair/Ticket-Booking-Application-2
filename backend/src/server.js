@@ -5,11 +5,6 @@ const sequelize = require("./config/database");
 
 const PORT = process.env.PORT || 3000;
 
-// ✅ Add route BEFORE app.listen()
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
-});
-
 // 🔹 Start server immediately
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
