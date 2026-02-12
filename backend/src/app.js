@@ -30,6 +30,9 @@ app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+const authenticate = require("./middleware/auth.middleware");
+const authorizeAdmin = require("./middleware/authorizeadmin");
+
 /**
  * ✅ Routes
  */
