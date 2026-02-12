@@ -49,8 +49,6 @@ async function login() {
       return;
     }
 
-   
-
     // ✅ Store auth data
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role);
@@ -61,7 +59,7 @@ async function login() {
     } 
     
     else if (data.role === "admin") {
-    window.location.href = "/admmin-events.html";
+    window.location.href = "/admmin-events";
     }
     
     else {
