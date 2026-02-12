@@ -1,4 +1,8 @@
-const API_BASE_URL = "http://ticket-alb-230646725.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "http://ticket-alb-144501438.ap-south-1.elb.amazonaws.com";
+
+document.addEventListener("DOMContentLoaded", () =>
+{
+
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 
@@ -10,10 +14,11 @@ if (role !== "admin") {
   alert("Unauthorized");
   localStorage.clear();
   window.location.href = "/";
+
+  loadEvents();
 }
 
-
-document.addEventListener("DOMContentLoaded", loadEvents);
+});
 
 async function loadEvents() {
   const res = await fetch(`${API_BASE_URL}/events`, {

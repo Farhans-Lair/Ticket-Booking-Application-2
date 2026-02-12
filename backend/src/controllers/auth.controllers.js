@@ -1,4 +1,7 @@
 const authService = require("../services/auth.services");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { User } = require("../models");   // 🔥 MUST be here
 
 const register = async (req, res, next) => {
   try {
