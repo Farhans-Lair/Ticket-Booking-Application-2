@@ -41,6 +41,16 @@ app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
 
+
+// 🔐 Protected admin page
+app.get("/admin", authenticate, authorizeAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
+});
+
+// Serve only public pages
+app.use("/public", express.static(path.join(__dirname, "../frontend")));
+
+
 /**
  * ✅ CI-safe error handler
  */

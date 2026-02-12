@@ -12,11 +12,9 @@ const authorizeAdmin = require("./middleware/authorizeadmin");
 
 const PORT = process.env.PORT || 3000;
 
-// Serve ONLY public assets
-app.use(
-  "/",
-  express.static(path.join(__dirname, "../frontend/public"))
-);
+// Serve only public pages
+app.use("/public", express.static(path.join(__dirname, "../frontend")));
+
 
 /* =====================================================
    🔐 PROTECTED HTML ROUTES

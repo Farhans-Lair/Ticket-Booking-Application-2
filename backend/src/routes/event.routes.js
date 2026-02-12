@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const app = express();
+
 
 const authenticate = require("../middleware/auth.middleware");
 const authorizeAdmin = require("../middleware/authorizeadmin");
 const eventController = require("../controllers/event.controllers");
 
-app.get(
+router.get(
   "/admin",
   authenticate,
   authorizeAdmin,
