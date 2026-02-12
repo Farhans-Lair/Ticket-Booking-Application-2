@@ -61,7 +61,7 @@ async function login() {
     else if (data.role === "admin")
       {
 
-        window.location.href= "/create-event"
+        window.location.href= "/create-event";
       }
     
     else {

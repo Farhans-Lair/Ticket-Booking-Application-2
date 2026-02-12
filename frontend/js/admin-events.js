@@ -20,6 +20,18 @@ if (role !== "admin") {
 
 });
 
+// 🔐 Not logged in
+if (!token) {
+  alert("Login required");
+  window.location.href = "/";
+}
+
+// 🔥 Not admin
+if (role !== "admin") {
+  alert("Admin access only");
+  window.location.href = "/events";
+}
+
 async function loadEvents() {
   const res = await fetch(`${API_BASE_URL}/events`, {
     headers: { Authorization: `Bearer ${token}` }
