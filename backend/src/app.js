@@ -1,66 +1,89 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-
-const app = express();
 const path = require("path");
 
+const authenticate = require("./middleware/auth.middleware");
+const authorizeAdmin = require("./middleware/authorizeadmin");
 
-/**
- * ✅ CORS (browser + ALB safe)
- * - Only what we need
- * - No wildcard OPTIONS
- */
+const authRoutes = require("./routes/auth.routes");
+const eventRoutes = require("./routes/event.routes");
+const bookingRoutes = require("./routes/booking.routes");
+
+const app = express();
+
+/* =====================================================
+   ✅ CORS CONFIG (Environment-safe)
+===================================================== */
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+/* =====================================================
+   ✅ JSON Parsing
+===================================================== */
 
-/**
- * ✅ JSON parsing
- */
 app.use(express.json());
 
-/**
- * ✅ Health check (CI + ALB)
- */
+/* =====================================================
+   🏥 Health Check (ALB / CI)
+===================================================== */
+
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-const authenticate = require("./middleware/auth.middleware");
-const authorizeAdmin = require("./middleware/authorizeadmin");
-
-/**
- * ✅ Routes
- */
-const authRoutes = require("./routes/auth.routes");
-const eventRoutes = require("./routes/event.routes");
-const bookingRoutes = require("./routes/booking.routes");
+/* =====================================================
+   📦 API Routes
+===================================================== */
 
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
 
+/* =====================================================
+   🎨 Static Assets (ONLY JS & CSS)
+   ⚠ DO NOT expose full frontend folder
+===================================================== */
 
-// 🔐 Protected admin page
+app.use("/js", express.static(path.join(__dirname, "../frontend/js")));
+app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
+
+/* =====================================================
+   🔐 Protected HTML Pages (ADMIN ONLY)
+===================================================== */
+
+// Admin Dashboard
 app.get("/admin", authenticate, authorizeAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
 });
 
-// Serve only public pages
-app.use("/public", express.static(path.join(__dirname, "../frontend")));
+// Create Event Page
+app.get("/create-event", authenticate, authorizeAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/create-event.html"));
+});
 
+/* =====================================================
+   ❌ 404 Handler
+===================================================== */
 
-/**
- * ✅ CI-safe error handler
- */
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+/* =====================================================
+   🔥 Global Error Handler
+===================================================== */
+
 app.use((err, _req, res, _next) => {
   console.error("GLOBAL ERROR:", err.message);
+
   res.status(err.statusCode || 500).json({
     error: err.message || "Internal Server Error",
   });

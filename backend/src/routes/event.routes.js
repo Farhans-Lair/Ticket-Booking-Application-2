@@ -6,15 +6,6 @@ const authenticate = require("../middleware/auth.middleware");
 const authorizeAdmin = require("../middleware/authorizeadmin");
 const eventController = require("../controllers/event.controllers");
 
-router.get(
-  "/admin",
-  authenticate,
-  authorizeAdmin,
-  (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
-  }
-);
-
 // Protected: any logged-in user
 router.get("/", authenticate, eventController.getEvents);
 
