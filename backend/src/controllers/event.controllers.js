@@ -23,12 +23,18 @@ const createEvent = async (req, res, next) => {
         error: "Total tickets must be greater than zero"
       });
     }
+// 🔥 FIXED DATE VALIDATION (Allows today)
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
-    if (new Date(event_date) < new Date()) {
-      return res.status(400).json({
-        error: "Event date must be in the future"
-      });
-    }
+const selectedDate = new Date(event_date);
+selectedDate.setHours(0, 0, 0, 0);
+
+if (selectedDate < today) {
+  return res.status(400).json({
+    error: "Event date must be today or future"
+  });
+}
 
     // ✅ Call service with clean, controlled data
     const event = await eventService.createEvent({
