@@ -1,6 +1,6 @@
 const API_BASE_URL = "http://ticket-alb-144501438.ap-south-1.elb.amazonaws.com";
 
-document.addEventListener("DOMContentLoaded", () =>
+/*document.addEventListener("DOMContentLoaded", () =>
 {
 
 const token = localStorage.getItem("token");
@@ -19,6 +19,7 @@ if (role !== "admin") {
 }
 
 });
+*/
 
 // 🔐 Not logged in
 if (!token) {
