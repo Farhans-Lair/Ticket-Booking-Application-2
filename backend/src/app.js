@@ -1,3 +1,4 @@
+console.log("APP.JS LOADED");
 require("dotenv").config();
 
 const express = require("express");
@@ -67,6 +68,10 @@ app.get("/admin", (req, res) => {
 // Create Event Page
 app.get("/create-event", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/create-event.html"));
+});
+
+app.get("/debug-admin", (req, res) => {
+  res.send("ADMIN ROUTE EXISTS");
 });
 
 /* =====================================================
