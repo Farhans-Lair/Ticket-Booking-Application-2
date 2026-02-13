@@ -1,8 +1,8 @@
 const API_BASE_URL =
-  "http://ticket-alb-1095121885.ap-south-1.elb.amazonaws.com";
+  "http://ticket-alb-90792609.ap-south-1.elb.amazonaws.com";
 
 const token = localStorage.getItem("token");
-const role = localStorage.getItem("token");
+const role = localStorage.getItem("role");
 
 // 🔐 Not logged in
 if (!token) {
