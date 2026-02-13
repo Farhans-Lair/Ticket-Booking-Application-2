@@ -60,12 +60,12 @@ app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 ===================================================== */
 
 // Admin Dashboard
-app.get("/admin", authenticate, authorizeAdmin, (req, res) => {
+app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
 });
 
 // Create Event Page
-app.get("/create-event", authenticate, authorizeAdmin, (req, res) => {
+app.get("/create-event", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/create-event.html"));
 });
 
