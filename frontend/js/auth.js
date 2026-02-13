@@ -53,23 +53,22 @@ async function login() {
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role);
 
-    // 🔥 ROLE BASED REDIRECT
-    if (data.role === "admin") {
-      window.location.href = "/admin-events";
-    } 
-
-    else if (data.role === "admin")
-      {
-
-        window.location.href= "/create-event";
-      }
     
-    else {
+    // ✅ Only ONE admin redirect
+    if (data.role === "admin") {
+      window.location.href = "/admin";
+    } else {
       window.location.href = "/events";
     }
 
   } catch (err) {
     alert("Login failed");
   }
+  // ======================
+// ADMIN NAVIGATION
+// ======================
+function goToCreateEvent() {
+  window.location.href = "/create-event";
+}
 }
 
