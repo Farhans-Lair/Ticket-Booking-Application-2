@@ -1,10 +1,10 @@
-const API_BASE_URL = "http://ticket-alb-144501438.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "http://ticket-alb-1095121885.ap-south-1.elb.amazonaws.com";
 
-/*document.addEventListener("DOMContentLoaded", () =>
-{
+document.addEventListener("DOMContentLoaded", () =>{
 
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
+
 
 if (!token) {
   window.location.href = "/";
@@ -19,19 +19,6 @@ if (role !== "admin") {
 }
 
 });
-*/
-
-// 🔐 Not logged in
-if (!token) {
-  alert("Login required");
-  window.location.href = "/";
-}
-
-// 🔥 Not admin
-if (role !== "admin") {
-  alert("Admin access only");
-  window.location.href = "/events";
-}
 
 async function loadEvents() {
   const res = await fetch(`${API_BASE_URL}/events`, {
