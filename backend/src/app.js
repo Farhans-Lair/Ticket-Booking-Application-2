@@ -62,13 +62,9 @@ app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 
 // Admin Dashboard
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin-events.html"));
+  res.sendFile(path.join(__dirname, "../frontend/admin-dashboard.html"));
 });
 
-// Create Event Page
-app.get("/create-event", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/create-event.html"));
-});
 
 app.get("/debug-admin", (req, res) => {
   res.send("ADMIN ROUTE EXISTS");

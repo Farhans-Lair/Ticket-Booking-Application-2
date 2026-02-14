@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <h1>Admin Dashboard</h1>
+  <button onclick="logout()">Logout</button>
+
+  <hr>
+
+  <!-- 🔹 Create Event Section -->
+  <h2>Create New Event</h2>
+  <input type="text" id="title" placeholder="Event Title">
+  <input type="text" id="description" placeholder="Description">
+  <input type="date" id="date">
+  <input type="number" id="price" placeholder="Price">
+  <input type="number" id="availableTickets" placeholder="Available Tickets">
+  <button onclick="createEvent()">Create Event</button>
+
+  <hr>
+
+  <!-- 🔹 Event List Section -->
+  <h2>All Events</h2>
+  <div id="events-list"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

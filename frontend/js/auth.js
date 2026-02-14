@@ -3,6 +3,7 @@ async function register() {
   const email = document.getElementById("registerEmail").value;
   const password = document.getElementById("registerPassword").value;
 
+
   if (!name || !email || !password) {
     alert("Please fill all fields");
     return;
@@ -56,7 +57,7 @@ async function login() {
     
     // ✅ Only ONE admin redirect
     if (data.role === "admin") {
-      window.location.href = "/admin";
+      window.location.href = "/admin-dashboard";
     } else {
       window.location.href = "/events";
     }
@@ -64,11 +65,4 @@ async function login() {
   } catch (err) {
     alert("Login failed");
   }
-  // ======================
-// ADMIN NAVIGATION
-// ======================
-function goToCreateEvent() {
-  window.location.href = "/create-event";
 }
-}
-
