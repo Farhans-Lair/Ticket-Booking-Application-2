@@ -25,9 +25,6 @@ const Event = sequelize.define("Event", {
   price: {
     type: DataTypes.FLOAT,
     allowNull: false,
-    validate: {
-      min: 0
-    }
   },
 
   total_tickets: {
@@ -37,7 +34,7 @@ const Event = sequelize.define("Event", {
   available_tickets: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  },
+  }
 }, {
   tableName: "events",
   timestamps: true,
