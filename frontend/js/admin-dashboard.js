@@ -1,29 +1,28 @@
-const API_BASE_URL = "http://ticket-alb-90792609.ap-south-1.elb.amazonaws.com";
-
-// 🔐 Get auth data
-const token = localStorage.getItem("token");
-const role = localStorage.getItem("role");
-
+console.log("admin-dashboard.js loaded");
 
 // 🔐 Check Admin Access
 document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
 
-  if (!user || user.role !== "admin") {
+  if (!token || role !== "admin") {
     alert("Access Denied! Admins only.");
-    window.location.href = "index.html";
+    window.location.href = "/";
     return;
   }
 
   loadEvents();
+
+  // Attach event listeners properly
+  document
+    .getElementById("createEventBtn")
+    .addEventListener("click", createEvent);
+
+  document
+    .getElementById("logoutBtn")
+    .addEventListener("click", logout);
 });
 
-// 🔹 Logout
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.location.href = "index.html";
-}
 
 // 🔹 Create Event
 async function createEvent() {
@@ -45,14 +44,24 @@ async function createEvent() {
       date,
       price,
       availableTickets
-    });
+    }, true);   // 🔥 IMPORTANT → auth = true
 
     alert("Event created successfully!");
+
+    // Clear form
+    document.getElementById("title").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("availableTickets").value = "";
+
     loadEvents();
+
   } catch (err) {
-    alert("Error creating event");
+    alert("Error creating event: " + err.message);
   }
 }
+
 
 // 🔹 Load Events
 async function loadEvents() {
@@ -60,36 +69,60 @@ async function loadEvents() {
   eventsList.innerHTML = "";
 
   try {
-    const events = await apiRequest("/events");
+    const events = await apiRequest("/events", "GET", null, true);  // 🔥 auth true
+
+    if (!events || events.length === 0) {
+      eventsList.innerHTML = "<p>No events available</p>";
+      return;
+    }
 
     events.forEach(event => {
       const div = document.createElement("div");
+
       div.innerHTML = `
         <h3>${event.title}</h3>
         <p>${event.description}</p>
-        <p>Date: ${event.date}</p>
+        <p>Date: ${new Date(event.date).toLocaleDateString()}</p>
         <p>Price: ${event.price}</p>
         <p>Available: ${event.availableTickets}</p>
-        <button onclick="deleteEvent(${event.id})">Delete</button>
+        <button data-id="${event.id}" class="delete-btn">Delete</button>
         <hr>
       `;
+
       eventsList.appendChild(div);
     });
 
+    // Attach delete handlers
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", async function () {
+        const id = this.getAttribute("data-id");
+        await deleteEvent(id);
+      });
+    });
+
   } catch (err) {
-    alert("Error loading events");
+    alert("Error loading events: " + err.message);
   }
 }
+
 
 // 🔹 Delete Event
 async function deleteEvent(id) {
   if (!confirm("Are you sure?")) return;
 
   try {
-    await apiRequest(`/events/${id}`, "DELETE");
+    await apiRequest(`/events/${id}`, "DELETE", null, true);  // 🔥 auth true
     alert("Event deleted successfully!");
     loadEvents();
   } catch (err) {
-    alert("Error deleting event");
+    alert("Error deleting event: " + err.message);
   }
+}
+
+
+// 🔹 Logout
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
 }
