@@ -26,14 +26,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🔹 Create Event
 async function createEvent() {
+
   const title = document.getElementById("title").value;
   const description = document.getElementById("description").value;
-  const date = document.getElementById("date").value;
+  const event_date = document.getElementById("event_date").value;
   const price = document.getElementById("price").value;
-  const availableTickets = document.getElementById("availableTickets").value;
+  const total_tickets = document.getElementById("total_tickets").value;
+  const available_tickets = document.getElementById("available_tickets").value;
 
-  if (!title || !description || !date || !price || !availableTickets) {
-    alert("Please fill all fields");
+  if (!title || !event_date || !total_tickets || !available_tickets) {
+    alert("Title, Date, Total Tickets and Available Tickets are required");
     return;
   }
 
@@ -41,9 +43,10 @@ async function createEvent() {
     await apiRequest("/events", "POST", {
       title,
       description,
-      date,
+      event_date,
       price,
-      availableTickets
+      total_tickets,
+      available_tickets
     }, true);   // 🔥 IMPORTANT → auth = true
 
     alert("Event created successfully!");
@@ -51,9 +54,10 @@ async function createEvent() {
     // Clear form
     document.getElementById("title").value = "";
     document.getElementById("description").value = "";
-    document.getElementById("date").value = "";
+    document.getElementById("event_date").value = "";
     document.getElementById("price").value = "";
-    document.getElementById("availableTickets").value = "";
+    document.getElementById("total_tickets").value = "";
+    document.getElementById("available_tickets").value = "";
 
     loadEvents();
 
@@ -80,14 +84,14 @@ async function loadEvents() {
       const div = document.createElement("div");
 
       div.innerHTML = `
-        <h3>${event.title}</h3>
-        <p>${event.description}</p>
-        <p>Date: ${new Date(event.date).toLocaleDateString()}</p>
-        <p>Price: ${event.price}</p>
-        <p>Available: ${event.availableTickets}</p>
-        <button data-id="${event.id}" class="delete-btn">Delete</button>
-        <hr>
-      `;
+  <h3>${event.title}</h3>
+  <p>${event.description || ""}</p>
+  <p>Date: ${new Date(event.event_date).toLocaleDateString()}</p>
+  <p>Total Tickets: ${event.total_tickets}</p>
+  <p>Available Tickets: ${event.available_tickets}</p>
+  <button data-id="${event.id}" class="delete-btn">Delete</button>
+  <hr>
+`;
 
       eventsList.appendChild(div);
     });

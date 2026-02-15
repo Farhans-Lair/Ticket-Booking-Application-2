@@ -32,12 +32,13 @@ async function loadEvents() {
       const div = document.createElement("div");
 
       div.innerHTML = `
-        <strong>${event.title}</strong><br/>
-        ${event.description || ""}<br/>
-        Date: ${new Date(event.date).toLocaleDateString()}<br/>
-        Tickets Available: ${event.availableTickets}
-        <hr/>
-      `;
+     <strong>${event.title}</strong><br/>
+     ${event.description || ""}<br/>
+     Date: ${new Date(event.event_date).toLocaleDateString()}<br/>
+     Available Tickets: ${event.available_tickets} / ${event.total_tickets}
+     <hr/>
+     `;
+
 
       list.appendChild(div);
     });
