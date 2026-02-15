@@ -7,7 +7,9 @@ const createEvent = async (req, res, next) => {
       description,
       location,
       event_date,
-      total_tickets
+      price,
+      total_tickets,
+
     } = req.body;
 
     // 🔒 Required fields validation
@@ -42,6 +44,7 @@ if (selectedDate < today) {
       description,
       location,
       event_date,
+      price,
       total_tickets,
       available_tickets: total_tickets
     });

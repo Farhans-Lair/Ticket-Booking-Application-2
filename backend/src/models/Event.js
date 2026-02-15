@@ -21,6 +21,15 @@ const Event = sequelize.define("Event", {
     type: DataTypes.DATE,
     allowNull: false,
   },
+
+  price: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    validate: {
+      min: 0
+    }
+  },
+
   total_tickets: {
     type: DataTypes.INTEGER,
     allowNull: false,
