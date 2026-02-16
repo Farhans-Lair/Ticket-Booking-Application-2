@@ -1,70 +1,37 @@
 const sequelize = require("../config/database");
-const { Event, Booking } = require("../models");
+const Event = require("../models/Event");
+const Booking = require("../models/Booking");
 
-const bookTickets = async (userId, eventId, ticketsRequested) => {
-  const transaction = await sequelize.transaction();
+const createBooking = async (userId, eventId, tickets_booked) => {
 
-  try {
-    // Lock the event row FOR UPDATE
-    const event = await Event.findOne({
-      where: { id: eventId },
-      lock: transaction.LOCK.UPDATE,
-      transaction,
+  return await sequelize.transaction(async (t) => {
+
+    const event = await Event.findByPk(eventId, {
+      transaction: t,
+      lock: true
     });
 
     if (!event) {
       throw new Error("Event not found");
     }
 
-    if (event.available_tickets < ticketsRequested) {
+    if (event.available_tickets < tickets_booked) {
       throw new Error("Not enough tickets available");
     }
 
-    // Update available tickets
-    event.available_tickets -= ticketsRequested;
-    await event.save({ transaction });
+    event.available_tickets -= tickets_booked;
+    await event.save({ transaction: t });
 
-    // Create booking
-    const booking = await Booking.create(
-      {
-        user_id: userId,
-        event_id: eventId,
-        tickets_booked: ticketsRequested,
-      },
-      { transaction }
-    );
-
-    // Commit transaction
-    await transaction.commit();
+    const booking = await Booking.create({
+      user_id: userId,
+      event_id: eventId,
+      tickets_booked
+    }, { transaction: t });
 
     return booking;
-  } catch (error) {
-    // Rollback on any failure
-    await transaction.rollback();
-    throw error;
-  }
-};
-
-module.exports = {
-  bookTickets,
-};
-
-// GET MY BOOKINGS
-
-const getUserBookings = async (userId) => {
-  return Booking.findAll({
-    where: { user_id: userId },
-    include: [
-      {
-        model: Event,
-        attributes: ["title", "location", "event_date"],
-      },
-    ],
   });
 };
 
 module.exports = {
-  bookTickets,
-  getUserBookings,
+  createBooking
 };
-

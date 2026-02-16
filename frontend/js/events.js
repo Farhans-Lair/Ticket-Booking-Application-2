@@ -41,8 +41,17 @@ async function loadEvents() {
       div.innerHTML = `
      <strong>${event.title}</strong><br/>
      ${event.description || ""}<br/>
+     <p>${event.location || ""}</p>
      Date: ${new Date(event.event_date).toLocaleDateString()}<br/>
      Available Tickets: ${event.available_tickets} / ${event.total_tickets}
+     Price: ₹${event.price}<br/>
+
+     <input type="number" min="1" max="${event.available_tickets}" 
+         id="qty-${event.id}" placeholder="tickets_booked" />
+
+  <button onclick="bookTicket(${event.id})">
+    Book Ticket
+  </button>
      <hr/>
      `;
 
@@ -54,6 +63,32 @@ async function loadEvents() {
     console.error("Error loading events:", err);
   }
 }
+
+async function bookTicket(eventId) {
+
+  const quantity = document.getElementById(`qty-${eventId}`).value;
+
+  if (!tickets_booked || tickets_booked <= 0) {
+    alert("Enter valid quantity");
+    return;
+  }
+
+  try {
+
+    await apiRequest("/bookings", "POST", {
+      event_id: eventId,
+      tickets_booked
+    }, true);
+
+    alert("Booking successful!");
+
+    loadEvents();  // refresh tickets
+
+  } catch (err) {
+    alert("Booking failed: " + err.message);
+  }
+}
+
 
 function logout() {
  localStorage.clear();
