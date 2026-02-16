@@ -36,10 +36,12 @@ async function createEvent() {
 
   const title = document.getElementById("title").value;
   const description = document.getElementById("description").value;
+  const location = document.getElementById("location").value;
   const event_date = document.getElementById("event_date").value;
   const price = document.getElementById("price").value;
   const total_tickets = document.getElementById("total_tickets").value;
   const available_tickets = document.getElementById("available_tickets").value;
+  
 
   if (!title || !event_date || !total_tickets || !available_tickets) {
     alert("Title, Date, Total Tickets and Available Tickets are required");
@@ -50,6 +52,7 @@ async function createEvent() {
     await apiRequest("/events", "POST", {
       title,
       description,
+      location,
       event_date,
       price,
       total_tickets,
@@ -61,6 +64,7 @@ async function createEvent() {
     // Clear form
     document.getElementById("title").value = "";
     document.getElementById("description").value = "";
+    document.getElementById("location").value = "";
     document.getElementById("event_date").value = "";
     document.getElementById("price").value = "";
     document.getElementById("total_tickets").value = "";
@@ -93,6 +97,7 @@ async function loadEvents() {
       div.innerHTML = `
   <h3>${event.title}</h3>
   <p>${event.description || ""}</p>
+  <p>${event.location || ""}</p>
   <p>Date: ${new Date(event.event_date).toLocaleDateString()}</p>
   <p>Total Tickets: ${event.total_tickets}</p>
   <p>Available Tickets: ${event.available_tickets}</p>
