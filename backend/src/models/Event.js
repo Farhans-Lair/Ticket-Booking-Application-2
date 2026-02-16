@@ -1,7 +1,10 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
+
 const Booking = require("./Booking");
+Event.hasMany(Booking, { foreignKey: "event_id" });
+Booking.belongsTo(Event, { foreignKey: "event_id" });
 
 const Event = sequelize.define("Event", {
   id: {
@@ -42,8 +45,6 @@ const Event = sequelize.define("Event", {
   }
 },
 
-Event.hasMany(Booking, { foreignKey: "event_id" });
-Booking.belongsTo(Event, { foreignKey: "event_id" });
 {
   tableName: "events",
   timestamps: true,
