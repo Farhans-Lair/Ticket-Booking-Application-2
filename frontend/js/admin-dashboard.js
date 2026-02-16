@@ -1,5 +1,12 @@
 console.log("admin-dashboard.js loaded");
 
+window.addEventListener("pageshow", function (event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
+
+
 // 🔐 Check Admin Access
 document.addEventListener("DOMContentLoaded", () => {
   const role = localStorage.getItem("role");
@@ -7,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!token || role !== "admin") {
     alert("Access Denied! Admins only.");
-    window.location.href = "/";
+    window.location.replace("/");
     return;
   }
 
@@ -126,7 +133,6 @@ async function deleteEvent(id) {
 
 // 🔹 Logout
 function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
+  localStorage.clear();
+  window.location.replace("/");
 }

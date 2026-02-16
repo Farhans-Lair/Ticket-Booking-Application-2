@@ -1,11 +1,18 @@
 console.log("events.js loaded");
 
+window.addEventListener("pageshow", function (event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
 
   if (!token) {
     alert("Please login first");
-    window.location.href = "/";
+    window.location.replace ("/");
     return;
   }
 
@@ -49,7 +56,6 @@ async function loadEvents() {
 }
 
 function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
+ localStorage.clear();
+  window.location.replace("/");
 }
