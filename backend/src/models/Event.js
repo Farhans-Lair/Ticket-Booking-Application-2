@@ -3,9 +3,6 @@ const sequelize = require("../config/database");
 
 const Booking = require("./Booking");
 
-Event.hasMany(Booking, { foreignKey: "event_id" });
-Booking.belongsTo(Event, { foreignKey: "event_id" });
-
 const Event = sequelize.define("Event", {
   id: {
     type: DataTypes.INTEGER,
@@ -43,7 +40,11 @@ const Event = sequelize.define("Event", {
     type: DataTypes.INTEGER,
     allowNull: false,
   }
-}, {
+},
+
+Event.hasMany(Booking, { foreignKey: "event_id" });
+Booking.belongsTo(Event, { foreignKey: "event_id" });
+{
   tableName: "events",
   timestamps: true,
   createdAt: "created_at",
