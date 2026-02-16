@@ -8,7 +8,7 @@ const createBooking = async (userId, eventId, tickets_booked) => {
 
     const event = await Event.findByPk(eventId, {
       transaction: t,
-      lock: true
+      lock: t.LOCK.UPDATE
     });
 
     if (!event) {
