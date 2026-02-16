@@ -9,6 +9,6 @@ const bookingController = require("../controllers/booking.controllers");
 router.post("/", authenticate, bookingController.createBooking);
 
 // View my bookings (protected)
-//router.get("/me", authenticate, bookingController.getMyBookings);
+router.get("/my-bookings", authenticate, bookingController.getMyBookings);
 
 module.exports = router;
