@@ -1,5 +1,7 @@
 const sequelize = require("../config/database");
-const { Event, Booking } = require("../models");
+const Event = require("../models/Event");
+const Booking = require("../models/Booking");
+
 
 const createBooking = async (userId, eventId, tickets_booked) => {
 
