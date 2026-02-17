@@ -1,5 +1,7 @@
 console.log("APP.JS LOADED");
 require("dotenv").config();
+require("./models"); // 👈 ADD THIS
+
 
 const express = require("express");
 const cors = require("cors");
