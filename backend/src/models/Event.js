@@ -47,8 +47,4 @@ const Event = sequelize.define("Event", {
   updatedAt: false,
 });
 
-const Booking = require("./Booking");
-Event.hasMany(Booking, { foreignKey: "event_id" });
-Booking.belongsTo(Event, { foreignKey: "event_id" });
-
 module.exports = Event;

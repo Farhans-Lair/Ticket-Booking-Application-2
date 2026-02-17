@@ -1,6 +1,5 @@
 const sequelize = require("../config/database");
-const Event = require("../models/Event");
-const Booking = require("../models/Booking");
+const { Event, Booking } = require("../models");
 
 const createBooking = async (userId, eventId, tickets_booked) => {
 
@@ -32,6 +31,21 @@ const createBooking = async (userId, eventId, tickets_booked) => {
   });
 };
 
+const getUserBookings = async (userId) => {
+  return await Booking.findAll({
+    where: { user_id: userId },
+    include: [
+      {
+        model: Event,
+        attributes: ["title", "event_date", "price"]
+      }
+    ],
+    order: [["booking_date", "DESC"]]
+  });
+};
+
+
 module.exports = {
-  createBooking
+  createBooking,
+  getUserBookings
 };
