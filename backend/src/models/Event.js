@@ -1,11 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-
-const Booking = require("./Booking");
-Event.hasMany(Booking, { foreignKey: "event_id" });
-Booking.belongsTo(Event, { foreignKey: "event_id" });
-
 const Event = sequelize.define("Event", {
   id: {
     type: DataTypes.INTEGER,
@@ -51,5 +46,9 @@ const Event = sequelize.define("Event", {
   createdAt: "created_at",
   updatedAt: false,
 });
+
+const Booking = require("./Booking");
+Event.hasMany(Booking, { foreignKey: "event_id" });
+Booking.belongsTo(Event, { foreignKey: "event_id" });
 
 module.exports = Event;
