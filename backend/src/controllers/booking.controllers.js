@@ -28,6 +28,22 @@ const createBooking = async (req, res, next) => {
   }
 };
 
+const getMyBookings = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const bookings = await bookingService.getUserBookings(userId);
+
+    res.json(bookings);
+
+  } catch (err) {
+     console.error("🔥 FULL BOOKING ERROR:", err);   // ADD THIS
+    next(err);
+  }
+};
+
+
 module.exports = {
-  createBooking
+  createBooking,
+  getMyBookings
 };
