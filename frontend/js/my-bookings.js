@@ -51,7 +51,7 @@ async function loadBookings() {
     });
 
   } catch (err) {
-    alert("Error loading bookings");
+    alert(err.message || "Error loading bookings");
   }
 }
 
