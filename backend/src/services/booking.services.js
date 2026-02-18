@@ -42,7 +42,7 @@ const getUserBookings = async (userId) => {
         attributes: ["title", "event_date", "price"]
       }
     ],
-    order: [["booking_date", "DESC"]]
+    order: [["createdAt", "DESC"]]
   });
 };
 
