@@ -37,7 +37,6 @@ const getMyBookings = async (req, res, next) => {
     res.json(bookings);
 
   } catch (err) {
-     console.error("🔥 FULL BOOKING ERROR:", err);   // ADD THIS
     next(err);
   }
 };

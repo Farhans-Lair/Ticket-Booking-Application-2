@@ -12,6 +12,7 @@ CREATE TABLE events (
   description TEXT,
   location VARCHAR(150),
   event_date DATETIME NOT NULL,
+  price FLOAT NOT NULL,
   total_tickets INT NOT NULL,
   available_tickets INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
