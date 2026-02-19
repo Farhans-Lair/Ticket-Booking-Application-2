@@ -96,6 +96,9 @@ async function loadEvents() {
       event.total_tickets -
       event.available_tickets;
 
+      const revenue =
+      soldTickets *
+      event.price;
 
       const div = document.createElement("div");
 
@@ -154,6 +157,18 @@ ${soldTickets}
 
 
 <br/>
+
+<br/>
+
+Revenue Generated:
+
+<span id="revenue-${event.id}"
+style="color:green; font-weight:bold;">
+
+₹${revenue}
+
+</span>
+
 
 <button onclick="updateEvent(${event.id})">
 
@@ -282,12 +297,18 @@ document.getElementById(
 ).value
 );
 
-const availableText =
+const price = Number(
+document.getElementById(
+`price-${id}`
+).value
+);
+
+const available =
 document.getElementById(
 `available-${id}`
 );
 
-availableText.innerText =
+available.innerText =
 "Will auto adjust after save";
 
 
@@ -303,7 +324,21 @@ sold.innerText =
 
 }
 
+
+const revenue =
+document.getElementById(
+`revenue-${id}`
+);
+
+if(revenue){
+
+revenue.innerText =
+"Preview updates after save";
+
 }
+
+}
+
 
 // 🔹 Logout
 function logout() {
