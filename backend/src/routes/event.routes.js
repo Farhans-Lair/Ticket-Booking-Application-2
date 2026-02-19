@@ -21,6 +21,14 @@ router.post(
   (req, res, next) => eventController.createEvent(req, res, next)
 );
 
+router.put(
+  "/:id",
+  authenticate,
+  authorizeAdmin,
+  (req,res,next)=>eventController.updateEvent(req,res,next)
+);
+
+
 // Delete event (admin only)
 router.delete(
   "/:id",

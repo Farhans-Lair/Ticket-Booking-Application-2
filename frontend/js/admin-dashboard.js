@@ -38,12 +38,12 @@ async function createEvent() {
   const description = document.getElementById("description").value;
   const location = document.getElementById("location").value;
   const event_date = document.getElementById("event_date").value;
-  const price = document.getElementById("price").value;
-  const total_tickets = document.getElementById("total_tickets").value;
-  const available_tickets = document.getElementById("available_tickets").value;
+  const price = Number(document.getElementById("price").value);
+  const total_tickets = Number(document.getElementById("total_tickets").value);
+  const available_tickets = Number(document.getElementById("available_tickets").value);
   
 
-  if (!title || !event_date || !total_tickets || !available_tickets) {
+ if (!title || !event_date || !price || !total_tickets || !available_tickets){
     alert("Title, Date, Total Tickets and Available Tickets are required");
     return;
   }
@@ -95,31 +95,75 @@ async function loadEvents() {
       const div = document.createElement("div");
 
       div.innerHTML = `
-  <h3>${event.title}</h3>
-  <p>${event.description || ""}</p>
-  <p>${event.location || ""}</p>
-  <p>Date: ${new Date(event.event_date).toLocaleDateString()}</p>
-  <p>Total Tickets: ${event.total_tickets}</p>
-  <p>Available Tickets: ${event.available_tickets}</p>
-  <button data-id="${event.id}" class="delete-btn">Delete</button>
-  <hr>
+
+Title:
+
+<input id="title-${event.id}"
+value="${event.title}" />
+
+<br/>
+
+Price:
+
+<input type="number"
+id="price-${event.id}"
+value="${event.price}" />
+
+<br/>
+
+Date:
+
+<input type="date"
+id="date-${event.id}"
+value="${
+event.event_date ?
+event.event_date.split("T")[0] :
+""
+}" />
+
+<br/>
+
+Total Tickets:
+
+<input type="number"
+id="total-${event.id}"
+value="${event.total_tickets}" 
+oninput="ticketPreview(${event.id})"
+/>
+
+<br/>
+
+Available Tickets:
+
+<span id="available-${event.id}">
+${event.available_tickets}
+</span>
+
+<br/>
+
+<button onclick="updateEvent(${event.id})">
+
+Save
+
+</button>
+
+<button onclick="deleteEvent(${event.id})">
+
+Delete
+
+</button>
+
+<hr/>
+
 `;
-
       eventsList.appendChild(div);
-    });
-
-    // Attach delete handlers
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-      btn.addEventListener("click", async function () {
-        const id = this.getAttribute("data-id");
-        await deleteEvent(id);
-      });
     });
 
   } catch (err) {
     alert("Error loading events: " + err.message);
   }
 }
+
 
 
 // 🔹 Delete Event
@@ -134,6 +178,103 @@ async function deleteEvent(id) {
     alert("Error deleting event: " + err.message);
   }
 }
+
+async function updateEvent(id){
+
+try{
+
+ const title =
+ document.getElementById(
+ `title-${id}`
+ ).value;
+
+ const price = Number(
+document.getElementById(
+`price-${id}`
+).value
+);
+
+ const event_date =
+ document.getElementById(
+ `date-${id}`
+ ).value;
+
+const total_tickets = Number(
+document.getElementById(
+`total-${id}`
+).value
+);
+/*
+Validation
+*/
+
+ if(!title){
+
+ alert("Title required");
+
+ return;
+
+ }
+
+if(!price || price <= 0){
+
+ alert("Price must be greater than zero");
+
+ return;
+
+ }
+
+ if(total_tickets <= 0){
+
+ alert("Total tickets must be > 0");
+
+ return;
+
+ }
+
+ 
+
+ await apiRequest(
+
+ `/events/${id}`,
+ "PUT",
+ {
+
+ title,
+ price,
+ event_date, total_tickets
+
+ },
+ true
+ );
+
+ alert("Event Updated");
+ loadEvents();
+}
+
+catch(err){
+ alert(
+ err.message ||
+ "Update Failed"
+ );
+}
+}
+
+function ticketPreview(id){
+
+const total = Number(
+ document.getElementById(
+ `total-${id}`
+ ).value
+ );
+
+ document.getElementById(
+ `available-${id}`
+ ).innerText =
+ "Will auto adjust after save";
+
+}
+
 
 
 // 🔹 Logout
