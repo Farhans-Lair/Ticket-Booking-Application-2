@@ -92,6 +92,11 @@ async function loadEvents() {
     }
 
     events.forEach(event => {
+      const soldTickets =
+      event.total_tickets -
+      event.available_tickets;
+
+
       const div = document.createElement("div");
 
       div.innerHTML = `
@@ -138,6 +143,15 @@ Available Tickets:
 <span id="available-${event.id}">
 ${event.available_tickets}
 </span>
+
+<br/>
+
+Sold Tickets:
+
+<span id="sold-${event.id}">
+${soldTickets}
+</span>
+
 
 <br/>
 
@@ -263,19 +277,33 @@ catch(err){
 function ticketPreview(id){
 
 const total = Number(
- document.getElementById(
- `total-${id}`
- ).value
- );
+document.getElementById(
+`total-${id}`
+).value
+);
 
- document.getElementById(
- `available-${id}`
- ).innerText =
- "Will auto adjust after save";
+const availableText =
+document.getElementById(
+`available-${id}`
+);
+
+availableText.innerText =
+"Will auto adjust after save";
+
+
+const sold =
+document.getElementById(
+`sold-${id}`
+);
+
+if(sold){
+
+sold.innerText =
+"Auto recalculated";
 
 }
 
-
+}
 
 // 🔹 Logout
 function logout() {
