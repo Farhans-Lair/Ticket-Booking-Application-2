@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+
+<meta charset="UTF-8">
 
 <title>
 
@@ -24,19 +26,24 @@ Revenue Analytics Dashboard
 </h1>
 
 
-<button onclick="goBack()">
+<!-- Navigation Buttons -->
+
+<div>
+
+<button id="backDashboardBtn">
 
 Back To Dashboard
 
 </button>
 
 
-<button onclick="logout()">
+<button id="logoutBtn">
 
 Logout
 
 </button>
 
+</div>
 
 <hr>
 
@@ -52,6 +59,55 @@ Loading...
 <script src="/js/api.js"></script>
 
 <script src="/js/admin-revenue.js"></script>
+
+
+<script>
+
+/*
+Prevent browser back cache
+(Admin security)
+*/
+
+window.addEventListener("pageshow", function (event) {
+
+ if (event.persisted) {
+
+  window.location.reload();
+
+ }
+
+});
+
+
+/*
+Navigation
+*/
+
+document
+.getElementById("backDashboardBtn")
+.addEventListener("click", () => {
+
+ window.location.replace("/admin");
+
+});
+
+
+/*
+Logout
+*/
+
+document
+.getElementById("logoutBtn")
+.addEventListener("click", () => {
+
+ localStorage.clear();
+
+ window.location.replace("/");
+
+});
+
+</script>
+
 
 </body>
 

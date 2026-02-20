@@ -158,9 +158,8 @@ window.location.replace("/");
 }
 
 
-function goBack(){
+function goBackDashboard(){
 
-window.location.href =
-"/admin";
+window.location.replace("/admin");
 
 }

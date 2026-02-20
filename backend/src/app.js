@@ -70,17 +70,76 @@ app.use("/js", express.static(path.join(__dirname, "../frontend/js")));
 app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 
 /* =====================================================
-   🔐 Protected HTML Pages (ADMIN ONLY)
+   🧭 PROFESSIONAL PAGE NAVIGATION ROUTER
 ===================================================== */
 
-// Admin Dashboard
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin-dashboard.html"));
-});
+app.get("/:page", (req, res, next) => {
 
-app.get("/admin-revenue",(req,res)=>{res.sendFile(path.join(__dirname,"../frontend/admin-revenue.html"));
-});
+  const page = req.params.page;
 
+  /*
+   Prevent API collision
+  */
+
+  const blockedRoutes = [
+
+    "auth",
+    "events",
+    "bookings",
+    "health",
+    "js",
+    "css"
+
+  ];
+
+  if (blockedRoutes.includes(page)) {
+
+    return next();
+
+  }
+
+
+  let fileName = "";
+
+  switch (page) {
+
+    case "admin":
+
+      fileName = "admin-dashboard.html";
+      break;
+
+    case "admin-revenue":
+
+      fileName = "admin-revenue.html";
+      break;
+
+    case "my-bookings":
+
+      fileName = "my-bookings.html";
+      break;
+
+    case "events":
+
+      fileName = "events.html";
+      break;
+
+    default:
+
+      return next();
+
+  }
+
+  res.sendFile(
+
+    path.join(
+      __dirname,
+      "../frontend",
+      fileName
+    )
+
+  );
+
+});
 
 app.get("/debug-admin", (req, res) => {
   res.send("ADMIN ROUTE EXISTS");
