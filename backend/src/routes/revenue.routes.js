@@ -8,3 +8,5 @@ const revenueController = require("../controllers/revenue.controllers.js");
 
 
 router.get("/revenue",authenticate,authorizeAdmin,(req,res,next)=>revenueController.getRevenue(req,res,next));
+
+module.exports = router;
