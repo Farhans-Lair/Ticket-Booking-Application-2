@@ -57,9 +57,9 @@ async function login() {
     
     // ✅ Only ONE admin redirect
     if (data.role === "admin") {
-      window.location.href = "/admin";
+      window.location.href = "/pages/admin-dashboard.html";
     } else {
-      window.location.href = "/events-page";
+      window.location.href = "/pages/events.html";
     }
 
   } catch (err) {
