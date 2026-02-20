@@ -70,74 +70,57 @@ app.use("/js", express.static(path.join(__dirname, "../frontend/js")));
 app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 
 /* =====================================================
-   🧭 FRONTEND PAGE ROUTER (FINAL FIX)
+   FRONTEND PAGE ROUTER (FINAL)
 ===================================================== */
 
-app.get("/:page", (req, res, next) => {
+app.get(
 
-  const page = req.params.page;
+[
+"/admin",
+"/admin-revenue",
+"/events",
+"/my-bookings"
 
-  // Ignore API + Static routes
+],
 
-  const blocked = [
+(req,res)=>{
 
-    "auth",
-    "events",
-    "bookings",
-    "health",
-    "js",
-    "css",
-    "revenue" // API route
+const pageMap={
 
-  ];
+"/admin":
+"admin-dashboard.html",
 
-  if(blocked.includes(page)){
+"/admin-revenue":
+"admin-revenue.html",
 
-    return next();
+"/events":
+"events.html",
 
-  }
+"/my-bookings":
+"my-bookings.html"
 
+};
 
-  const pageMap = {
+const fileName=
+pageMap[req.path];
 
-    "admin":
-      "admin-dashboard.html",
+res.sendFile(
 
-    "admin-revenue":
-      "admin-revenue.html",
+path.join(
 
-    "events":
-      "events.html",
+__dirname,
 
-    "my-bookings":
-      "my-bookings.html"
+"..",
 
-  };
+"frontend",
 
+"pages",
 
-  const fileName = pageMap[page];
+fileName
 
-  if(!fileName){
+)
 
-    return next();
-
-  }
-
-  const filePath = path.join(
-
-    __dirname,
-
-    "..",
-
-    "frontend",
-
-    "pages",
-
-    fileName
-
-  );
-
-  res.sendFile(filePath);
+);
 
 });
 
