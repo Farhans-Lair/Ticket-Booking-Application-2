@@ -57,7 +57,7 @@ async function login() {
     
     // ✅ Only ONE admin redirect
     if (data.role === "admin") {
-      window.location.href = "/admin-dashboard";
+      window.location.href = "/admin";
     } else {
       window.location.href = "/events";
     }
