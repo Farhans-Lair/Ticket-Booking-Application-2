@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
-app.use("/",revenueRoutes);
+app.use("/analytics",revenueRoutes);
 
 /* =====================================================
    🎨 Static Assets (ONLY JS & CSS)
@@ -73,38 +73,73 @@ app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
    FRONTEND PAGE ROUTER (FINAL)
 ===================================================== */
 
-app.get(
+/* =====================================================
+   DYNAMIC PAGE NAVIGATION (FINAL FIX)
+===================================================== */
 
-[
-"/admin",
-"/admin-revenue",
-"/events",
-"/my-bookings"
+app.get("/:page", (req,res,next)=>{
 
-],
+const page=req.params.page;
 
-(req,res)=>{
 
-const pageMap={
+/*
+BLOCK API + STATIC ROUTES
+*/
 
-"/admin":
+const blocked=[
+
+"auth",
+"events",
+"bookings",
+"analytics",
+"health",
+"js",
+"css"
+
+];
+
+if(blocked.includes(page)){
+
+return next();
+
+}
+
+
+/*
+PAGE MAP
+*/
+
+const pages={
+
+"admin":
 "admin-dashboard.html",
 
-"/admin-revenue":
+"admin-revenue":
 "admin-revenue.html",
 
-"/events":
-"events.html",
+"my-bookings":
+"my-bookings.html",
 
-"/my-bookings":
-"my-bookings.html"
+"events-page":
+"events.html"
 
 };
 
-const fileName=
-pageMap[req.path];
 
-res.sendFile(
+/*
+FILE CHECK
+*/
+
+const fileName=pages[page];
+
+if(!fileName){
+
+return next();
+
+}
+
+
+const filePath=
 
 path.join(
 
@@ -118,9 +153,9 @@ __dirname,
 
 fileName
 
-)
-
 );
+
+res.sendFile(filePath);
 
 });
 

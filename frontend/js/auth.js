@@ -59,7 +59,7 @@ async function login() {
     if (data.role === "admin") {
       window.location.href = "/admin";
     } else {
-      window.location.href = "/events";
+      window.location.href = "/events-page";
     }
 
   } catch (err) {
