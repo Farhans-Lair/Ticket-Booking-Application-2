@@ -54,7 +54,6 @@ const createBooking = async (
       transaction: t
     });
 
-
     /*
     ==========================================
      REVENUE CALCULATION
@@ -66,7 +65,6 @@ const createBooking = async (
     const ticketAmount =
       event.price *
       tickets_booked;
-
 
     /*
     Platform Charges

@@ -32,7 +32,7 @@ try{
 const events =
 await apiRequest(
 
-"/analytics/revenue",
+"/revenue",
 "GET",
 null,
 true
@@ -158,7 +158,9 @@ window.location.replace("/");
 }
 
 
-function goBackDashboard(){
+function goBack(){
 
-window.location.replace("/admin");
+window.location.href =
+"/admin";
+
 }
