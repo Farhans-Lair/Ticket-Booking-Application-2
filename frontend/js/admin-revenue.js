@@ -32,7 +32,7 @@ try{
 const events =
 await apiRequest(
 
-"/revenue",
+"/analytics/revenue",
 "GET",
 null,
 true

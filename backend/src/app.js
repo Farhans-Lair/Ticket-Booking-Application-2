@@ -15,11 +15,12 @@ const revenueRoutes = require("./routes/revenue.routes");
 const app = express();
 
 /* =====================================================
-   ✅ CORS (ENV SAFE)
+   ✅ CORS (LOCAL + PROD SAFE)
 ===================================================== */
 
 const allowedOrigin =
-process.env.CORS_ORIGIN || "http://localhost:3000";
+process.env.CORS_ORIGIN ||
+"http://localhost:3000";
 
 app.use(
 cors({
@@ -28,24 +29,31 @@ origin: allowedOrigin,
 
 methods:["GET","POST","PUT","DELETE","OPTIONS"],
 
-allowedHeaders:["Content-Type","Authorization"]
+allowedHeaders:[
+"Content-Type",
+"Authorization"
+]
 
 })
 );
 
 /* =====================================================
-   JSON
+   JSON BODY
 ===================================================== */
 
 app.use(express.json());
 
 /* =====================================================
-   HEALTH CHECK
+   HEALTH CHECK (ALB / Docker)
 ===================================================== */
 
 app.get("/health",(req,res)=>{
 
-res.status(200).json({status:"ok"});
+res.status(200).json({
+
+status:"ok"
+
+});
 
 });
 
@@ -56,8 +64,11 @@ res.status(200).json({status:"ok"});
 app.use((req,res,next)=>{
 
 res.setHeader(
+
 "Cache-Control",
+
 "no-store, no-cache, must-revalidate, private"
+
 );
 
 res.setHeader("Pragma","no-cache");
@@ -81,40 +92,65 @@ app.use("/bookings",bookingRoutes);
 app.use("/analytics",revenueRoutes);
 
 /* =====================================================
-   STATIC FRONTEND ASSETS
+   FRONTEND STATIC FILES
 ===================================================== */
 
-const FRONTEND_PATH=
-
-path.join(__dirname,"..","frontend");
+const FRONTEND_PATH =
+path.join(
+__dirname,
+"..",
+"frontend"
+);
 
 /* JS */
 
 app.use(
+
 "/js",
+
 express.static(
-path.join(FRONTEND_PATH,"js")
+
+path.join(
+FRONTEND_PATH,
+"js"
 )
+
+)
+
 );
 
 /* CSS */
 
 app.use(
+
 "/css",
+
 express.static(
-path.join(FRONTEND_PATH,"css")
+
+path.join(
+FRONTEND_PATH,
+"css"
 )
+
+)
+
 );
 
-/*
-STATIC HTML PAGES
-*/
+/* HTML PAGES */
 
 app.use(
+
 "/pages",
+
 express.static(
-path.join(FRONTEND_PATH,"pages")
+
+path.join(
+FRONTEND_PATH,
+"pages"
 )
+
+)
+
 );
 
 /* =====================================================
@@ -126,8 +162,11 @@ app.get("/",(req,res)=>{
 res.sendFile(
 
 path.join(
+
 FRONTEND_PATH,
+
 "index.html"
+
 )
 
 );
@@ -135,7 +174,55 @@ FRONTEND_PATH,
 });
 
 /* =====================================================
-   DEBUG ROUTE
+   ✅ BACKWARD COMPATIBILITY REDIRECTS
+   (Old bookmarks / old JS navigation safe)
+===================================================== */
+
+app.get("/admin",(req,res)=>{
+
+res.redirect(
+
+"/pages/admin-dashboard.html"
+
+);
+
+});
+
+
+app.get("/admin-revenue",(req,res)=>{
+
+res.redirect(
+
+"/pages/admin-revenue.html"
+
+);
+
+});
+
+
+app.get("/my-bookings",(req,res)=>{
+
+res.redirect(
+
+"/pages/my-bookings.html"
+
+);
+
+});
+
+
+app.get("/events-page",(req,res)=>{
+
+res.redirect(
+
+"/pages/events.html"
+
+);
+
+});
+
+/* =====================================================
+   DEBUG ROUTE (OPTIONAL)
 ===================================================== */
 
 app.get("/debug-admin",(req,res)=>{
@@ -145,7 +232,7 @@ res.send("ADMIN ROUTE EXISTS");
 });
 
 /* =====================================================
-   404
+   404 HANDLER
 ===================================================== */
 
 app.use((req,res)=>{
@@ -159,19 +246,33 @@ error:"Route not found"
 });
 
 /* =====================================================
-   GLOBAL ERROR
+   GLOBAL ERROR HANDLER
 ===================================================== */
 
 app.use((err,req,res,next)=>{
 
-console.error("GLOBAL ERROR:",err.message);
+console.error(
 
-res.status(err.statusCode || 500).json({
+"GLOBAL ERROR:",
 
-error:err.message || "Internal Server Error"
+err.message
+
+);
+
+res.status(
+
+err.statusCode || 500
+
+).json({
+
+error:
+
+err.message ||
+
+"Internal Server Error"
 
 });
 
 });
 
-module.exports=app;
+module.exports = app;

@@ -89,6 +89,13 @@ async function bookTicket(eventId) {
   }
 }
 
+function goMyBookings(){
+
+window.location.href =
+"/pages/my-bookings.html";
+
+}
+
 
 function logout() {
  localStorage.clear();
