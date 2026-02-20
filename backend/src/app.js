@@ -133,7 +133,7 @@ app.get("/:page", (req, res, next) => {
 
     path.join(
       __dirname,
-      "../frontend",
+      "../frontend/pages",
       fileName
     )
 

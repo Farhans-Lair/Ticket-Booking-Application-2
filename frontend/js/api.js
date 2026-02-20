@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://ticket-alb-1021336752.ap-south-1.elb.amazonaws.com";
+const API_BASE_URL = "http://ticket-alb-873068854.ap-south-1.elb.amazonaws.com";
 
 async function apiRequest(path, method = "GET", body = null, auth = false) {
   const headers = {
