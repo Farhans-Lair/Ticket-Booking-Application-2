@@ -115,7 +115,8 @@ Price:
 
 <input type="number"
 id="price-${event.id}"
-value="${event.price}" />
+value="${event.price}"
+oninput="ticketPreview(${event.id})" />
 
 <br/>
 
@@ -336,6 +337,13 @@ revenue.innerText =
 "Preview updates after save";
 
 }
+
+}
+
+function goToRevenue(){
+
+window.location.href =
+"/admin-revenue";
 
 }
 

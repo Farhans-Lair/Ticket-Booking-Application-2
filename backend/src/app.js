@@ -13,6 +13,7 @@ const authorizeAdmin = require("./middleware/authorizeadmin");
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
+const revenueRoutes = require("./routes/revenue.routes");
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use((req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
+app.use("/",revenueRoutes);
 
 /* =====================================================
    🎨 Static Assets (ONLY JS & CSS)
@@ -74,6 +76,9 @@ app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 // Admin Dashboard
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin-dashboard.html"));
+});
+
+app.get("/admin-revenue",(req,res)=>{res.sendFile(path.join(__dirname,"../frontend/admin-revenue.html"));
 });
 
 

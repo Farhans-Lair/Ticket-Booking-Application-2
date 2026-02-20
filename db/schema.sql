@@ -23,6 +23,10 @@ CREATE TABLE bookings (
   user_id INT NOT NULL,
   event_id INT NOT NULL,
   tickets_booked INT NOT NULL,
+  ticket_amount FLOAT NOT NULL,
+  convenience_fee FLOAT NOT NULL,
+  gst_amount FLOAT NOT NULL,
+  total_paid FLOAT NOT NULL,
   booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_user
