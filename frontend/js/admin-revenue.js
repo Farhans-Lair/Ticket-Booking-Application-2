@@ -161,5 +161,4 @@ window.location.replace("/");
 function goBackDashboard(){
 
 window.location.replace("/admin");
-
 }

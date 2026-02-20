@@ -92,7 +92,7 @@ async function bookTicket(eventId) {
 function goMyBookings(){
 
 window.location.href =
-"/pages/my-bookings.html";
+"/my-bookings";
 
 }
 
