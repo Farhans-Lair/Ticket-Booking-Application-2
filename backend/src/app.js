@@ -104,7 +104,7 @@ app.get("/admin-revenue", authenticate, authorizeAdmin, (req, res) => {
    👤 USER PROTECTED HTML PAGE
 ===================================================== */
 
-app.get("/my-bookings", authenticate, (req, res) => {
+app.get("/my-bookings", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/my-bookings.html")
   );
