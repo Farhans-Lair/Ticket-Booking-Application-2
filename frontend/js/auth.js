@@ -89,7 +89,7 @@ async function login() {
 
     } else {
 
-      window.location.href = "/events-page";
+      window.location.href = "/events";
 
     }
 
