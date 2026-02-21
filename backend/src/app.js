@@ -100,6 +100,24 @@ app.get("/admin-revenue", authenticate, authorizeAdmin, (req, res) => {
   );
 });
 
+/* =====================================================
+   👤 USER PROTECTED HTML PAGE
+===================================================== */
+
+app.get("/my-bookings", authenticate, (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../frontend/my-bookings.html")
+  );
+});
+
+// Optional Alias (Prevents 404 direct navigation)
+
+app.get("/admin-dashboard", authenticate, authorizeAdmin, (req,res)=>{
+res.sendFile(
+path.join(__dirname,"../frontend/admin-dashboard.html")
+);
+});
+
 // Debug Route
 app.get("/debug-admin", (req, res) => {
   res.send("ADMIN ROUTE EXISTS");
