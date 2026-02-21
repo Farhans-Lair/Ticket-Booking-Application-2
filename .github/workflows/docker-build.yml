@@ -13,11 +13,10 @@ jobs:
       id-token: write
       contents: read
 
+    # Job-level environment variables
     env:
       AWS_REGION: ap-south-1
-      AWS_ACCOUNT_ID: 680318115068
       ECR_REPOSITORY: ticket-backend
-
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
       DB_NAME: ticket_db
@@ -42,15 +41,11 @@ jobs:
           --health-retries=5
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install MySQL Client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
 
       - name: Wait for MySQL
         run: |
@@ -60,36 +55,34 @@ jobs:
           done
 
       - name: Install dependencies
-        working-directory: backend
-        run: npm ci
+        run: |
+          cd backend
+          npm install
 
       - name: Run tests
-        working-directory: backend
-        run: npm test
+        run: |
+          cd backend
+          npm test
 
-      # ✅ AWS OIDC LOGIN
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-south-1
 
-      # ⭐ VERY IMPORTANT FIX
-      # Pass region explicitly + retry safe
-      - name: Create ECR repository if not exist
+      - name: Create ECR repository if it does not exist
+        id: ecr-repo
         uses: int128/create-ecr-repository-action@v1
         with:
-          repository: ${{ env.ECR_REPOSITORY }}
-          region: ${{ env.AWS_REGION }}
+          repository: ticket-backend
+          region: ap-south-1
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
-        working-directory: backend
         run: |
-          IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
-
-          docker build -t $IMAGE_URI .
-
-          docker push $IMAGE_URI
+          cd backend
+          docker build -t ticket-backend:latest .
+          docker tag ticket-backend:latest 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+          docker push 680318115068.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
