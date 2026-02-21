@@ -85,11 +85,11 @@ async function login() {
 
     if (data.role === "admin") {
 
-      window.location.href = "/admin";
+      window.location.href = "/admin-dashboard.html";
 
     } else {
 
-      window.location.href = "/events";
+      window.location.href = "/events.html";
 
     }
 
