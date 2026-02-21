@@ -42,15 +42,14 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # ✅ install mysql client (important for mysqladmin)
+      # install mysql client
       - name: Install MySQL Client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
@@ -69,29 +68,32 @@ jobs:
         working-directory: backend
         run: npm test
 
-      # ✅ AWS OIDC LOGIN
+      # AWS OIDC Login
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
           aws-region: ${{ env.AWS_REGION }}
 
-      # ⭐ DEBUG (helps if ever fails again)
+      # Debug identity (helps future troubleshooting)
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
-      # ✅ Create repo if not exist
-      - name: Create ECR repository if it does not exist
-        id: ecr-repo
-        uses: int128/create-ecr-repository-action@v1
-        with:
-          repository: ${{ env.ECR_REPOSITORY }}
-          region: ${{ env.AWS_REGION }}
+      # ⭐ NEVER FAIL ECR CREATE STEP
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories \
+            --repository-names $ECR_REPOSITORY \
+            --region $AWS_REGION \
+          || aws ecr create-repository \
+            --repository-name $ECR_REPOSITORY \
+            --image-scanning-configuration scanOnPush=true \
+            --region $AWS_REGION
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
+      - name: Build and Push Docker Image
         working-directory: backend
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
