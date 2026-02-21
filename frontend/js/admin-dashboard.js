@@ -341,7 +341,6 @@ revenue.innerText =
 }
 
 function goToRevenue(){
-
 window.location.href =
 "/admin-revenue";
 
