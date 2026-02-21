@@ -1,7 +1,4 @@
-document.addEventListener(
-"DOMContentLoaded",
-
-()=>{
+document.addEventListener("DOMContentLoaded",()=>{
 
 const token =
 localStorage.getItem("token");
@@ -9,35 +6,18 @@ localStorage.getItem("token");
 const role =
 localStorage.getItem("role");
 
-
 if(!token || role !== "admin"){
-
 alert("Admins Only");
-
 window.location.replace("/");
-
 return;
-
 }
-
 loadRevenue();
-
 });
 
-
 async function loadRevenue(){
-
 try{
-
 const events =
-await apiRequest(
-
-"/revenue",
-"GET",
-null,
-true
-
-);
+await apiRequest("/revenue","GET",null,true);
 
 const container =
 document.getElementById(
@@ -45,25 +25,15 @@ document.getElementById(
 );
 
 container.innerHTML="";
-
-
 events.forEach(event=>{
 
-
 let soldTickets = 0;
-
 let ticketRevenue = 0;
-
 let convenienceRevenue = 0;
-
 let gstCollected = 0;
-
 let totalCollection = 0;
 
-
-
 if(event.Bookings){
-
 event.Bookings.forEach(b=>{
 
 soldTickets +=
@@ -85,10 +55,8 @@ b.total_paid;
 
 }
 
-
 const div =
 document.createElement("div");
-
 
 div.innerHTML = `
 
@@ -97,7 +65,6 @@ div.innerHTML = `
 ${event.title}
 
 </h2>
-
 
 Tickets Sold :
 
@@ -128,39 +95,26 @@ Total Collection :
 ₹${totalCollection.toFixed(2)}
 
 <hr/>
-
 `;
-
 container.appendChild(div);
 
 });
 
-
 }
-catch(err){
 
+catch(err){
 alert(
 "Failed loading revenue"
 );
-
 }
-
 }
-
-
 
 function logout(){
-
 localStorage.clear();
-
 window.location.replace("/");
 
 }
 
-
 function goBack(){
-
-window.location.href =
-"/admin";
-
+window.location.replace("/admin");
 }
