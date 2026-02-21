@@ -87,14 +87,14 @@ app.use(
 ===================================================== */
 
 // Admin Dashboard
-app.get("/admin", authenticate, authorizeAdmin, (req, res) => {
+app.get("/admin", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/admin-dashboard.html")
   );
 });
 
 // Admin Revenue Page
-app.get("/admin-revenue", authenticate, authorizeAdmin, (req, res) => {
+app.get("/admin-revenue", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/admin-revenue.html")
   );
@@ -108,14 +108,6 @@ app.get("/my-bookings", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/my-bookings.html")
   );
-});
-
-// Optional Alias (Prevents 404 direct navigation)
-
-app.get("/admin-dashboard", authenticate, authorizeAdmin, (req,res)=>{
-res.sendFile(
-path.join(__dirname,"../frontend/admin-dashboard.html")
-);
 });
 
 // Debug Route
