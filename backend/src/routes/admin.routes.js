@@ -19,7 +19,7 @@ authorizeAdmin,
 
 res.sendFile(
 path.join(__dirname,
-"../public/admin-dashboard.html")
+"../frontend/admin-dashboard.html")
 );
 
 });
@@ -35,7 +35,7 @@ authorizeAdmin,
 
 res.sendFile(
 path.join(__dirname,
-"../public/admin-revenue.html")
+"../frontend/admin-revenue.html")
 );
 
 });
