@@ -1,0 +1,103 @@
+name: CI - Test, Build & Push Backend Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ap-south-1
+      AWS_ACCOUNT_ID: 680318115068
+      ECR_REPOSITORY: ticket-backend
+
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: ticket_db
+      DB_USER: ticket_user
+      DB_PASSWORD: ticket_password
+      NODE_ENV: test
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: ticket_db
+          MYSQL_USER: ticket_user
+          MYSQL_PASSWORD: ticket_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # install mysql client
+      - name: Install MySQL Client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
+            sleep 2
+          done
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: backend
+        run: npm test
+
+      # AWS OIDC Login
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Debug identity (helps future troubleshooting)
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      # ⭐ NEVER FAIL ECR CREATE STEP
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories \
+            --repository-names $ECR_REPOSITORY \
+            --region $AWS_REGION \
+          || aws ecr create-repository \
+            --repository-name $ECR_REPOSITORY \
+            --image-scanning-configuration scanOnPush=true \
+            --region $AWS_REGION
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        working-directory: backend
+        run: |
+          IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
+
+          docker build -t $IMAGE_URI .
+
+          docker push $IMAGE_URI

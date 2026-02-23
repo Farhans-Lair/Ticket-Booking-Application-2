@@ -1,0 +1,120 @@
+document.addEventListener("DOMContentLoaded",()=>{
+
+const token =
+localStorage.getItem("token");
+
+const role =
+localStorage.getItem("role");
+
+if(!token || role !== "admin"){
+alert("Admins Only");
+window.location.replace("/");
+return;
+}
+loadRevenue();
+});
+
+async function loadRevenue(){
+try{
+const events =
+await apiRequest("/revenue","GET",null,true);
+
+const container =
+document.getElementById(
+"revenue-list"
+);
+
+container.innerHTML="";
+events.forEach(event=>{
+
+let soldTickets = 0;
+let ticketRevenue = 0;
+let convenienceRevenue = 0;
+let gstCollected = 0;
+let totalCollection = 0;
+
+if(event.Bookings){
+event.Bookings.forEach(b=>{
+
+soldTickets +=
+b.tickets_booked;
+
+ticketRevenue +=
+b.ticket_amount;
+
+convenienceRevenue +=
+b.convenience_fee;
+
+gstCollected +=
+b.gst_amount;
+
+totalCollection +=
+b.total_paid;
+
+});
+
+}
+
+const div =
+document.createElement("div");
+
+div.innerHTML = `
+
+<h2>
+
+${event.title}
+
+</h2>
+
+Tickets Sold :
+
+${soldTickets}
+
+<br/>
+
+Ticket Revenue :
+
+₹${ticketRevenue.toFixed(2)}
+
+<br/>
+
+Convenience Fee Revenue :
+
+₹${convenienceRevenue.toFixed(2)}
+
+<br/>
+
+GST Collected :
+
+₹${gstCollected.toFixed(2)}
+
+<br/>
+
+Total Collection :
+
+₹${totalCollection.toFixed(2)}
+
+<hr/>
+`;
+container.appendChild(div);
+
+});
+
+}
+
+catch(err){
+alert(
+"Failed loading revenue"
+);
+}
+}
+
+function logout(){
+localStorage.clear();
+window.location.replace("/");
+
+}
+
+function goBack(){
+window.location.href = "/admin";
+}

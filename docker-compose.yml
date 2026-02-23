@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ticket-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ticket_db
+      MYSQL_USER: ticket_user
+      MYSQL_PASSWORD: ticket_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:                      # 🔹 NEW
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5 
+
+  backend:
+    image: ticket
+    container_name: ticket-backend
+    restart: always
+    depends_on:
+        mysql: 
+          condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ticket_db
+      DB_USER: ticket_user
+      DB_PASSWORD: ticket_password
+      JWT_SECRET: super_secret_jwt_key_123
+    command: ["node", "src/server.js"]
+
+volumes:
+  mysql_data: {}

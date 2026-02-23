@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ticket Booking – Login</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <h1>Ticket Booking</h1>
+
+  <section>
+    <h2>Register</h2>
+
+    <input type="text" id="registerName" placeholder="Name" />
+    <input type="email" id="registerEmail" placeholder="Email" />
+    <input type="password" id="registerPassword" placeholder="Password" />
+
+    <button onclick="register()">Register</button>
+  </section>
+
+  <section>
+    <h2>Login</h2>
+
+    <input type="email" id="loginEmail" placeholder="Email" />
+    <input type="password" id="loginPassword" placeholder="Password" />
+
+    <button onclick="login()">Login</button>
+  </section>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
