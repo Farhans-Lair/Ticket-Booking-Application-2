@@ -346,6 +346,12 @@ window.location.href =
 
 }
 
+function openRevenue(){
+
+window.location.href="/admin/revenue";
+
+}
+
 // 🔹 Logout
 function logout() {
   localStorage.clear();

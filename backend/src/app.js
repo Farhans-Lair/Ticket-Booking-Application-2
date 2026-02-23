@@ -14,6 +14,8 @@ const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const revenueRoutes = require("./routes/revenue.routes");
+const adminRoutes = require("./routes/admin.routes");
+
 
 const app = express();
 
@@ -82,12 +84,16 @@ app.use(
   express.static(path.join(__dirname, "../frontend/css"))
 );
 
+app.use("/",adminRoutes);
+
+
 /* =====================================================
    🔐 Protected HTML Pages (ADMIN ONLY)
 ===================================================== */
 
 // Admin Dashboard
-app.get("/admin", (req, res) => {
+
+/*app.get("/admin", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/admin-dashboard.html")
   );
@@ -99,12 +105,13 @@ app.get("/admin-revenue", (req, res) => {
     path.join(__dirname, "../frontend/admin-revenue.html")
   );
 });
+*/
 
 /* =====================================================
    👤 USER PROTECTED HTML PAGE
 ===================================================== */
 
-app.get("/my-bookings", (req, res) => {
+app.get("/my-bookings", authenticate, (req, res) => {
   res.sendFile(
     path.join(__dirname, "../frontend/my-bookings.html")
   );
