@@ -116,5 +116,5 @@ window.location.replace("/");
 }
 
 function goBack(){
-window.location.href = "/admin";
+window.location.replace = "/admin";
 }
