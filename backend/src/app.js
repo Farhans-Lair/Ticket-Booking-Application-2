@@ -76,12 +76,12 @@ app.use("/", revenueRoutes);
 
 app.use(
   "/js",
-  express.static(path.join(__dirname, "../frontend/js"))
+  express.static(path.join(__dirname, "../../frontend/js"))
 );
 
 app.use(
   "/css",
-  express.static(path.join(__dirname, "../frontend/css"))
+  express.static(path.join(__dirname, "../../frontend/css"))
 );
 
 app.use("/",adminRoutes);
