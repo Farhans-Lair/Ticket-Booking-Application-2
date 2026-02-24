@@ -15,4 +15,5 @@ router.get("/admin",authenticate,authorizeAdmin,(req,res)=>{res.sendFile(path.jo
 // REVENUE PAGE
 
 router.get("/admin/revenue",authenticate,authorizeAdmin,(req,res)=>{res.sendFile(path.join(__dirname,"../../../frontend/admin-revenue.html"));});
+
 module.exports = router;

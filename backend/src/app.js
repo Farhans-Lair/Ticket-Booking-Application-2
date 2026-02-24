@@ -113,7 +113,7 @@ app.get("/admin-revenue", (req, res) => {
 
 app.get("/my-bookings", authenticate, (req, res) => {
   res.sendFile(
-    path.join(__dirname, "../frontend/my-bookings.html")
+    path.join(__dirname, "../../frontend/my-bookings.html")
   );
 });
 

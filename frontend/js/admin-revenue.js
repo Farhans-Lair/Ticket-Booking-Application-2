@@ -109,12 +109,13 @@ alert(
 }
 }
 
+function goBack(){
+window.location.replace("/admin");
+}
+
 function logout(){
 localStorage.clear();
 window.location.replace("/");
 
 }
 
-function goBack(){
-window.location.href = "/admin";
-}
