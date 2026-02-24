@@ -340,15 +340,15 @@ revenue.innerText =
 
 }
 
-function goToRevenue(){
+/*function goToRevenue(){
 window.location.href =
 "/admin-revenue";
 
 }
-
+*/
 
 function openRevenue(){
-window.location.replace="/admin/revenue";
+window.location.replace("/admin/revenue");
 }
 
 // 🔹 Logout
