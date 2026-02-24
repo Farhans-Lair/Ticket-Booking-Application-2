@@ -67,7 +67,7 @@ app.use((req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
-app.use("/", revenueRoutes);
+app.use("/api", revenueRoutes);
 
 /* =====================================================
    🎨 Static Assets (ONLY JS & CSS)
@@ -84,7 +84,7 @@ app.use(
   express.static(path.join(__dirname, "../../frontend/css"))
 );
 
-app.use("/",adminRoutes);
+app.use("/admin",adminRoutes);
 
 
 /* =====================================================

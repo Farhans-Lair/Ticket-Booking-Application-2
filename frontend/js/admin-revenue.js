@@ -17,7 +17,7 @@ loadRevenue();
 async function loadRevenue(){
 try{
 const events =
-await apiRequest("/revenue","GET",null,true);
+await apiRequest("/api/revenue","GET",null,true);
 
 const container =
 document.getElementById(
