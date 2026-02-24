@@ -348,7 +348,7 @@ window.location.href =
 */
 
 function openRevenue(){
-window.location.replace("/admin/revenue");
+window.location.href="/admin-revenue.html";
 }
 
 // 🔹 Logout
