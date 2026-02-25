@@ -66,7 +66,7 @@ async function loadEvents() {
 
 async function bookTicket(eventId) {
 
-  const tickets_booked = document.getElementById(`qty-${eventId}`).value;
+  const tickets_booked = parseInt(document.getElementById(`qty-${eventId}`).value, 10);
 
   if (!tickets_booked || tickets_booked <= 0) {
     alert("Enter valid quantity");

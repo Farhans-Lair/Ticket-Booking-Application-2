@@ -1,8 +1,6 @@
-// Automatically uses localhost when running locally, AWS when deployed
 const API_BASE_URL = window.location.hostname === "localhost"
-  ? `http://localhost:${window.location.port}`
-  : "http://ticket-alb-828754988.ap-south-1.elb.amazonaws.com";
-
+  ? ""   // local: same origin (Express on port 3000)
+  : "";  // AWS:   same origin (Express behind ALB)
 
 async function apiRequest(path, method = "GET", body = null, auth = false) {
   const headers = {
