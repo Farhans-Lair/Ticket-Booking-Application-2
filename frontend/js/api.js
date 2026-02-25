@@ -1,4 +1,8 @@
-const API_BASE_URL = "http://ticket-alb-828754988.ap-south-1.elb.amazonaws.com";
+// Automatically uses localhost when running locally, AWS when deployed
+const API_BASE_URL = window.location.hostname === "localhost"
+  ? `http://localhost:${window.location.port}`
+  : "http://ticket-alb-828754988.ap-south-1.elb.amazonaws.com";
+
 
 async function apiRequest(path, method = "GET", body = null, auth = false) {
   const headers = {

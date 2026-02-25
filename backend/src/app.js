@@ -8,7 +8,6 @@ const cors = require("cors");
 const path = require("path");
 
 const authenticate = require("./middleware/auth.middleware");
-const authorizeAdmin = require("./middleware/authorizeadmin");
 
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
@@ -61,71 +60,42 @@ app.use((req, res, next) => {
 });
 
 /* =====================================================
-   📦 API Routes
+   Static Assets (JS & CSS only)
 ===================================================== */
+app.use("/js", express.static(path.join(__dirname, "../../frontend/js")));
+app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 
+/* =====================================================
+   API Routes  ← JWT auth enforced HERE (in the routes)
+===================================================== */
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/api", revenueRoutes);
 
 /* =====================================================
-   🎨 Static Assets (ONLY JS & CSS)
-   ⚠ DO NOT expose full frontend folder
+   HTML Page Routes  ← NO JWT middleware here.
+   Auth is handled client-side via localStorage checks
+   in admin-auth.js, events.js, my-bookings.js etc.
 ===================================================== */
 
-app.use(
-  "/js",
-  express.static(path.join(__dirname, "../../frontend/js"))
-);
-
-app.use(
-  "/css",
-  express.static(path.join(__dirname, "../../frontend/css"))
-);
-
-app.use("/admin",adminRoutes);
-
-
-/* =====================================================
-   🔐 Protected HTML Pages (ADMIN ONLY)
-===================================================== */
-
-// Admin Dashboard
-
-/*app.get("/admin", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../frontend/admin-dashboard.html")
-  );
-});
-
-// Admin Revenue Page
-app.get("/admin-revenue", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../frontend/admin-revenue.html")
-  );
-});
-*/
-
-/* =====================================================
-   👤 USER PROTECTED HTML PAGE
-===================================================== */
-
-app.get("/my-bookings", authenticate, (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../../frontend/my-bookings.html")
-  );
-});
-
-// Serve index (login) page
+// Login / Register page (public)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/index.html"));
 });
 
-// Serve events page (authenticated users)
-app.get("/events-page", authenticate, (req, res) => {
+// Events page (client-side auth check in events.js)
+app.get("/events-page", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/events.html"));
 });
+
+// My Bookings page (client-side auth check in my-bookings.js)
+app.get("/my-bookings", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/my-bookings.html"));
+});
+
+app.use("/admin",adminRoutes);
+
 
 // Debug Route
 app.get("/debug-admin", (req, res) => {
