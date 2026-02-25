@@ -110,7 +110,7 @@ alert(
 }
 
 function goBack(){
-window.location.href="/admin-dashboard.html";
+window.location.href="/admin";
 }
 
 function logout(){

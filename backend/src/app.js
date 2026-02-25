@@ -117,6 +117,16 @@ app.get("/my-bookings", authenticate, (req, res) => {
   );
 });
 
+// Serve index (login) page
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/index.html"));
+});
+
+// Serve events page (authenticated users)
+app.get("/events-page", authenticate, (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/events.html"));
+});
+
 // Debug Route
 app.get("/debug-admin", (req, res) => {
   res.send("ADMIN ROUTE EXISTS");
