@@ -1,20 +1,15 @@
-# Use official Node.js LTS image
 FROM node:20-alpine
 
-# Set working directory inside container
 WORKDIR /app/backend
 
-# Copy package files first (for caching)
-COPY package*.json ./
+COPY backend/package*.json ./
 
-# Install dependencies
 RUN npm install --production
 
-# Copy rest of the source code
-COPY . .
+COPY backend/src ./src
 
-# Expose backend port
+COPY frontend /app/frontend
+
 EXPOSE 3000
 
-# Start the server
 CMD ["node", "src/server.js"]
