@@ -16,12 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadBookings() {
   try {
-    const bookings = await apiRequest(
-      "/bookings/my-bookings",
-      "GET",
-      null,
-      true
-    );
+    const bookings = await apiRequest("/bookings/my-bookings","GET",null,true);
 
     const container = document.getElementById("bookings-list");
     container.innerHTML = "";
@@ -33,8 +28,6 @@ async function loadBookings() {
 
     bookings.forEach(b => {
 
-      const totalAmount = b.tickets_booked * b.Event.price;
-
       const div = document.createElement("div");
 
       div.innerHTML = `
@@ -42,7 +35,9 @@ async function loadBookings() {
         <p>Event Date: ${new Date(b.Event.event_date).toLocaleDateString()}</p>
         <p>Tickets Booked: ${b.tickets_booked}</p>
         <p>Price per Ticket: ₹${b.Event.price}</p>
-        <p>Total Paid: ₹${totalAmount}</p>
+        <p>Convenience Fee: ₹${b.convenience_fee.toFixed(2)}</p>
+        <p>GST (18%): ₹${b.gst_amount.toFixed(2)}</p>
+        <p><strong>Total Paid: ₹${b.total_paid.toFixed(2)}</strong></p>
         <p>Booked On: ${new Date(b.booking_date).toLocaleString()}</p>
         <hr>
       `;
@@ -53,6 +48,10 @@ async function loadBookings() {
   } catch (err) {
     alert(err.message || "Error loading bookings");
   }
+}
+
+function goBack() {
+  window.location.replace("/events-page");
 }
 
 function logout() {

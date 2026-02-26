@@ -3,7 +3,10 @@ const bookingService = require("../services/booking.services");
 const createBooking = async (req, res, next) => {
   try {
     const userId = req.user.id;   // from auth middleware
-    const { event_id, tickets_booked } = req.body;
+    // Parse both as integers — req.body values arrive as strings
+    const event_id = parseInt(req.body.event_id, 10);
+    const tickets_booked = parseInt(req.body.tickets_booked, 10);
+
 
     if (!event_id || !tickets_booked || tickets_booked <= 0) {
       return res.status(400).json({

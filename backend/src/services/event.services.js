@@ -5,14 +5,11 @@ const createEvent = async (eventData) => {
 };
 
 const getAllEvents = async () => {
-  return Event.findAll();
+  return Event.findAll({order: [["event_date", "ASC"]]});
 };
 
 const updateEvent = async (id,data)=>{
-
- const event =
-   await Event.findByPk(id);
-
+ const event =await Event.findByPk(id);
  if(!event) return null;
 
 
@@ -22,33 +19,18 @@ const updateEvent = async (id,data)=>{
 Tickets already sold must be preserved.
 */
 
- const soldTickets =
-   event.total_tickets -
-   event.available_tickets;
+ const soldTickets =event.total_tickets - event.available_tickets;
 
- if(
-   data.total_tickets &&
-   data.total_tickets < soldTickets
- ){
-
- throw new Error(
-  `Cannot reduce below sold tickets (${soldTickets})`
- );
-
-
- }
+ if(data.total_tickets && data.total_tickets < soldTickets){
+ throw new Error(`Cannot reduce below sold tickets (${soldTickets})`);
+}
 
  // adjust available tickets
 
- if(data.total_tickets){
-
- const difference =
-  data.total_tickets -
-  event.total_tickets;
-
- event.available_tickets += difference;
-
- }
+ if(data.total_tickets)
+  { const difference = data.total_tickets - event.total_tickets;
+  event.available_tickets += difference;
+  }
 
  await event.update({
   

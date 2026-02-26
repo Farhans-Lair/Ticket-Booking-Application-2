@@ -38,6 +38,15 @@ async function loadEvents() {
     events.forEach(event => {
       const div = document.createElement("div");
 
+       // Show Sold Out label instead of booking input when no tickets left
+      const bookingSection = event.available_tickets === 0
+        ? `<p style="color:red; font-weight:bold;">Sold Out</p>`
+        : `
+          <input type="number" min="1" max="${event.available_tickets}"
+            id="qty-${event.id}" placeholder="Number of tickets" />
+          <button onclick="bookTicket(${event.id})">Book Ticket</button>
+        `;
+
       div.innerHTML = `
      <strong>${event.title}</strong><br/>
      ${event.description || ""}<br/>
@@ -45,6 +54,7 @@ async function loadEvents() {
      Date: ${new Date(event.event_date).toLocaleDateString()}<br/>
      Available Tickets: ${event.available_tickets} / ${event.total_tickets}
      Price: ₹${event.price}<br/>
+     ${bookingSection}
 
      <input type="number" min="1" max="${event.available_tickets}" 
          id="qty-${event.id}" placeholder="tickets_booked" />
@@ -54,8 +64,6 @@ async function loadEvents() {
   </button>
      <hr/>
      `;
-
-
       list.appendChild(div);
     });
 
@@ -81,7 +89,6 @@ async function bookTicket(eventId) {
     }, true);
 
     alert("Booking successful!");
-
     loadEvents();  // refresh tickets
 
   } catch (err) {

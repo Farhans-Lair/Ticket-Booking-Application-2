@@ -1,11 +1,6 @@
-(function(){
-
-const token =
-localStorage.getItem("token");
-
-if(!token){
-
-window.location.replace("/");
-}
-
+(function()
+{
+const token =localStorage.getItem("token");
+const role = localStorage.getItem("role");
+if(!token || role !== admin){window.location.replace("/");}
 })();

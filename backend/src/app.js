@@ -1,5 +1,3 @@
-console.log("APP.JS LOADED");
-
 require("dotenv").config();
 require("./models"); // 👈 Initialize DB Models
 
@@ -7,13 +5,12 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const authenticate = require("./middleware/auth.middleware");
-
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const revenueRoutes = require("./routes/revenue.routes");
 const adminRoutes = require("./routes/admin.routes");
+const errorHandler = require("./middleware/error.middleware");
 
 
 const app = express();
@@ -96,12 +93,6 @@ app.get("/my-bookings", (req, res) => {
 
 app.use("/admin",adminRoutes);
 
-
-// Debug Route
-app.get("/debug-admin", (req, res) => {
-  res.send("ADMIN ROUTE EXISTS");
-});
-
 /* =====================================================
    ❌ 404 Handler
 ===================================================== */
@@ -113,15 +104,8 @@ app.use((req, res) => {
 });
 
 /* =====================================================
-   🔥 Global Error Handler
+   Global Error Handler (uses error.middleware.js)
 ===================================================== */
-
-app.use((err, _req, res, _next) => {
-  console.error("GLOBAL ERROR:", err.message);
-
-  res.status(err.statusCode || 500).json({
-    error: err.message || "Internal Server Error",
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;

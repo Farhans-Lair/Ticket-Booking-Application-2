@@ -29,13 +29,10 @@ services:
 
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ticket_db
-      DB_USER: ticket_user
-      DB_PASSWORD: ticket_password
-      JWT_SECRET: super_secret_jwt_key_123
     command: ["node", "src/server.js"]
 
 volumes:
