@@ -40,10 +40,9 @@ async function createEvent() {
   const event_date = document.getElementById("event_date").value;
   const price = Number(document.getElementById("price").value);
   const total_tickets = Number(document.getElementById("total_tickets").value);
-  const available_tickets = Number(document.getElementById("available_tickets").value);
   
 
- if (!title || !event_date || !price || !total_tickets || !available_tickets){
+ if (!title || !event_date || !price || !total_tickets){
     alert("Title, Date, Total Tickets and Available Tickets are required");
     return;
   }
@@ -56,7 +55,7 @@ async function createEvent() {
       event_date,
       price,
       total_tickets,
-      available_tickets
+    
     }, true);   // 🔥 IMPORTANT → auth = true
 
     alert("Event created successfully!");
@@ -68,7 +67,6 @@ async function createEvent() {
     document.getElementById("event_date").value = "";
     document.getElementById("price").value = "";
     document.getElementById("total_tickets").value = "";
-    document.getElementById("available_tickets").value = "";
 
     loadEvents();
 
