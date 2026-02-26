@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
 
-  if (!token || role !== "admin") {
+  if (!token || role !== 'admin') {
     alert("Access Denied! Admins only.");
     window.location.replace("/");
     return;

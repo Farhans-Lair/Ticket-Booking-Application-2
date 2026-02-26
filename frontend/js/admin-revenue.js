@@ -6,7 +6,7 @@ localStorage.getItem("token");
 const role =
 localStorage.getItem("role");
 
-if(!token || role !== "admin"){
+if(!token || role !== 'admin'){
 alert("Admins Only");
 window.location.replace("/");
 return;
