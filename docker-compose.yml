@@ -18,12 +18,15 @@ services:
       retries: 5 
 
   backend:
-    image: ticket
+    build:
+      context: .                      # project root — gives Dockerfile access to frontend/
+      dockerfile: backend/Dockerfile  # Dockerfile still lives inside backend/
     container_name: ticket-backend
     restart: always
     depends_on:
-        mysql: 
-          condition: service_healthy
+      mysql:
+        condition: service_healthy
+
     ports:
       - "3000:3000"
     environment:

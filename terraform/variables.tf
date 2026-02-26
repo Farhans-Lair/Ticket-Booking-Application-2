@@ -1,3 +1,10 @@
+variable "github_org" {
+  default = "Farhans-Lair"   # ← change this
+}
+variable "github_repo" {
+  default = "Ticket-Booking-Application-2"  # ← verify this matches your repo name
+}
+
 variable "project_name" {
   default = "ticket"
 }
