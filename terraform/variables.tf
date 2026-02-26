@@ -5,6 +5,14 @@ variable "github_repo" {
   default = "Ticket-Booking-Application-2"  # ← verify this matches your repo name
 }
 
+variable "aws_account_id" {
+  default = "680318115068"
+}
+
+variable "aws_region" {
+  default = "ap-south-1"
+}
+
 variable "project_name" {
   default = "ticket"
 }
