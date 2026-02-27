@@ -24,6 +24,8 @@ jobs:
       DB_USER: ticket_user
       DB_PASSWORD: ticket_password
       NODE_ENV: test
+      RAZORPAY_KEY_ID: rzp_test_placeholder_for_ci      # 👈 add this
+      RAZORPAY_KEY_SECRET: placeholder_secret_for_ci
 
     services:
       mysql:

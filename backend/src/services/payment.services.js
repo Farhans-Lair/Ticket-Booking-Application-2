@@ -8,10 +8,27 @@ const crypto    = require("crypto");
 ====================================================
 */
 
-const razorpay = new Razorpay({
-  key_id:     process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+/*
+====================================================
+ RAZORPAY INSTANCE — LAZY INITIALIZED
+ We use a getter function instead of creating the
+ instance at module load time. This prevents crashes
+ when env vars are not set (e.g. during Jest tests
+ that don't need payment functionality).
+====================================================
+*/
+
+const getRazorpayInstance = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    throw new Error(
+      "Razorpay credentials missing. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your .env file."
+    );
+  }
+  return new Razorpay({
+    key_id:     process.env.RAZORPAY_KEY_ID.trim(),
+    key_secret: process.env.RAZORPAY_KEY_SECRET.trim(),
+  });
+};
 
 /*
 ====================================================
