@@ -65,29 +65,41 @@ async function loadEvents() {
   }
 }
 
-async function bookTicket(eventId) {
-
-  const tickets_booked = parseInt(document.getElementById(`qty-${eventId}`).value, 10);
+/*
+====================================================
+ INITIATE PAYMENT — replaces old bookTicket()
+ 1. Calls POST /payments/create-order
+ 2. Stores order + meta in sessionStorage
+ 3. Redirects to /payment page for Razorpay checkout
+====================================================
+*/
+async function initiatePayment(eventId) {
+  const tickets_booked = parseInt(
+    document.getElementById(`qty-${eventId}`).value, 10
+  );
 
   if (!tickets_booked || tickets_booked <= 0) {
-    alert("Enter valid quantity");
+    alert("Enter a valid number of tickets");
     return;
   }
 
   try {
-
-    await apiRequest("/bookings", "POST", {
-      event_id: eventId,
-      tickets_booked
+    const data = await apiRequest("/payments/create-order", "POST", {
+      event_id:       eventId,
+      tickets_booked,
     }, true);
 
-    alert("Booking successful!");
-    loadEvents();  // refresh tickets
+    // Store order details for the payment page
+    sessionStorage.setItem("razorpay_order", JSON.stringify(data));
+
+    // Redirect to dedicated payment page
+    window.location.href = "/payment";
 
   } catch (err) {
-    alert("Booking failed: " + err.message);
+    alert("Could not initiate payment: " + err.message);
   }
 }
+
 
 function goMyBookings(){
 window.location.replace ("/my-bookings");}

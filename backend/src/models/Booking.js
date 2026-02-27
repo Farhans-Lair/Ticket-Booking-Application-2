@@ -38,7 +38,21 @@ gst_amount:{
 total_paid:{
  type:DataTypes.FLOAT,
  allowNull:false
-}
+},
+
+razorpay_order_id: {
+  type: DataTypes.STRING,
+  allowNull: true,
+},
+
+razorpay_payment_id: {
+  type: DataTypes.STRING,
+  allowNull: true,
+},
+
+payment_status: 
+{ type: DataTypes.ENUM('pending', 'paid', 'failed'), 
+  defaultValue: 'pending' }
 }, {
   tableName: "bookings",
   timestamps: true,

@@ -10,6 +10,7 @@ const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const revenueRoutes = require("./routes/revenue.routes");
 const adminRoutes = require("./routes/admin.routes");
+const paymentRoutes = require("./routes/payment.routes");
 const errorHandler = require("./middleware/error.middleware");
 
 
@@ -68,6 +69,7 @@ app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
+app.use("/payments", paymentRoutes);
 app.use("/api", revenueRoutes);
 
 /* =====================================================
@@ -90,6 +92,12 @@ app.get("/events-page", (req, res) => {
 app.get("/my-bookings", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/my-bookings.html"));
 });
+
+// Payment page (client-side auth check in payment.js)
+app.get("/payment", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/payment.html"));
+});
+
 
 app.use("/admin",adminRoutes);
 

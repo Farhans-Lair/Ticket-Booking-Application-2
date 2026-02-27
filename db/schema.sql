@@ -27,7 +27,11 @@ CREATE TABLE bookings (
   convenience_fee FLOAT NOT NULL,
   gst_amount FLOAT NOT NULL,
   total_paid FLOAT NOT NULL,
+  razorpay_order_id VARCHAR(255) DEFAULT NULL,
+  razorpay_payment_id VARCHAR(255) DEFAULT NULL,
+  payment_status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
   booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
 
   CONSTRAINT fk_user
     FOREIGN KEY (user_id)

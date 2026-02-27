@@ -27,6 +27,10 @@ async function loadBookings() {
     }
 
     bookings.forEach(b => {
+      const statusColor = b.payment_status === "paid"   ? "green"
+                        : b.payment_status === "failed" ? "red"
+                        : "orange";
+
 
       const div = document.createElement("div");
 
@@ -37,7 +41,9 @@ async function loadBookings() {
         <p>Price per Ticket: ₹${b.Event.price}</p>
         <p>Convenience Fee: ₹${b.convenience_fee.toFixed(2)}</p>
         <p>GST (18%): ₹${b.gst_amount.toFixed(2)}</p>
-        <p><strong>Total Paid: ₹${b.total_paid.toFixed(2)}</strong></p>
+        <p><strong>Total Paid: ₹${b.total_paid.toFixed(2)}</strong></p
+        <p>Payment ID: <code>${b.razorpay_payment_id || "N/A"}</code></p>
+        <p>Payment Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${b.payment_status}</span></p>
         <p>Booked On: ${new Date(b.booking_date).toLocaleString()}</p>
         <hr>
       `;

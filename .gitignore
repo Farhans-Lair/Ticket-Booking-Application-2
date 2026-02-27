@@ -13,6 +13,7 @@ crash.*.log
 # Keep provider lock file (DO NOT IGNORE)
 !.terraform.lock.hcl
 
+rzp-key.csv
 
 # =========================================================
 # Node.js / JavaScript
