@@ -114,6 +114,7 @@ const getUserBookings = async (userId) => {
 };
 
 module.exports = {
-  createBooking,
+  calculateBookingAmount,
+  confirmBooking,
   getUserBookings
 };
