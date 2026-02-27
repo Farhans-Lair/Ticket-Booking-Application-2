@@ -55,13 +55,6 @@ async function loadEvents() {
      Available Tickets: ${event.available_tickets} / ${event.total_tickets}
      Price: ₹${event.price}<br/>
      ${bookingSection}
-
-     <input type="number" min="1" max="${event.available_tickets}" 
-         id="qty-${event.id}" placeholder="tickets_booked" />
-
-  <button onclick="bookTicket(${event.id})">
-    Book Ticket
-  </button>
      <hr/>
      `;
       list.appendChild(div);
