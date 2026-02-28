@@ -100,10 +100,13 @@ async function initiatePayment(eventId) {
   }
 }
 
+// Alias for backward compatibility — old cached pages may still call bookTicket()
+function bookTicket(eventId) {
+  initiatePayment(eventId);
+}
 
 function goMyBookings(){
 window.location.replace ("/my-bookings");}
-
 
 function logout() {
  localStorage.clear();
