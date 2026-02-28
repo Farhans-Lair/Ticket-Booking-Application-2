@@ -41,3 +41,19 @@ variable "db_password" {
   description = "RDS_Password"
   sensitive   = true
 }
+
+variable "jwt_secret" {
+  description = "JWT secret key"
+  sensitive   = true
+}
+
+variable "razorpay_key_id" {
+  description = "Razorpay Key ID"
+  sensitive   = true
+}
+
+variable "razorpay_key_secret" {
+  description = "Razorpay Key Secret"
+  sensitive   = true
+}
+
