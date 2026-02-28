@@ -47,7 +47,7 @@ const createOrder = async (amount, currency = "INR", receipt) => {
     payment_capture: 1,                   // auto-capture on success
   };
 
-  const order = await razorpay.orders.create(options);
+  const order = await getRazorpayInstance().orders.create(options);
   return order;
 };
 
