@@ -99,7 +99,9 @@ resource "aws_iam_role_policy" "github_actions_ssm" {
         Action = [
           "ssm:SendCommand",
           "ssm:GetCommandInvocation",
-          "ssm:ListCommandInvocations"
+          "ssm:ListCommandInvocations",
+          "ssm:DescribeInstanceInformation",
+          "ec2:DescribeInstances"
         ]
         Resource = [
           "arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:instance/*",
