@@ -40,6 +40,8 @@ async function createEvent() {
   const event_date = document.getElementById("event_date").value;
   const price = Number(document.getElementById("price").value);
   const total_tickets = Number(document.getElementById("total_tickets").value);
+
+  const category      = document.getElementById("category").value
   
 
  if (!title || !event_date || !price || !total_tickets){
@@ -55,18 +57,17 @@ async function createEvent() {
       event_date,
       price,
       total_tickets,
+      category,
     
     }, true);   // 🔥 IMPORTANT → auth = true
 
     alert("Event created successfully!");
 
     // Clear form
-    document.getElementById("title").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("location").value = "";
-    document.getElementById("event_date").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("total_tickets").value = "";
+[ "title","description","location","event_date","price","total_tickets"].forEach(
+      id => document.getElementById(id).value = ""
+    );
+    document.getElementById("category").value = "Other";
 
     loadEvents();
 
@@ -100,90 +101,27 @@ async function loadEvents() {
 
       const div = document.createElement("div");
 
-      div.innerHTML = `
+        div.innerHTML = `
+        <span class="category-badge">${event.category || 'Other'}</span><br/>
 
-Title:
+        Title: <input id="title-${event.id}" value="${event.title}" /><br/>
+        Category:
+        <select id="cat-${event.id}">
+          ${["Music","Sports","Comedy","Theatre","Conference","Festival","Workshop","Other"]
+            .map(c => `<option value="${c}" ${c === event.category ? 'selected' : ''}>${c}</option>`)
+            .join("")}
+        </select><br/>
+        Price: <input type="number" id="price-${event.id}" value="${event.price}" oninput="ticketPreview(${event.id})" /><br/>
+        Date: <input type="date" id="date-${event.id}" value="${event.event_date ? event.event_date.split("T")[0] : ""}" /><br/>
+        Total Tickets: <input type="number" id="total-${event.id}" value="${event.total_tickets}" oninput="ticketPreview(${event.id})" /><br/>
+        Available Tickets: <span id="available-${event.id}">${event.available_tickets}</span><br/>
+        Sold Tickets: <span id="sold-${event.id}">${soldTickets}</span><br/>
+        Revenue: <span id="revenue-${event.id}" style="color:green; font-weight:bold;">₹${revenue}</span><br/><br/>
 
-<input id="title-${event.id}"
-value="${event.title}" />
-
-<br/>
-
-Price:
-
-<input type="number"
-id="price-${event.id}"
-value="${event.price}"
-oninput="ticketPreview(${event.id})" />
-
-<br/>
-
-Date:
-
-<input type="date"
-id="date-${event.id}"
-value="${
-event.event_date ?
-event.event_date.split("T")[0] :
-""
-}" />
-
-<br/>
-
-Total Tickets:
-
-<input type="number"
-id="total-${event.id}"
-value="${event.total_tickets}" 
-oninput="ticketPreview(${event.id})"
-/>
-
-<br/>
-
-Available Tickets:
-
-<span id="available-${event.id}">
-${event.available_tickets}
-</span>
-
-<br/>
-
-Sold Tickets:
-
-<span id="sold-${event.id}">
-${soldTickets}
-</span>
-
-
-<br/>
-
-<br/>
-
-Revenue Generated:
-
-<span id="revenue-${event.id}"
-style="color:green; font-weight:bold;">
-
-₹${revenue}
-
-</span>
-
-
-<button onclick="updateEvent(${event.id})">
-
-Save
-
-</button>
-
-<button onclick="deleteEvent(${event.id})">
-
-Delete
-
-</button>
-
-<hr/>
-
-`;
+        <button onclick="updateEvent(${event.id})">Save</button>
+        <button onclick="deleteEvent(${event.id})">Delete</button>
+        <hr/>
+      `;
       eventsList.appendChild(div);
     });
 
@@ -192,7 +130,29 @@ Delete
   }
 }
 
+// 🔹 Update Event
+async function updateEvent(id) {
+  try {
+    const title         = document.getElementById(`title-${id}`).value;
+    const price         = Number(document.getElementById(`price-${id}`).value);
+    const event_date    = document.getElementById(`date-${id}`).value;
+    const total_tickets = Number(document.getElementById(`total-${id}`).value);
+    const category      = document.getElementById(`cat-${id}`).value;
 
+    if (!title)              { alert("Title required"); return; }
+    if (!price || price <= 0){ alert("Price must be > 0"); return; }
+    if (total_tickets <= 0)  { alert("Total tickets must be > 0"); return; }
+
+    await apiRequest(`/events/${id}`, "PUT", {
+      title, price, event_date, total_tickets, category
+    }, true);
+
+    alert("Event Updated");
+    loadEvents();
+  } catch (err) {
+    alert(err.message || "Update Failed");
+  }
+}
 
 // 🔹 Delete Event
 async function deleteEvent(id) {
@@ -207,135 +167,10 @@ async function deleteEvent(id) {
   }
 }
 
-async function updateEvent(id){
-
-try{
-
- const title =
- document.getElementById(
- `title-${id}`
- ).value;
-
- const price = Number(
-document.getElementById(
-`price-${id}`
-).value
-);
-
- const event_date =
- document.getElementById(
- `date-${id}`
- ).value;
-
-const total_tickets = Number(
-document.getElementById(
-`total-${id}`
-).value
-);
-/*
-Validation
-*/
-
- if(!title){
-
- alert("Title required");
-
- return;
-
- }
-
-if(!price || price <= 0){
-
- alert("Price must be greater than zero");
-
- return;
-
- }
-
- if(total_tickets <= 0){
-
- alert("Total tickets must be > 0");
-
- return;
-
- }
-
- 
-
- await apiRequest(
-
- `/events/${id}`,
- "PUT",
- {
-
- title,
- price,
- event_date, total_tickets
-
- },
- true
- );
-
- alert("Event Updated");
- loadEvents();
-}
-
-catch(err){
- alert(
- err.message ||
- "Update Failed"
- );
-}
-}
-
-function ticketPreview(id){
-
-const total = Number(
-document.getElementById(
-`total-${id}`
-).value
-);
-
-const price = Number(
-document.getElementById(
-`price-${id}`
-).value
-);
-
-const available =
-document.getElementById(
-`available-${id}`
-);
-
-available.innerText =
-"Will auto adjust after save";
-
-
-const sold =
-document.getElementById(
-`sold-${id}`
-);
-
-if(sold){
-
-sold.innerText =
-"Auto recalculated";
-
-}
-
-
-const revenue =
-document.getElementById(
-`revenue-${id}`
-);
-
-if(revenue){
-
-revenue.innerText =
-"Preview updates after save";
-
-}
-
+function ticketPreview(id) {
+  document.getElementById(`available-${id}`).innerText = "Will auto adjust after save";
+  document.getElementById(`sold-${id}`).innerText      = "Auto recalculated";
+  document.getElementById(`revenue-${id}`).innerText   = "Preview updates after save";
 }
 
 /*function goToRevenue(){

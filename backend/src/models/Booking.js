@@ -40,6 +40,11 @@ total_paid:{
  allowNull:false
 },
 
+selected_seats: {
+  type: DataTypes.TEXT,   // stored as JSON string e.g. '["A1","A2"]'
+  allowNull: true,
+},
+
 razorpay_order_id: {
   type: DataTypes.STRING,
   allowNull: true,

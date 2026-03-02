@@ -17,9 +17,16 @@ const createOrder = async (req, res, next) => {
     const userId         = req.user.id;
     const event_id       = parseInt(req.body.event_id, 10);
     const tickets_booked = parseInt(req.body.tickets_booked, 10);
+    const selected_seats = req.body.selected_seats || [];  // array of seat numbers
 
     if (!event_id || !tickets_booked || tickets_booked <= 0) {
       return res.status(400).json({ error: "Valid event_id and tickets_booked required" });
+    }
+
+    if (selected_seats.length !== tickets_booked) {
+      return res.status(400).json({
+        error: `Please select exactly ${tickets_booked} seat(s)`
+      });
     }
 
     // Phase 1 — calculate amount (no DB write yet)
@@ -49,6 +56,7 @@ const createOrder = async (req, res, next) => {
         user_id:         userId,
         event_id,
         tickets_booked,
+        selected_seats,
       },
     });
 
@@ -76,6 +84,7 @@ const verifyPayment = async (req, res, next) => {
       razorpay_signature,
       event_id,
       tickets_booked,
+      selected_seats,
     } = req.body;
 
     const userId = req.user.id;
@@ -105,7 +114,8 @@ const verifyPayment = async (req, res, next) => {
       parseInt(event_id, 10),
       parseInt(tickets_booked, 10),
       razorpay_order_id,
-      razorpay_payment_id
+      razorpay_payment_id,
+      selected_seats || []    
     );
 
     res.status(201).json({

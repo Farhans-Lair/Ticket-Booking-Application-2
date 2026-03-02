@@ -11,6 +11,7 @@ const bookingRoutes = require("./routes/booking.routes");
 const revenueRoutes = require("./routes/revenue.routes");
 const adminRoutes = require("./routes/admin.routes");
 const paymentRoutes = require("./routes/payment.routes");
+const seatRoutes    = require("./routes/seat.routes");
 const errorHandler = require("./middleware/error.middleware");
 
 
@@ -70,6 +71,7 @@ app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/seats",    seatRoutes);
 app.use("/api", revenueRoutes);
 
 /* =====================================================
@@ -98,6 +100,9 @@ app.get("/payment", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/payment.html"));
 });
 
+app.get("/seat-selection", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/seat-selection.html"))
+});
 
 app.use("/admin",adminRoutes);
 

@@ -37,7 +37,14 @@ const Event = sequelize.define("Event", {
   available_tickets: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  }
+  },
+    category: {
+    type: DataTypes.ENUM(
+      'Music','Sports','Comedy','Theatre',
+      'Conference','Festival','Workshop','Other'
+    ),
+    defaultValue: 'Other',
+  },
 },
 
 {

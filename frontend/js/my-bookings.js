@@ -31,6 +31,17 @@ async function loadBookings() {
                         : b.payment_status === "failed" ? "red"
                         : "orange";
 
+    // Parse selected_seats JSON string
+    let seatsDisplay = "N/A";
+    if (b.selected_seats) {
+      try {
+        const seats = JSON.parse(b.selected_seats);
+        seatsDisplay = seats.length > 0 ? seats.join(", ") : "N/A";
+        }catch (e) {
+         seatsDisplay = b.selected_seats;
+        }
+      }
+
 
       const div = document.createElement("div");
 

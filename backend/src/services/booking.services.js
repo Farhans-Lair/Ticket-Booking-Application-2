@@ -1,5 +1,7 @@
 const sequelize = require("../config/database");
 const { Event, Booking } = require("../models");
+const seatService = require("./seat.services");
+
 
 // Constants extracted — easy to update in one place
 const CONVENIENCE_FEE_PER_TICKET = 20;
@@ -52,7 +54,8 @@ const confirmBooking = async (
   eventId,
   tickets_booked,
   razorpay_order_id,
-  razorpay_payment_id
+  razorpay_payment_id,
+  selected_seats = []
 ) => {
   return await sequelize.transaction(async (t) => {
 
@@ -85,6 +88,7 @@ const confirmBooking = async (
         convenience_fee:     convenienceFee,
         gst_amount:          gstAmount,
         total_paid:          totalPaid,
+        selected_seats:      JSON.stringify(selected_seats),
         razorpay_order_id,
         razorpay_payment_id,
         payment_status:      "paid",

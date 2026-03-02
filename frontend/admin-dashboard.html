@@ -3,24 +3,43 @@
 <head>
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/css/styles.css">
+    <style>
+    .category-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 12px;
+      background: #e0e7ff; color: #4f46e5; font-size: 0.78rem;
+      font-weight: 600; margin-bottom: 6px;
+    }
+  </style>
 </head>
 
 <body>
   <h1>Admin Dashboard</h1>
 
 <button onclick="openRevenue()">Revenue</button>
-
 <button id="logoutBtn">Logout</button>
 
   <hr>
 <h2>Create New Event</h2>
 
-<input type="text" id="title" placeholder="Event Title">
-<input type="text" id="description" placeholder="Description">
-<input type="text" id="location" placeholder="Location">
-<input type="date" id="event_date">
-<input type="number" id="price" placeholder="Price">
-<input type="number" id="total_tickets" placeholder="Total Tickets">
+<input type="text"   id="title"        placeholder="Event Title"><br>
+  <input type="text"   id="description"  placeholder="Description"><br>
+  <input type="text"   id="location"     placeholder="Location"><br>
+  <input type="date"   id="event_date"><br>
+  <input type="number" id="price"        placeholder="Price per Ticket"><br>
+  <input type="number" id="total_tickets" placeholder="Total Tickets"><br>
+
+
+    <select id="category">
+    <option value="Music">Music</option>
+    <option value="Sports">Sports</option>
+    <option value="Comedy">Comedy</option>
+    <option value="Theatre">Theatre</option>
+    <option value="Conference">Conference</option>
+    <option value="Festival">Festival</option>
+    <option value="Workshop">Workshop</option>
+    <option value="Other" selected>Other</option>
+    </select><br><br>
+
 
 <button id="createEventBtn">Create Event</button>
 

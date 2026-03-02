@@ -18,6 +18,17 @@ CREATE TABLE events (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE seats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  event_id INT NOT NULL,
+  seat_number VARCHAR(10) NOT NULL,
+  status ENUM('available','booked') DEFAULT 'available',
+  CONSTRAINT fk_seat_event
+    FOREIGN KEY (event_id)
+    REFERENCES events(id)
+    ON DELETE CASCADE
+);
+
 CREATE TABLE bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,

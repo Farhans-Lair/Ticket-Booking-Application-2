@@ -25,10 +25,15 @@ document.addEventListener("DOMContentLoaded", () => {
 ====================================================
 */
 function renderSummary(breakdown) {
+
+  const seatsHtml = breakdown.selected_seats && breakdown.selected_seats.length > 0
+    ? `<tr><td>Seats</td><td>${breakdown.selected_seats.join(", ")}</td></tr>`
+    : "";
+
   document.getElementById("summary").innerHTML = `
     <h3>${breakdown.event_title}</h3>
     <table>
-      <tr><td>Tickets</td><td>${breakdown.tickets_booked}</td></tr>
+      <tr><td>Tickets</td><td>${breakdown.tickets_booked}</td></tr>${seatsHtml}
       <tr><td>Ticket Amount</td><td>₹${breakdown.ticket_amount.toFixed(2)}</td></tr>
       <tr><td>Convenience Fee</td><td>₹${breakdown.convenience_fee.toFixed(2)}</td></tr>
       <tr><td>GST (18%)</td><td>₹${breakdown.gst_amount.toFixed(2)}</td></tr>
@@ -98,6 +103,7 @@ async function verifyAndConfirm(response, meta) {
       razorpay_signature:  response.razorpay_signature,
       event_id:            meta.event_id,
       tickets_booked:      meta.tickets_booked,
+      selected_seats:      meta.selected_seats || [],
     }, true);
 
     // Clean up session
