@@ -16,7 +16,7 @@ app.listen(PORT, "0.0.0.0", () => {
     await sequelize.authenticate();
     console.log("Database connected successfully");
 
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log("Models synchronized successfully");
   } catch (err) {
     console.error("Database initialization failed:", err.message);
