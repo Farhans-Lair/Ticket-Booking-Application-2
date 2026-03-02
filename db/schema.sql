@@ -15,6 +15,7 @@ CREATE TABLE events (
   price FLOAT NOT NULL,
   total_tickets INT NOT NULL,
   available_tickets INT NOT NULL,
+  category ENUM('Music','Sports','Comedy','Theatre','Conference','Festival','Workshop','Other') DEFAULT 'Other',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -36,8 +37,9 @@ CREATE TABLE bookings (
   tickets_booked INT NOT NULL,
   ticket_amount FLOAT NOT NULL,
   convenience_fee FLOAT NOT NULL,
-  gst_amount FLOAT NOT NULL,
+  gst_amount FLOAT NOT NULL,a
   total_paid FLOAT NOT NULL,
+  selected_seats TEXT DEFAULT NULL,
   razorpay_order_id VARCHAR(255) DEFAULT NULL,
   razorpay_payment_id VARCHAR(255) DEFAULT NULL,
   payment_status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
