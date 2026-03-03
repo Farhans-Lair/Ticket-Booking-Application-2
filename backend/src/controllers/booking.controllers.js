@@ -1,6 +1,6 @@
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
-const { generateTicketPDF } = require("../services/email.service");
+const { generateTicketPDF } = require("../services/email.services");
 
 // GET /bookings/my-bookings — fetch logged-in user's bookings
 const getMyBookings = async (req, res, next) => {

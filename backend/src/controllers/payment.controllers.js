@@ -1,7 +1,7 @@
 const paymentService = require("../services/payment.services");
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
-const { sendTicketEmail } = require("../services/email.service");
+const { sendTicketEmail } = require("../services/email.services");
 
 /*
 ====================================================
