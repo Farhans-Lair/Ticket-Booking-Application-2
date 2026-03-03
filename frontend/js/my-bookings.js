@@ -49,13 +49,21 @@ async function loadBookings() {
         <h3>${b.Event.title}</h3>
         <p>Event Date: ${new Date(b.Event.event_date).toLocaleDateString()}</p>
         <p>Tickets Booked: ${b.tickets_booked}</p>
+        <p>Seats: ${seatsDisplay}</p>
         <p>Price per Ticket: ₹${b.Event.price}</p>
         <p>Convenience Fee: ₹${b.convenience_fee.toFixed(2)}</p>
         <p>GST (18%): ₹${b.gst_amount.toFixed(2)}</p>
-        <p><strong>Total Paid: ₹${b.total_paid.toFixed(2)}</strong></p
+        <p><strong>Total Paid: ₹${b.total_paid.toFixed(2)}</strong></p>
         <p>Payment ID: <code>${b.razorpay_payment_id || "N/A"}</code></p>
         <p>Payment Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${b.payment_status}</span></p>
         <p>Booked On: ${new Date(b.booking_date).toLocaleString()}</p>
+        ${b.payment_status === "paid"
+          ? `<a href="/bookings/${b.id}/download-ticket" 
+               onclick="downloadTicket(event, ${b.id})" 
+               style="display:inline-block; margin-bottom:12px; padding:8px 16px; background:#4CAF50; color:white; border-radius:4px; text-decoration:none; font-weight:bold;">
+               ⬇ Download Ticket PDF
+             </a>`
+          : ""}
         <hr>
       `;
 
@@ -64,6 +72,28 @@ async function loadBookings() {
 
   } catch (err) {
     alert(err.message || "Error loading bookings");
+  }
+}
+
+async function downloadTicket(e, bookingId) {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error("Failed to download ticket");
+
+    const blob = await response.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `ticket-${bookingId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Could not download ticket: " + err.message);
   }
 }
 

@@ -1,6 +1,5 @@
 const sequelize = require("../config/database");
 const { Event, Booking } = require("../models");
-const seatService = require("./seat.services");
 
 
 // Constants extracted — easy to update in one place
@@ -117,8 +116,17 @@ const getUserBookings = async (userId) => {
   });
 };
 
+// Fetch a single booking — ensures it belongs to the requesting user
+const getBookingById = async (bookingId, userId) => {
+  return await Booking.findOne({
+    where: { id: bookingId, user_id: userId },
+    include: [{ model: Event, attributes: ["title", "event_date", "price", "location"] }],
+  });
+};
+
 module.exports = {
   calculateBookingAmount,
   confirmBooking,
-  getUserBookings
+  getUserBookings,
+  getBookingById
 };

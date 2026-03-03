@@ -1,5 +1,7 @@
 const paymentService = require("../services/payment.services");
 const bookingService = require("../services/booking.services");
+const { User, Event } = require("../models");
+const { sendTicketEmail } = require("../services/email.service");
 
 /*
 ====================================================
@@ -117,6 +119,15 @@ const verifyPayment = async (req, res, next) => {
       razorpay_payment_id,
       selected_seats || []    
     );
+
+    // ✅ Send ticket email — failure must NOT block booking confirmation
+    try {
+      const user  = await User.findByPk(userId);
+      const event = await Event.findByPk(parseInt(event_id, 10));
+      await sendTicketEmail(user, booking, event);
+    } catch (emailErr) {
+      console.error("Email sending failed (booking still confirmed):", emailErr);
+    }
 
     res.status(201).json({
       message: "Payment verified and booking confirmed!",
