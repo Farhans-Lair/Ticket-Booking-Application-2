@@ -37,7 +37,7 @@ const createEvent = async (eventData) => {
 
 };
 
-const getAllEvents = async () => {
+const getAllEvents = async (category) => {
   const where = category ? { category } : {};
   return Event.findAll({where, order: [["event_date", "ASC"]]});
 };

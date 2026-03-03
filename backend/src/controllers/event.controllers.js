@@ -9,6 +9,7 @@ const createEvent = async (req, res, next) => {
       event_date,
       price,
       total_tickets,
+      category
 
     } = req.body;
 
@@ -46,7 +47,8 @@ if (selectedDate < today) {
       event_date,
       price,
       total_tickets,
-      available_tickets: total_tickets
+      available_tickets: total_tickets,
+      category: category || 'Other',
     });
 
     res.status(201).json(event);
@@ -58,7 +60,8 @@ if (selectedDate < today) {
 
 const getEvents = async (req, res, next) => {
   try {
-    const events = await eventService.getAllEvents();
+    const { category } = req.query;
+    const events = await eventService.getAllEvents(category);
     res.json(events);
   } catch (err) {
     err.statusCode = 500;
@@ -78,7 +81,8 @@ const updateEvent = async (req,res,next)=>{
    location,
    event_date,
    price,
-   total_tickets
+   total_tickets,
+   category
  } = req.body;
 
  const updatedEvent =
@@ -90,7 +94,8 @@ const updateEvent = async (req,res,next)=>{
        location,
        event_date,
        price,
-       total_tickets
+       total_tickets,
+       category
       }
    );
 
