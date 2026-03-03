@@ -10,10 +10,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+if (process.env.NODE_ENV !== "test") {
 transporter.verify((error) => {
   if (error) console.error("Mail transporter error:", error);
   else console.log("Mail server ready");
 });
+}
 
 function generateTicketPDF(booking, user, event) {
   return new Promise((resolve, reject) => {
