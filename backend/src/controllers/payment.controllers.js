@@ -124,6 +124,7 @@ const verifyPayment = async (req, res, next) => {
     try {
       const user  = await User.findByPk(userId);
       const event = await Event.findByPk(parseInt(event_id, 10));
+      console.log("Sending email to:", user?.email); 
       await sendTicketEmail(user, booking, event);
     } catch (emailErr) {
       console.error("Email sending failed (booking still confirmed):", emailErr);
