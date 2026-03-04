@@ -10,6 +10,8 @@ data "template_file" "user_data" {
     JWT_SECRET  = var.jwt_secret
     RAZORPAY_KEY_ID   = var.razorpay_key_id
     RAZORPAY_KEY_SECRET = var.razorpay_key_secret
+    EMAIL_USER          = var.email_user   # ✅ add
+    EMAIL_PASS          = var.email_pass   # ✅ add
   }
 }
 

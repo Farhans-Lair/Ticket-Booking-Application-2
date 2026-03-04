@@ -57,3 +57,13 @@ variable "razorpay_key_secret" {
   sensitive   = true
 }
 
+variable "email_user" {
+  description = "Gmail address for sending emails"
+  sensitive   = true
+}
+
+variable "email_pass" {
+  description = "Gmail App Password"
+  sensitive   = true
+}
+
