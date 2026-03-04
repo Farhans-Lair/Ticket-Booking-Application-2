@@ -1,5 +1,7 @@
 const sequelize = require("../config/database");
 const { Event, Booking } = require("../models");
+const seatService = require("./seat.services"); // ✅ was imported but never used — now actually used
+
 
 
 // Constants extracted — easy to update in one place
@@ -66,6 +68,12 @@ const confirmBooking = async (
     if (!event) throw new Error("Event not found");
     if (event.available_tickets < tickets_booked)
       throw new Error("Not enough tickets available");
+
+        // ✅ Lock & mark selected seats as booked atomically
+    // Throws if any seat was already booked by another user
+    if (selected_seats.length > 0) {
+      await seatService.bookSeats(eventId, selected_seats, t);
+    }
 
     // Deduct tickets
     event.available_tickets -= tickets_booked;

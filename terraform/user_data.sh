@@ -20,7 +20,7 @@ APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
 # 🔥 Write .env using Terraform-injected vars
-cat <<'ENVEOF'> $APP_DIR/.env
+cat <<ENVEOF> $APP_DIR/.env
 PORT=3000
 DB_PORT=3306
 DB_HOST=${DB_HOST}
@@ -32,7 +32,7 @@ RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
 RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
 EMAIL_USER=${EMAIL_USER}
 EMAIL_PASS=${EMAIL_PASS}
-ENVEOF
+ENVOF
 
 chown ec2-user:ec2-user $APP_DIR/.env
 chmod 600 $APP_DIR/.env
