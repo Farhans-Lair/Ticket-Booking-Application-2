@@ -102,4 +102,45 @@ async function sendTicketEmail(user, booking, event) {
   }
 }
 
-module.exports = { sendTicketEmail, generateTicketPDF };
+/**
+ * Send a 6-digit OTP email.
+ * purpose: "signup" | "login"
+ */
+async function sendOTPEmail(toEmail, otp, purpose) {
+  const isSignup = purpose === "signup";
+  const subject = isSignup
+    ? "Verify your email – Ticket Booking"
+    : "Your login verification code – Ticket Booking";
+
+  const heading = isSignup
+    ? "Complete Your Registration"
+    : "Login Verification Code";
+
+  const bodyText = isSignup
+    ? "You requested to create a Ticket Booking account."
+    : "Someone (hopefully you) is trying to log in to your Ticket Booking account.";
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+        <h2 style="margin-top:0;">${heading}</h2>
+        <p>${bodyText}</p>
+        <p>Use the code below. It expires in <strong>10 minutes</strong>.</p>
+        <div style="font-size:36px;font-weight:700;letter-spacing:8px;text-align:center;
+                    padding:24px;background:#f3f4f6;border-radius:8px;margin:24px 0;">
+          ${otp}
+        </div>
+        <p style="color:#6b7280;font-size:13px;">
+          If you didn't request this, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  });
+
+  console.log(`OTP email (${purpose}) sent to ${toEmail}`);
+}
+
+module.exports = { sendTicketEmail, generateTicketPDF, sendOTPEmail };

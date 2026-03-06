@@ -4,10 +4,20 @@ const authController = require("../controllers/auth.controllers");
 
 const validate = require("../middleware/validate.middleware");
 
-const {registerValidator,loginValidator,} = require("../validators/auth.validator");
+const {signupRequestValidator, signupVerifyValidator,loginRequestValidator, loginVerifyValidator,} = require("../validators/auth.validator");
 
-router.post("/register",registerValidator, validate, authController.register);
-router.post("/login",loginValidator, validate, authController.login);
+// ─── Signup with email OTP ────────────────────────────────────────────────────
+// Step 1: Validate details + send OTP
+router.post("/signup-request", signupRequestValidator, validate, authController.signupRequest);
+// Step 2: Verify OTP + create account
+router.post("/signup-verify", signupVerifyValidator, validate, authController.signupVerify);
+
+// ─── Login with email OTP (2FA) ───────────────────────────────────────────────
+// Step 1: Validate credentials + send OTP
+router.post("/login-request", loginRequestValidator, validate, authController.loginRequest);
+// Step 2: Verify OTP + return JWT
+router.post("/login-verify", loginVerifyValidator, validate, authController.loginVerify);
+
 
 module.exports = router;
 

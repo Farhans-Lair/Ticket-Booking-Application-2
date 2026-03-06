@@ -1,55 +1,82 @@
 const authService = require("../services/auth.services");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");   // 🔥 MUST be here
 
-const register = async (req, res, next) => {
+// ─── SIGNUP ───────────────────────────────────────────────────────────────────
+
+/**
+ * POST /auth/signup-request
+ * Validates details and sends OTP to the provided email.
+ */
+const signupRequest = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        error: "Missing required fields",
-      });
-    }
-
-    await authService.registerUser(name, email, password);
-
-    res.status(201).json({
-      message: "User registered successfully",
+    await authService.initiateSignup(name, email, password);
+    res.status(200).json({
+      message: "Verification code sent to your email. Please enter it to complete registration.",
     });
   } catch (err) {
-    next (err);
+    next(err);
   }
 };
 
-const login = async (req, res, next) => {
+/**
+ * POST /auth/signup-verify
+ * Verifies OTP and creates the user account.
+ */
+const signupVerify = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    await authService.completeSignup(email, otp);
+    res.status(201).json({ message: "Registration successful. You can now log in." });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /auth/login-request
+ * Validates credentials and sends OTP to the user's email.
+ */
+const loginRequest = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    await authService.initiateLogin(email, password);
+    res.status(200).json({
+      message: "Verification code sent to your email. Please enter it to complete login.",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+/**
+ * POST /auth/login-verify
+ * Verifies OTP and returns a signed JWT.
+ */
+const loginVerify = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const { userId, role } = await authService.completeLogin(email, otp);
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: userId, role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.json({ token,role: user.role });
+    res.json({ token, role });
   } catch (err) {
-    next (err);
+    next(err);
   }
 };
 
-module.exports = {
-  register,
-  login,
+module.exports =
+ {
+  signupRequest,
+  signupVerify,
+  loginRequest,
+  loginVerify,
+
 };

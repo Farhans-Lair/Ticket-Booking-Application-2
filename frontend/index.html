@@ -4,25 +4,83 @@
   <meta charset="UTF-8" />
   <title>Ticket Booking - Login</title>
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .otp-step { display: none; margin-top: 12px; }
+    .otp-step.visible { display: block; }
+    .otp-info {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      background: #f0f4ff;
+      border-left: 3px solid #4f6ef7;
+      border-radius: 4px;
+    }
+    .resend-link {
+      font-size: 13px;
+      color: #4f6ef7;
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      padding: 0;
+      margin-top: 6px;
+    }
+    .resend-link:disabled { color: #aaa; cursor: default; text-decoration: none; }
+  </style>
 </head>
 
 <body>
 
   <h1>Ticket Booking</h1>
 
-  <section>
+  <!-- ═══════════════════════════════ REGISTER ══════════════════════════════ -->
+  <section id="registerSection">
     <h2>Register</h2>
-    <input type="text" id="registerName" placeholder="Name" />
-    <input type="email" id="registerEmail" placeholder="Email" />
-    <input type="password" id="registerPassword" placeholder="Password" />
-    <button onclick="register()">Register</button>
+
+    <!-- Step 1: Details -->
+    <div id="registerStep1">
+      <input type="text"  id="registerName"     placeholder="Name" />
+      <input type="email" id="registerEmail"    placeholder="Email" />
+      <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" />
+      <button onclick="signupRequest()">Send Verification Code</button>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="registerStep2" class="otp-step">
+      <p class="otp-info">
+        A 6-digit code was sent to <strong id="registerEmailDisplay"></strong>.
+        It expires in 10 minutes.
+      </p>
+      <input type="text" id="registerOtp" placeholder="Enter 6-digit code" maxlength="6" />
+      <button onclick="signupVerify()">Verify &amp; Create Account</button>
+      <br/>
+      <button class="resend-link" id="signupResendBtn" onclick="signupResend()">Resend code</button>
+    </div>
   </section>
 
-  <section>
+  <!-- ═══════════════════════════════ LOGIN ════════════════════════════════ -->
+  <section id="loginSection">
     <h2>Login</h2>
-    <input type="email" id="loginEmail" placeholder="Email" />
-    <input type="password" id="loginPassword" placeholder="Password" />
-    <button onclick="login()">Login</button>
+
+    <!-- Step 1: Credentials -->
+    <div id="loginStep1">
+      <input type="email"    id="loginEmail"    placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="loginRequest()">Send Verification Code</button>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="loginStep2" class="otp-step">
+      <p class="otp-info">
+        A 6-digit code was sent to <strong id="loginEmailDisplay"></strong>.
+        It expires in 10 minutes.
+      </p>
+      <input type="text" id="loginOtp" placeholder="Enter 6-digit code" maxlength="6" />
+      <button onclick="loginVerify()">Verify &amp; Login</button>
+      <br/>
+      <button class="resend-link" id="loginResendBtn" onclick="loginResend()">Resend code</button>
+    </div>
   </section>
 
   <script src="/js/api.js"></script>
