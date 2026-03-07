@@ -20,7 +20,7 @@ APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
 # 🔥 Write .env using Terraform-injected vars
-cat <<ENVEOF> $APP_DIR/.env
+cat <<'ENVEOF'> $APP_DIR/.env
 PORT=3000
 DB_PORT=3306
 DB_HOST=${DB_HOST}
