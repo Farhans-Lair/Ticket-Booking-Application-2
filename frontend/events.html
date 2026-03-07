@@ -2,39 +2,608 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Events</title>
-  <link rel="stylesheet" href="/css/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TicketVerse — Events</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    #category-filters { margin: 12px 0 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a14;
+      --text: #f0eee8;
+      --text-muted: rgba(240,238,232,0.55);
+      --glass: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.1);
+      --accent: #f5c842;
+      /* category palette vars — changed by JS */
+      --cat-a: #f5c842;
+      --cat-b: #7c6af7;
+      --cat-c: #f74a6a;
+    }
+
+    html, body { min-height: 100%; font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+    /* ── SCENE BACKGROUND ── */
+    body { background: var(--bg); }
+
+    #scene {
+      position: fixed; inset: 0; z-index: 0;
+      transition: opacity 0.6s ease;
+    }
+    #scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    /* ── LAYOUT ── */
+    .app {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 36px 28px 80px;
+    }
+
+    /* ── NAV BAR ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 44px;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 900; color: var(--accent);
+      letter-spacing: 0.5px; text-decoration: none;
+    }
+    .nav-actions { display: flex; gap: 10px; }
+    .btn-ghost {
+      padding: 9px 20px; background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px; color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+      cursor: pointer; transition: all 0.2s; backdrop-filter: blur(8px);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+    /* ── HERO HEADER ── */
+    .page-header { margin-bottom: 36px; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem,4vw,3.2rem);
+      font-weight: 900; line-height: 1.1; margin-bottom: 10px;
+    }
+    .page-header h1 .highlight {
+      background: linear-gradient(135deg, var(--cat-a), var(--cat-b));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      transition: all 0.5s;
+    }
+    .page-header p { font-size: 0.95rem; color: var(--text-muted); }
+
+    /* ── CATEGORY FILTER ── */
+    #category-filters {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px;
+    }
     .cat-btn {
-      padding: 6px 16px; border: 2px solid #4f46e5; border-radius: 20px;
-      background: white; color: #4f46e5; cursor: pointer; font-size: 0.85rem;
-      transition: all 0.2s;
+      padding: 9px 20px; border-radius: 24px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: all 0.28s;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      background: var(--glass); color: var(--text-muted);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: 7px;
     }
-    .cat-btn:hover, .cat-btn.active {
-      background: #4f46e5; color: white;
+    .cat-btn .cat-icon { font-size: 1rem; }
+    .cat-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); transform: translateY(-1px); }
+    .cat-btn.active {
+      background: var(--cat-a);
+      color: #0a0a14; border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
     }
+
+    /* ── EVENTS GRID ── */
+    #events-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── EVENT CARD ── */
+    .event-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px; padding: 24px;
+      backdrop-filter: blur(16px);
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.3s;
+      animation: card-in 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .event-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.4);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    @keyframes card-in {
+      from{opacity:0;transform:translateY(20px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
     .category-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 12px;
-      background: #e0e7ff; color: #4f46e5; font-size: 0.78rem;
-      font-weight: 600; margin-bottom: 6px;
+      display: inline-block; padding: 3px 12px; border-radius: 12px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; margin-bottom: 12px;
+      background: rgba(255,255,255,0.08); color: var(--cat-a);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: color 0.4s;
     }
-    .event-card { margin-bottom: 12px; }
+
+    .event-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;
+      color: var(--text); line-height: 1.3;
+    }
+    .event-desc {
+      font-size: 0.85rem; color: var(--text-muted);
+      margin-bottom: 14px; line-height: 1.55;
+    }
+    .event-meta {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 18px;
+    }
+    .meta-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+    .meta-item .label { color: var(--text-muted); font-size: 0.7rem; margin-bottom: 2px; }
+    .meta-item .value { color: var(--text); font-weight: 600; }
+
+    .ticket-input {
+      width: 100%; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 10px 14px;
+      color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; outline: none; margin-bottom: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ticket-input:focus {
+      border-color: var(--cat-a); box-shadow: 0 0 0 3px rgba(245,200,66,0.1);
+    }
+    .ticket-input::placeholder { color: rgba(240,238,232,0.3); }
+
+    .btn-book {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, var(--cat-a), var(--cat-b));
+      border: none; border-radius: 11px;
+      color: #0a0a14; font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .btn-book:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+    .sold-out {
+      text-align: center; padding: 12px;
+      background: rgba(247,74,106,0.1); border: 1px solid rgba(247,74,106,0.3);
+      border-radius: 10px; color: #f74a6a; font-weight: 700; font-size: 0.9rem;
+    }
+
+    .no-events {
+      grid-column: 1/-1; text-align: center;
+      padding: 60px 20px; color: var(--text-muted); font-size: 1.1rem;
+    }
+
+    /* ── CATEGORY LABEL OVERLAY ── */
+    #cat-label {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 900;
+      color: rgba(255,255,255,0.06);
+      pointer-events: none; z-index: 0;
+      letter-spacing: 0.05em;
+      transition: opacity 0.4s, transform 0.5s;
+      opacity: 0; white-space: nowrap;
+      text-transform: uppercase;
+    }
+    #cat-label.show {
+      opacity: 1; transform: translate(-50%,-50%) scale(1);
+    }
+
+    @media (max-width: 600px) {
+      #events-list { grid-template-columns: 1fr; }
+      .event-meta { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
-
 <body>
-  <h1>Available Events</h1>
 
-  <button id="logoutBtn">Logout</button>
-  <button onclick="goMyBookings()">My Bookings</button>
+<!-- Animated scene background -->
+<div id="scene">
+  <canvas id="bg-canvas"></canvas>
+</div>
 
-  <!-- Category Filter Buttons — populated by events.js -->
+<!-- Background category label watermark -->
+<div id="cat-label"></div>
+
+<div class="app">
+  <!-- TOP NAV -->
+  <div class="topbar">
+    <span class="logo">TicketVerse</span>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="goMyBookings()">My Bookings</button>
+      <button class="btn-ghost" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>Discover <span class="highlight" id="active-category-name">All Events</span></h1>
+    <p>Choose a category below to explore events — the world transforms with every click.</p>
+  </div>
+
+  <!-- CATEGORY FILTERS -->
   <div id="category-filters"></div>
 
+  <!-- EVENTS GRID -->
   <div id="events-list"></div>
+</div>
 
-  <script src="/js/api.js"></script>
-  <script src="/js/events.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   CATEGORY CONFIG — each gets a unique visual theme
+═══════════════════════════════════════════════════ */
+const CATEGORY_THEMES = {
+  All:        { icon:'🌟', a:'#f5c842', b:'#7c6af7', c:'#f74a6a', label:'ALL EVENTS',  desc:'Warm cosmic', bg:'all' },
+  Music:      { icon:'🎵', a:'#f74a6a', b:'#ff8a65', c:'#ffd740', label:'MUSIC',        desc:'Neon pulse',  bg:'music' },
+  Sports:     { icon:'🏆', a:'#42e695', b:'#3bb78f', c:'#0cbd8f', label:'SPORTS',       desc:'Electric field', bg:'sports' },
+  Comedy:     { icon:'😂', a:'#ffd740', b:'#ff6f00', c:'#ff5252', label:'COMEDY',       desc:'Spotlight',   bg:'comedy' },
+  Theatre:    { icon:'🎭', a:'#ce93d8', b:'#7b1fa2', c:'#4a148c', label:'THEATRE',      desc:'Velvet stage', bg:'theatre' },
+  Conference: { icon:'🎙️', a:'#4fc3f7', b:'#0277bd', c:'#81d4fa', label:'CONFERENCE',   desc:'Professional blue', bg:'conference' },
+  Festival:   { icon:'🎪', a:'#ff80ab', b:'#f06292', c:'#ff5c8d', label:'FESTIVAL',     desc:'Rainbow chaos', bg:'festival' },
+  Workshop:   { icon:'🔧', a:'#a5d6a7', b:'#388e3c', c:'#69f0ae', label:'WORKSHOP',     desc:'Forest calm', bg:'workshop' },
+  Other:      { icon:'✨', a:'#b0bec5', b:'#546e7a', c:'#cfd8dc', label:'OTHER',        desc:'Neutral',     bg:'other' },
+};
+
+let currentTheme = CATEGORY_THEMES['All'];
+let animFrame;
+
+/* ── CANVAS BACKGROUND ── */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+// Particle system — recolors on theme change
+let ptColor1, ptColor2, ptColor3;
+const particles = [];
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function makeParticle(init) {
+  return {
+    x: Math.random()*W, y: init ? Math.random()*H : H+20,
+    r: Math.random()*3+0.5,
+    speed: Math.random()*0.6+0.2,
+    dx: (Math.random()-.5)*0.5,
+    alpha: Math.random()*0.5+0.1,
+    fadeDir: 1,
+    colorIdx: Math.floor(Math.random()*3),
+  };
+}
+
+for(let i=0;i<150;i++) particles.push(makeParticle(true));
+
+const stars = Array.from({length:200}, ()=>({
+  x:Math.random()*5000, y:Math.random()*5000,
+  r:Math.random()*1.2+0.2, a:Math.random(),
+  da:(Math.random()*.008+.002)*(Math.random()>.5?1:-1)
+}));
+
+// Category-specific shape renderers
+const bgRenderers = {
+  all(ctx,W,H,t,th) {
+    // floating circles
+    for(let i=0;i<8;i++){
+      const x=W*(0.1+i*0.12); const y=H*(0.3+Math.sin(t*.0008+i*1.2)*0.15);
+      const g=ctx.createRadialGradient(x,y,0,x,y,80+30*Math.sin(t*.001+i));
+      g.addColorStop(0,`rgba(${hexToRgb(th.a)},0.12)`); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+  },
+  music(ctx,W,H,t,th) {
+    // sound wave lines
+    ctx.strokeStyle=`rgba(${hexToRgb(th.a)},0.08)`;
+    ctx.lineWidth=1.5;
+    for(let l=0;l<12;l++){
+      ctx.beginPath();
+      const baseY=H*(0.1+l*0.075);
+      for(let x=0;x<=W;x+=4){
+        const amp=30+20*Math.sin(t*.001+l*0.5);
+        const y=baseY+amp*Math.sin((x/W)*Math.PI*6+t*0.002+l);
+        l===0&&x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    // concert spotlight
+    const sg=ctx.createRadialGradient(W/2,0,0,W/2,0,H*0.8);
+    sg.addColorStop(0,`rgba(${hexToRgb(th.b)},0.12)`); sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,W,H);
+  },
+  sports(ctx,W,H,t,th) {
+    // field lines
+    ctx.strokeStyle=`rgba(${hexToRgb(th.a)},0.06)`;
+    ctx.lineWidth=1;
+    for(let i=0;i<10;i++){
+      const y=H*i/10;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    }
+    // velocity streaks
+    for(let i=0;i<20;i++){
+      const x=((t*0.5+i*W/20)%W);
+      const y=H*(0.2+i*0.03);
+      const len=60+40*Math.sin(i*1.2);
+      const sg=ctx.createLinearGradient(x-len,y,x,y);
+      sg.addColorStop(0,'transparent'); sg.addColorStop(1,`rgba(${hexToRgb(th.a)},0.2)`);
+      ctx.fillStyle=sg; ctx.fillRect(x-len,y-1,len,2);
+    }
+  },
+  comedy(ctx,W,H,t,th) {
+    // spotlight cone
+    for(let s=0;s<3;s++){
+      const cx=W*(0.3+s*0.2)+Math.sin(t*.001+s)*W*0.05;
+      const sg=ctx.createConicalGradient ? undefined : null;
+      const g=ctx.createRadialGradient(cx,-20,0,cx,-20,H*1.2);
+      g.addColorStop(0,`rgba(${hexToRgb(th.a)},0.15)`); g.addColorStop(0.3,`rgba(${hexToRgb(th.a)},0.04)`); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+    // confetti dots
+    for(let i=0;i<30;i++){
+      const x=(Math.sin(i*1.7)*0.5+0.5)*W;
+      const y=((i*73+t*0.05)%H);
+      ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
+      const cols=[th.a,th.b,th.c];
+      ctx.fillStyle=`rgba(${hexToRgb(cols[i%3])},0.4)`; ctx.fill();
+    }
+  },
+  theatre(ctx,W,H,t,th) {
+    // velvet curtain waves
+    for(let side=0;side<2;side++){
+      for(let f=0;f<5;f++){
+        const baseX=side===0 ? W*0.12*f : W-(W*0.12*f);
+        const g=ctx.createLinearGradient(baseX-60,0,baseX+60,0);
+        g.addColorStop(0,'transparent');
+        g.addColorStop(0.5,`rgba(${hexToRgb(th.a)},0.09)`);
+        g.addColorStop(1,'transparent');
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        for(let y=0;y<=H;y+=4){
+          const x=baseX+Math.sin(y/60+t*.001+f)*18;
+          y===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        }
+        ctx.lineTo(baseX+(side?-60:60),H); ctx.lineTo(baseX+(side?-60:60),0);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+    // stage spotlight from above
+    const sg=ctx.createRadialGradient(W/2,H*0.1,0,W/2,H*0.1,H*0.7);
+    sg.addColorStop(0,`rgba(${hexToRgb(th.b)},0.1)`); sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,W,H);
+  },
+  conference(ctx,W,H,t,th) {
+    // network grid with nodes
+    ctx.strokeStyle=`rgba(${hexToRgb(th.a)},0.06)`; ctx.lineWidth=1;
+    const gs=80;
+    for(let x=0;x<W;x+=gs){for(let y=0;y<H;y+=gs){
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+      // nodes at intersections
+      if((x/gs+y/gs)%3===0){
+        ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${hexToRgb(th.a)},${0.2+0.15*Math.sin(t*.002+x+y)})`; ctx.fill();
+      }
+    }}
+  },
+  festival(ctx,W,H,t,th) {
+    // rainbow arcs
+    const cols=['#ff5c8d','#ffd740','#42e695','#4fc3f7','#ce93d8'];
+    for(let i=0;i<5;i++){
+      const cx=W*(0.1+i*0.2)+Math.sin(t*.0008+i)*40;
+      const cy=H*(0.5+Math.cos(t*.0007+i)*0.15);
+      const r=100+50*Math.sin(t*.001+i);
+      const g=ctx.createRadialGradient(cx,cy,r*0.4,cx,cy,r);
+      g.addColorStop(0,`rgba(${hexToRgb(cols[i])},0.12)`); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+  },
+  workshop(ctx,W,H,t,th) {
+    // geometric hex grid faint
+    ctx.strokeStyle=`rgba(${hexToRgb(th.a)},0.06)`; ctx.lineWidth=1;
+    const s=60;
+    for(let row=0;row<H/s+1;row++) for(let col=0;col<W/s+1;col++){
+      const x=col*s*1.5; const y=row*s*Math.sqrt(3)+(col%2)*s*Math.sqrt(3)/2;
+      ctx.beginPath();
+      for(let a=0;a<6;a++){
+        const ax=x+s*Math.cos((a*60-30)*Math.PI/180);
+        const ay=y+s*Math.sin((a*60-30)*Math.PI/180);
+        a===0?ctx.moveTo(ax,ay):ctx.lineTo(ax,ay);
+      }
+      ctx.closePath(); ctx.stroke();
+    }
+  },
+  other(ctx,W,H,t,th) {
+    const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.7);
+    g.addColorStop(0,`rgba(${hexToRgb(th.a)},0.06)`); g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+};
+
+let time = 0;
+
+function drawBg() {
+  time++;
+  ctx.clearRect(0,0,W,H);
+
+  // deep bg
+  ctx.fillStyle='#0a0a14'; ctx.fillRect(0,0,W,H);
+
+  const th = currentTheme;
+
+  // stars
+  stars.forEach(s=>{
+    s.a+=s.da; if(s.a>1||s.a<0)s.da*=-1;
+    ctx.beginPath(); ctx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.max(0,s.a)*.5})`; ctx.fill();
+  });
+
+  // category-specific renderer
+  const renderer = bgRenderers[th.bg] || bgRenderers.all;
+  renderer(ctx,W,H,time,th);
+
+  // floating particles
+  const pCols=[th.a,th.b,th.c];
+  particles.forEach(p=>{
+    p.y-=p.speed; p.x+=p.dx;
+    p.alpha+=0.003*p.fadeDir;
+    if(p.alpha>.65||p.alpha<.08)p.fadeDir*=-1;
+    if(p.y<-20){ Object.assign(p,makeParticle(false)); }
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    const col=pCols[p.colorIdx]||pCols[0];
+    ctx.fillStyle=`rgba(${hexToRgb(col)},${p.alpha})`; ctx.fill();
+  });
+
+  animFrame = requestAnimationFrame(drawBg);
+}
+drawBg();
+
+/* ═══════════════════════════
+   THEME CHANGE
+═══════════════════════════ */
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.style.setProperty('--cat-a', theme.a);
+  document.documentElement.style.setProperty('--cat-b', theme.b);
+  document.documentElement.style.setProperty('--cat-c', theme.c);
+  // update gradient highlight in header
+  document.querySelector('.highlight').style.background = `linear-gradient(135deg, ${theme.a}, ${theme.b})`;
+  document.querySelector('.highlight').style.webkitBackgroundClip = 'text';
+  document.querySelector('.highlight').style.webkitTextFillColor = 'transparent';
+  // watermark label
+  const lbl = document.getElementById('cat-label');
+  lbl.textContent = theme.label;
+  lbl.classList.remove('show');
+  setTimeout(()=>lbl.classList.add('show'),50);
+}
+
+/* ═══════════════════════════
+   EVENTS.JS LOGIC (inline)
+═══════════════════════════ */
+const CATEGORIES = ['All','Music','Sports','Comedy','Theatre','Conference','Festival','Workshop','Other'];
+
+window.addEventListener("pageshow", e=>{ if(e.persisted) window.location.reload(); });
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const token = localStorage.getItem("token");
+  if(!token){ alert("Please login first"); window.location.replace("/"); return; }
+  renderCategoryFilters();
+  loadEvents();
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+  // apply default theme
+  applyTheme(CATEGORY_THEMES['All']);
+  document.getElementById('active-category-name').textContent = 'All Events';
+});
+
+function renderCategoryFilters() {
+  const container = document.getElementById("category-filters");
+  if(!container) return;
+  CATEGORIES.forEach(cat=>{
+    const th = CATEGORY_THEMES[cat] || CATEGORY_THEMES['All'];
+    const btn = document.createElement("button");
+    btn.className = "cat-btn" + (cat==="All"?" active":"");
+    btn.innerHTML = `<span class="cat-icon">${th.icon}</span>${cat}`;
+    btn.onclick = ()=>{
+      document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      applyTheme(th);
+      document.getElementById('active-category-name').textContent = cat==='All'?'All Events':cat;
+      loadEvents(cat==="All"?null:cat);
+    };
+    container.appendChild(btn);
+  });
+}
+
+async function loadEvents(category=null) {
+  try {
+    const url = category ? `/events?category=${category}` : "/events";
+    const events = await apiRequest(url, "GET", null, true);
+    const list = document.getElementById("events-list");
+    list.innerHTML = "";
+
+    if(!events||events.length===0){
+      list.innerHTML = '<p class="no-events">No events found for this category.</p>';
+      return;
+    }
+
+    events.forEach((event,i)=>{
+      const div = document.createElement("div");
+      div.className = "event-card";
+      div.style.animationDelay = `${i*0.06}s`;
+
+      const cat = event.category || 'Other';
+      const bookingSection = event.available_tickets===0
+        ? `<div class="sold-out">🚫 Sold Out</div>`
+        : `<input type="number" class="ticket-input" min="1" max="${event.available_tickets}"
+             id="qty-${event.id}" placeholder="Number of tickets" />
+           <button class="btn-book" onclick="goToSeatSelection(${event.id})">Select Seats & Book →</button>`;
+
+      div.innerHTML = `
+        <span class="category-badge">${cat}</span>
+        <div class="event-title">${event.title}</div>
+        ${event.description ? `<div class="event-desc">${event.description}</div>` : ''}
+        <div class="event-meta">
+          <div class="meta-item">
+            <div class="label">📍 Location</div>
+            <div class="value">${event.location||'TBA'}</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">📅 Date</div>
+            <div class="value">${new Date(event.event_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">🎟 Available</div>
+            <div class="value">${event.available_tickets} / ${event.total_tickets}</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">💰 Price</div>
+            <div class="value">₹${event.price}</div>
+          </div>
+        </div>
+        ${bookingSection}
+      `;
+      list.appendChild(div);
+    });
+  } catch(err) {
+    console.error("Error loading events:", err);
+  }
+}
+
+function goToSeatSelection(eventId) {
+  const tickets_booked = parseInt(document.getElementById(`qty-${eventId}`).value,10);
+  if(!tickets_booked||tickets_booked<=0){ alert("Enter a valid number of tickets"); return; }
+  sessionStorage.setItem("seat_selection_meta", JSON.stringify({event_id:eventId,tickets_booked}));
+  window.location.href = "/seat-selection";
+}
+
+function bookTicket(eventId)       { goToSeatSelection(eventId); }
+function initiatePayment(eventId)  { goToSeatSelection(eventId); }
+function goMyBookings()            { window.location.replace("/my-bookings"); }
+function logout()                  { localStorage.clear(); window.location.replace("/"); }
+</script>
+
+<script src="/js/api.js"></script>
 </body>
 </html>
