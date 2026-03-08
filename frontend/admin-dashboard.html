@@ -1,56 +1,202 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="/css/styles.css">
-    <style>
-    .category-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 12px;
-      background: #e0e7ff; color: #4f46e5; font-size: 0.78rem;
-      font-weight: 600; margin-bottom: 6px;
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TicketVerse — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#f5c842; --gold-dark:#d4a520; --bg:#0a0a14;
+      --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.09);
+      --text:#f0eee8; --muted:rgba(240,238,232,0.5);
+      --accent:#7c6af7; --red:#f74a6a; --green:#42e695;
     }
+    html,body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
+    #bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    .app { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:36px 28px 80px; }
+
+    /* TOPBAR */
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:44px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+    .logo-wrap { display:flex; align-items:center; gap:10px; }
+    .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
+    .admin-badge { padding:3px 10px; border-radius:20px; background:rgba(124,106,247,0.15); border:1px solid rgba(124,106,247,0.3); color:var(--accent); font-size:0.72rem; font-weight:700; letter-spacing:0.08em; }
+    .nav-actions { display:flex; gap:10px; }
+    .btn-ghost { padding:9px 20px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.85rem; cursor:pointer; transition:all 0.2s; backdrop-filter:blur(8px); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.09); color:var(--text); }
+
+    /* SECTION HEADERS */
+    .section-header { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+    .section-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; }
+    .pill { padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; }
+    .pill-gold { background:rgba(245,200,66,0.12); color:var(--gold); border:1px solid rgba(245,200,66,0.25); }
+    .pill-accent { background:rgba(124,106,247,0.12); color:var(--accent); border:1px solid rgba(124,106,247,0.25); }
+
+    /* CARD */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:28px; backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,0.3); margin-bottom:32px; }
+
+    /* FORM GRID */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .full { grid-column:1/-1; }
+    .field-group { display:flex; flex-direction:column; gap:7px; }
+    .field-group label { font-size:0.72rem; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:var(--muted); }
+    .field-group input, .field-group select {
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px; padding:11px 14px; color:var(--text);
+      font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none;
+      transition:border-color 0.2s,box-shadow 0.2s;
+    }
+    .field-group input:focus, .field-group select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(245,200,66,0.1); }
+    .field-group input::placeholder { color:rgba(240,238,232,0.25); }
+    .field-group select option { background:#1a1a30; color:var(--text); }
+    .btn-primary { padding:13px 28px; background:linear-gradient(135deg,var(--gold),var(--gold-dark)); border:none; border-radius:11px; color:#0a0a14; font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; cursor:pointer; transition:transform 0.15s,box-shadow 0.2s; box-shadow:0 4px 18px rgba(245,200,66,0.25); }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(245,200,66,0.38); }
+
+    /* EVENT CARDS */
+    #events-list { display:flex; flex-direction:column; gap:16px; }
+    .event-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; padding:20px 22px; animation:card-in 0.4s cubic-bezier(0.16,1,0.3,1) both; transition:border-color 0.2s; }
+    .event-card:hover { border-color:rgba(255,255,255,0.16); }
+    @keyframes card-in { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);} }
+    .event-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+    .category-badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; background:rgba(124,106,247,0.12); color:var(--accent); border:1px solid rgba(124,106,247,0.2); }
+    .card-actions { display:flex; gap:8px; }
+    .btn-save { padding:7px 18px; border-radius:8px; background:rgba(66,230,149,0.12); border:1px solid rgba(66,230,149,0.25); color:var(--green); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-save:hover { background:rgba(66,230,149,0.22); }
+    .btn-delete { padding:7px 18px; border-radius:8px; background:rgba(247,74,106,0.1); border:1px solid rgba(247,74,106,0.22); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-delete:hover { background:rgba(247,74,106,0.2); }
+    .event-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .event-edit-grid .field-group input, .event-edit-grid .field-group select { padding:9px 12px; font-size:0.85rem; }
+    .stats-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .stat-chip { padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:0.8rem; color:var(--muted); }
+    .stat-chip strong { font-weight:700; }
+    .stat-chip.green strong { color:var(--green); }
+    .divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
+    @media(max-width:640px){.form-grid,.event-edit-grid{grid-template-columns:1fr;}.full{grid-column:1;}}
   </style>
 </head>
-
 <body>
-  <h1>Admin Dashboard</h1>
+<canvas id="bg-canvas"></canvas>
 
-<button onclick="openRevenue()">Revenue</button>
-<button id="logoutBtn">Logout</button>
+<div class="app">
+  <div class="topbar">
+    <div class="logo-wrap">
+      <span class="logo">TicketVerse</span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="openRevenue()">📊 Revenue</button>
+      <button class="btn-ghost" id="logoutBtn">Logout</button>
+    </div>
+  </div>
 
-  <hr>
-<h2>Create New Event</h2>
+  <div class="section-header">
+    <h2>Create New Event</h2>
+    <span class="pill pill-gold">+ NEW</span>
+  </div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="field-group full"><label>Event Title</label><input type="text" id="title" placeholder="e.g. Coldplay World Tour 2025"/></div>
+      <div class="field-group full"><label>Description</label><input type="text" id="description" placeholder="Short description"/></div>
+      <div class="field-group"><label>Location</label><input type="text" id="location" placeholder="City / Venue"/></div>
+      <div class="field-group"><label>Event Date</label><input type="date" id="event_date"/></div>
+      <div class="field-group"><label>Price per Ticket (₹)</label><input type="number" id="price" placeholder="e.g. 499"/></div>
+      <div class="field-group"><label>Total Tickets</label><input type="number" id="total_tickets" placeholder="e.g. 500"/></div>
+      <div class="field-group full">
+        <label>Category</label>
+        <select id="category">
+          <option value="Music">🎵 Music</option>
+          <option value="Sports">🏆 Sports</option>
+          <option value="Comedy">😂 Comedy</option>
+          <option value="Theatre">🎭 Theatre</option>
+          <option value="Conference">🎙️ Conference</option>
+          <option value="Festival">🎪 Festival</option>
+          <option value="Workshop">🔧 Workshop</option>
+          <option value="Other" selected>✨ Other</option>
+        </select>
+      </div>
+      <div class="full"><button class="btn-primary" id="createEventBtn">Create Event →</button></div>
+    </div>
+  </div>
 
-<input type="text"   id="title"        placeholder="Event Title"><br>
-  <input type="text"   id="description"  placeholder="Description"><br>
-  <input type="text"   id="location"     placeholder="Location"><br>
-  <input type="date"   id="event_date"><br>
-  <input type="number" id="price"        placeholder="Price per Ticket"><br>
-  <input type="number" id="total_tickets" placeholder="Total Tickets"><br>
+  <hr class="divider"/>
 
-
-    <select id="category">
-    <option value="Music">Music</option>
-    <option value="Sports">Sports</option>
-    <option value="Comedy">Comedy</option>
-    <option value="Theatre">Theatre</option>
-    <option value="Conference">Conference</option>
-    <option value="Festival">Festival</option>
-    <option value="Workshop">Workshop</option>
-    <option value="Other" selected>Other</option>
-    </select><br><br>
-
-
-<button id="createEventBtn">Create Event</button>
-
-
-  <hr>
-
-  <h2>All Events</h2>
+  <div class="section-header">
+    <h2>All Events</h2>
+    <span class="pill pill-accent">MANAGE</span>
+  </div>
   <div id="events-list"></div>
+</div>
 
-  <script src="/js/api.js"></script>
-  <script src="/js/admin-auth.js"></script> 
-  <script src="/js/admin-dashboard.js"></script>
+<script>
+/* Canvas BG */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+const stars=Array.from({length:200},()=>({x:Math.random()*5000,y:Math.random()*5000,r:Math.random()*1.1+.2,a:Math.random(),da:(Math.random()*.007+.002)*(Math.random()>.5?1:-1)}));
+const pts=Array.from({length:80},()=>({x:Math.random()*W||500,y:Math.random()*H||400,r:Math.random()*1.8+.4,speed:Math.random()*.4+.15,dx:(Math.random()-.5)*.3,alpha:Math.random()*.4+.1,fadeDir:1,col:['rgba(245,200,66,','rgba(124,106,247,','rgba(247,74,106,'][Math.floor(Math.random()*3)]}));
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#0a0a14');g.addColorStop(1,'#0d0d22');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  [[.1,.3,280,'rgba(124,106,247,0.06)'],[.85,.7,350,'rgba(245,200,66,0.04)'],[.5,.1,200,'rgba(247,74,106,0.04)']].forEach(([ox,oy,r,c])=>{const rg=ctx.createRadialGradient(ox*W,oy*H,0,ox*W,oy*H,r);rg.addColorStop(0,c);rg.addColorStop(1,'transparent');ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);});
+  stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0)s.da*=-1;ctx.beginPath();ctx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.max(0,s.a)*.45})`;ctx.fill();});
+  ctx.strokeStyle='rgba(255,255,255,0.016)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=64){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=64){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  pts.forEach(p=>{p.y-=p.speed;p.x+=p.dx;p.alpha+=.003*p.fadeDir;if(p.alpha>.6||p.alpha<.07)p.fadeDir*=-1;if(p.y<-10){p.x=Math.random()*W;p.y=H+10;}ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.col+p.alpha+')';ctx.fill();});
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script src="/js/admin-dashboard.js"></script>
+
+<!-- Patch loadEvents to use styled card markup -->
+<script>
+(function(){
+  window.loadEvents = async function() {
+    const list = document.getElementById("events-list");
+    list.innerHTML = "";
+    try {
+      const events = await apiRequest("/events","GET",null,true);
+      if(!events||events.length===0){list.innerHTML='<p style="color:var(--muted);padding:20px 0">No events available</p>';return;}
+      events.forEach((event,i)=>{
+        const sold=event.total_tickets-event.available_tickets;
+        const rev=sold*event.price;
+        const div=document.createElement("div");
+        div.className="event-card";
+        div.style.animationDelay=`${i*0.05}s`;
+        div.innerHTML=`
+          <div class="event-card-top">
+            <span class="category-badge">${event.category||'Other'}</span>
+            <div class="card-actions">
+              <button class="btn-save" onclick="updateEvent(${event.id})">✓ Save</button>
+              <button class="btn-delete" onclick="deleteEvent(${event.id})">✕ Delete</button>
+            </div>
+          </div>
+          <div class="event-edit-grid">
+            <div class="field-group"><label>Title</label><input id="title-${event.id}" value="${event.title}"/></div>
+            <div class="field-group"><label>Category</label>
+              <select id="cat-${event.id}">${["Music","Sports","Comedy","Theatre","Conference","Festival","Workshop","Other"].map(c=>`<option value="${c}"${c===event.category?' selected':''}>${c}</option>`).join('')}</select>
+            </div>
+            <div class="field-group"><label>Price (₹)</label><input type="number" id="price-${event.id}" value="${event.price}" oninput="ticketPreview(${event.id})"/></div>
+            <div class="field-group"><label>Date</label><input type="date" id="date-${event.id}" value="${event.event_date?event.event_date.split('T')[0]:''}"/></div>
+            <div class="field-group"><label>Total Tickets</label><input type="number" id="total-${event.id}" value="${event.total_tickets}" oninput="ticketPreview(${event.id})"/></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-chip">Available: <strong id="available-${event.id}">${event.available_tickets}</strong></div>
+            <div class="stat-chip">Sold: <strong id="sold-${event.id}">${sold}</strong></div>
+            <div class="stat-chip green">Revenue: <strong id="revenue-${event.id}">₹${rev}</strong></div>
+          </div>`;
+        list.appendChild(div);
+      });
+    } catch(err){alert("Error loading events: "+err.message);}
+  };
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>window.loadEvents(),100));
+})();
+</script>
 </body>
 </html>
