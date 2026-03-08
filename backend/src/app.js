@@ -4,6 +4,8 @@ require("./models"); // 👈 Initialize DB Models
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const rateLimit = require("express-rate-limit");
+
 
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
@@ -41,6 +43,58 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
+});
+
+/* =====================================================
+   🔒 RATE LIMITERS
+===================================================== */
+
+// 1. Global limiter — all routes
+//    100 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,   // sends RateLimit-* headers to client
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+
+// 2. Auth limiter — stricter for login/register/OTP
+//    10 attempts per 15 minutes per IP (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again in 15 minutes." },
+});
+
+// 3. Payment limiter — prevent payment endpoint abuse
+//    20 requests per 15 minutes per IP
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many payment requests. Please slow down." },
+});
+
+// Apply global limiter to all routes
+app.use(globalLimiter);
+
+/* =====================================================
+   🔒 Prevent Browser Caching of Protected Pages
+===================================================== */
+
+app.use((req, res, next) => {
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, private"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  next();
 });
 
 /* =====================================================

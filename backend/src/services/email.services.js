@@ -26,6 +26,10 @@ function generateTicketPDF(booking, user, event) {
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", reject);
 
+    const W = 595.28;  // A4 width in points
+    const H = 841.89;  // A4 height in points
+    const MARGIN = 48;
+
     // Parse seats
     let seatsDisplay = "N/A";
     try {
@@ -33,33 +37,211 @@ function generateTicketPDF(booking, user, event) {
       seatsDisplay = seats.length > 0 ? seats.join(", ") : "N/A";
     } catch (_) {}
 
-    doc.fontSize(22).font("Helvetica-Bold").text("🎟 Ticket Confirmation", { align: "center" });
-    doc.moveDown();
-    doc.fontSize(12).font("Helvetica").text(`Booking ID   : ${booking.id}`);
-    doc.text(`Name         : ${user.name}`);
-    doc.text(`Email        : ${user.email}`);
-    doc.moveDown();
-    doc.font("Helvetica-Bold").text("Event Details");
-    doc.font("Helvetica");
-    doc.text(`Event        : ${event.title}`);
-    doc.text(`Date         : ${new Date(event.event_date).toLocaleDateString("en-IN", { dateStyle: "long" })}`);
-    doc.text(`Location     : ${event.location || "N/A"}`);
-    doc.moveDown();
-    doc.font("Helvetica-Bold").text("Booking Details");
-    doc.font("Helvetica");
-    doc.text(`Tickets      : ${booking.tickets_booked}`);
-    doc.text(`Seats        : ${seatsDisplay}`);
-    doc.moveDown();
-    doc.font("Helvetica-Bold").text("Payment Summary");
-    doc.font("Helvetica");
-    doc.text(`Ticket Amount   : ₹${booking.ticket_amount.toFixed(2)}`);
-    doc.text(`Convenience Fee : ₹${booking.convenience_fee.toFixed(2)}`);
-    doc.text(`GST (18%)       : ₹${booking.gst_amount.toFixed(2)}`);
-    doc.font("Helvetica-Bold").text(`Total Paid      : ₹${booking.total_paid.toFixed(2)}`);
-    doc.moveDown();
-    doc.font("Helvetica").fontSize(10).fillColor("gray")
-      .text("Payment ID : " + (booking.razorpay_payment_id || "N/A"));
-    doc.text("Thank you for your booking. Enjoy the event!", { align: "center" });
+    const eventDate = new Date(event.event_date).toLocaleDateString("en-IN", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric"
+    });
+
+    // ─────────────────────────────────────────
+    // BACKGROUND
+    // ─────────────────────────────────────────
+    doc.rect(0, 0, W, H).fill("#0f0f1a");
+
+    // Top accent bar
+    doc.rect(0, 0, W, 8).fill("#6c63ff");
+
+    // Decorative side strip
+    doc.rect(0, 0, 6, H).fill("#6c63ff");
+
+    // Subtle dot pattern (decorative circles)
+    doc.fillColor("#ffffff").opacity(0.03);
+    for (let x = 60; x < W; x += 40) {
+      for (let y = 60; y < H; y += 40) {
+        doc.circle(x, y, 2).fill();
+      }
+    }
+    doc.opacity(1);
+
+    // ─────────────────────────────────────────
+    // HEADER SECTION
+    // ─────────────────────────────────────────
+    // Header background card
+    doc.roundedRect(MARGIN, 30, W - MARGIN * 2, 130, 12).fill("#1a1a2e");
+
+    // Brand name
+    doc.fontSize(11)
+      .font("Helvetica")
+      .fillColor("#6c63ff")
+      .text("TICKET BOOKING", MARGIN + 24, 52, { characterSpacing: 4 });
+
+    // Event title
+    doc.fontSize(26)
+      .font("Helvetica-Bold")
+      .fillColor("#ffffff")
+      .text(event.title, MARGIN + 24, 72, { width: W - MARGIN * 2 - 48 });
+
+    // Category badge
+    if (event.category) {
+      const badgeText = event.category.toUpperCase();
+      doc.fontSize(9)
+        .font("Helvetica-Bold")
+        .fillColor("#6c63ff");
+      const badgeX = W - MARGIN - 90;
+      doc.roundedRect(badgeX, 52, 80, 20, 10).stroke("#6c63ff");
+      doc.text(badgeText, badgeX, 57, { width: 80, align: "center" });
+    }
+
+    // ─────────────────────────────────────────
+    // TICKET VERSE / TAGLINE
+    // ─────────────────────────────────────────
+    const verseY = 178;
+    doc.roundedRect(MARGIN, verseY, W - MARGIN * 2, 70, 10).fill("#16213e");
+
+    doc.fontSize(10)
+      .font("Helvetica-Oblique")
+      .fillColor("#a78bfa")
+      .text("✦  Every great memory begins with a single ticket.", MARGIN + 20, verseY + 12, {
+        width: W - MARGIN * 2 - 40, align: "center"
+      });
+
+    doc.fontSize(9)
+      .font("Helvetica-Oblique")
+      .fillColor("#7c7c9a")
+      .text(
+        "Tonight, you're not just attending an event — you're becoming part of a story.",
+        MARGIN + 20, verseY + 32,
+        { width: W - MARGIN * 2 - 40, align: "center" }
+      );
+
+    doc.fontSize(9)
+      .font("Helvetica-Oblique")
+      .fillColor("#7c7c9a")
+      .text(
+        "Hold on to this moment. It belongs to you.",
+        MARGIN + 20, verseY + 48,
+        { width: W - MARGIN * 2 - 40, align: "center" }
+      );
+
+    // ─────────────────────────────────────────
+    // PERFORATED DIVIDER
+    // ─────────────────────────────────────────
+    const perfY = 264;
+    doc.fillColor("#6c63ff").circle(0, perfY, 16).fill();
+    doc.circle(W, perfY, 16).fill();
+
+    doc.dash(6, { space: 5 });
+    doc.moveTo(MARGIN, perfY).lineTo(W - MARGIN, perfY)
+      .strokeColor("#3a3a5c").lineWidth(1.5).stroke();
+    doc.undash();
+
+    // Scissors icon text
+    doc.fontSize(12).fillColor("#3a3a5c").text("✂", MARGIN + 8, perfY - 8);
+
+    // ─────────────────────────────────────────
+    // EVENT INFO SECTION
+    // ─────────────────────────────────────────
+    const infoY = 282;
+
+    // Left column
+    const col1X = MARGIN + 16;
+    const col2X = W / 2 + 16;
+
+    function infoBlock(label, value, x, y) {
+      doc.fontSize(8).font("Helvetica").fillColor("#6c63ff")
+        .text(label.toUpperCase(), x, y, { characterSpacing: 1.5 });
+      doc.fontSize(13).font("Helvetica-Bold").fillColor("#ffffff")
+        .text(value, x, y + 14, { width: (W / 2) - MARGIN - 16 });
+    }
+
+    infoBlock("Date", eventDate, col1X, infoY);
+    infoBlock("Location", event.location || "To Be Announced", col2X, infoY);
+
+    infoBlock("Seat(s)", seatsDisplay, col1X, infoY + 70);
+    infoBlock("Tickets", `${booking.tickets_booked} ticket(s)`, col2X, infoY + 70);
+
+    // ─────────────────────────────────────────
+    // ATTENDEE SECTION
+    // ─────────────────────────────────────────
+    const attendeeY = infoY + 150;
+    doc.roundedRect(MARGIN, attendeeY, W - MARGIN * 2, 80, 10).fill("#1a1a2e");
+
+    doc.fontSize(8).font("Helvetica").fillColor("#6c63ff")
+      .text("ATTENDEE", col1X, attendeeY + 14, { characterSpacing: 1.5 });
+    doc.fontSize(16).font("Helvetica-Bold").fillColor("#ffffff")
+      .text(user.name, col1X, attendeeY + 28);
+    doc.fontSize(10).font("Helvetica").fillColor("#7c7c9a")
+      .text(user.email, col1X, attendeeY + 50);
+
+    // Booking ID badge on right
+    doc.fontSize(8).font("Helvetica").fillColor("#6c63ff")
+      .text("BOOKING ID", col2X, attendeeY + 14, { characterSpacing: 1.5 });
+    doc.fontSize(16).font("Helvetica-Bold").fillColor("#ffffff")
+      .text(`#${booking.id}`, col2X, attendeeY + 28);
+
+    // ─────────────────────────────────────────
+    // PAYMENT SUMMARY
+    // ─────────────────────────────────────────
+    const payY = attendeeY + 104;
+    doc.roundedRect(MARGIN, payY, W - MARGIN * 2, 150, 10).fill("#1a1a2e");
+
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#6c63ff")
+      .text("PAYMENT SUMMARY", col1X, payY + 16, { characterSpacing: 2 });
+
+    function payRow(label, value, y, highlight = false) {
+      doc.fontSize(10).font("Helvetica").fillColor("#9ca3af")
+        .text(label, col1X, y);
+      doc.fontSize(10)
+        .font(highlight ? "Helvetica-Bold" : "Helvetica")
+        .fillColor(highlight ? "#ffffff" : "#d1d5db")
+        .text(value, 0, y, { align: "right", width: W - MARGIN * 2 - 32 });
+    }
+
+    payRow("Ticket Amount", `Rs. ${booking.ticket_amount.toFixed(2)}`, payY + 40);
+    payRow("Convenience Fee", `Rs. ${booking.convenience_fee.toFixed(2)}`, payY + 62);
+    payRow("GST (18%)", `Rs. ${booking.gst_amount.toFixed(2)}`, payY + 84);
+
+    // Divider
+    doc.moveTo(col1X, payY + 106).lineTo(W - MARGIN - 16, payY + 106)
+      .strokeColor("#3a3a5c").lineWidth(1).stroke();
+
+    payRow("Total Paid", `Rs. ${booking.total_paid.toFixed(2)}`, payY + 116, true);
+
+    // ─────────────────────────────────────────
+    // PAYMENT ID & STATUS
+    // ─────────────────────────────────────────
+    const pidY = payY + 168;
+    doc.fontSize(8).font("Helvetica").fillColor("#4b5563")
+      .text(`Payment ID: ${booking.razorpay_payment_id || "N/A"}`, MARGIN, pidY, {
+        width: W - MARGIN * 2, align: "center"
+      });
+
+    // Status badge
+    doc.roundedRect(W / 2 - 50, pidY + 16, 100, 24, 12).fill("#14532d");
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#4ade80")
+      .text("✔  CONFIRMED", W / 2 - 50, pidY + 21, { width: 100, align: "center" });
+
+    // ─────────────────────────────────────────
+    // FOOTER
+    // ─────────────────────────────────────────
+    const footerY = H - 72;
+    doc.moveTo(MARGIN, footerY).lineTo(W - MARGIN, footerY)
+      .strokeColor("#1e1e3f").lineWidth(1).stroke();
+
+    doc.fontSize(8).font("Helvetica").fillColor("#4b5563")
+      .text(
+        "This is your official e-ticket. Please present this at the venue entry.",
+        MARGIN, footerY + 12,
+        { width: W - MARGIN * 2, align: "center" }
+      );
+
+    doc.fontSize(8).fillColor("#3a3a5c")
+      .text(
+        `Generated on ${new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}  •  Ticket Booking Platform`,
+        MARGIN, footerY + 28,
+        { width: W - MARGIN * 2, align: "center" }
+      );
+
+    // Bottom accent bar
+    doc.rect(0, H - 8, W, 8).fill("#6c63ff");
 
     doc.end();
   });
