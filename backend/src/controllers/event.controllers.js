@@ -9,7 +9,8 @@ const createEvent = async (req, res, next) => {
       event_date,
       price,
       total_tickets,
-      category
+      category,
+      images,
 
     } = req.body;
 
