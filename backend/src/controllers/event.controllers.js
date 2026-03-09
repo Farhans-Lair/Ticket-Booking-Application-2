@@ -49,6 +49,8 @@ if (selectedDate < today) {
       total_tickets,
       available_tickets: total_tickets,
       category: category || 'Other',
+      images: Array.isArray(images) && images.length > 0 ? images : null,  // ← NEW
+
     });
 
     res.status(201).json(event);
@@ -82,7 +84,8 @@ const updateEvent = async (req,res,next)=>{
    event_date,
    price,
    total_tickets,
-   category
+   category,
+   images,
  } = req.body;
 
  const updatedEvent =
@@ -95,7 +98,8 @@ const updateEvent = async (req,res,next)=>{
        event_date,
        price,
        total_tickets,
-       category
+       category,
+       images,
       }
    );
 

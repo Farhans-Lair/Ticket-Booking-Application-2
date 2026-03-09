@@ -99,7 +99,12 @@ Tickets already sold must be preserved.
 
    category:          
      data.category ?? 
-     event.category
+     event.category,
+
+     images:
+     data.images !== undefined ? 
+     data.images : event.images,  // ← NEW
+
 });
 
  return event;
