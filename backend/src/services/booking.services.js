@@ -118,7 +118,7 @@ const getUserBookings = async (userId) => {
     where: { user_id: userId },
     include: [{
       model: Event,
-      attributes: ["title", "event_date", "price"]
+      attributes: ["title", "event_date", "price","images"]
     }],
     order: [["booking_date", "DESC"]]
   });
