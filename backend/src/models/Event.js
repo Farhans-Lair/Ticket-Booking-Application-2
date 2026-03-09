@@ -1,7 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Event = sequelize.define("Event", {
+const Event = sequelize.define("Event", 
+  {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -44,6 +45,19 @@ const Event = sequelize.define("Event", {
       'Conference','Festival','Workshop','Other'
     ),
     defaultValue: 'Other',
+  },
+// ── IMAGES: stored as JSON array of base64 strings in a TEXT column ──
+  images: {
+    type: DataTypes.TEXT,
+    defaultValue: null,
+    get() {
+    const raw = this.getDataValue('images');
+    if (!raw) return [];
+    try { return JSON.parse(raw); } catch { return []; }
+  },
+    set(val) {
+      this.setDataValue('images', val ? JSON.stringify(val) : null);
+   },
   },
 },
 

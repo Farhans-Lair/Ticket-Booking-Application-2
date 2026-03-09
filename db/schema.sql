@@ -16,6 +16,7 @@ CREATE TABLE events (
   total_tickets INT NOT NULL,
   available_tickets INT NOT NULL,
   category ENUM('Music','Sports','Comedy','Theatre','Conference','Festival','Workshop','Other') DEFAULT 'Other',
+  images TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

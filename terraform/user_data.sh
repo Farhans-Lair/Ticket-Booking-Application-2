@@ -4,6 +4,19 @@ exec > /var/log/user-data.log 2>&1
 
 yum update -y
 
+# 🔥 Install MySQL 8.0 client
+# Remove conflicting mariadb packages first
+yum remove mariadb mariadb-libs -y || true
+
+# Add MySQL 8.0 community repo
+yum install https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm -y
+
+# Enable MySQL 8.0 community repo
+yum-config-manager --enable mysql80-community
+
+# Install MySQL client only (no server — DB is on RDS)
+yum install mysql-community-client -y
+
 # 🔥 Install Docker correctly
 yum install -y docker
 systemctl enable docker

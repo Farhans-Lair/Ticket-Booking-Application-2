@@ -53,6 +53,41 @@
     .btn-primary { padding:13px 28px; background:linear-gradient(135deg,var(--gold),var(--gold-dark)); border:none; border-radius:11px; color:#0a0a14; font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; cursor:pointer; transition:transform 0.15s,box-shadow 0.2s; box-shadow:0 4px 18px rgba(245,200,66,0.25); }
     .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(245,200,66,0.38); }
 
+    /* ── IMAGE UPLOAD AREA (Create form) ── */
+    .img-upload-area {
+      border:2px dashed rgba(255,255,255,0.15); border-radius:12px;
+      padding:22px; text-align:center; cursor:pointer;
+      transition:border-color 0.2s, background 0.2s; position:relative;
+    }
+    .img-upload-area:hover { border-color:var(--gold); background:rgba(245,200,66,0.04); }
+    .img-upload-area input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .upload-icon { font-size:1.8rem; margin-bottom:6px; }
+    .img-upload-area p { font-size:0.82rem; color:var(--muted); }
+    .upload-hint { font-size:0.72rem; color:rgba(240,238,232,0.3); margin-top:4px; }
+
+    /* Thumbnail previews */
+    .img-preview-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .img-thumb {
+      position:relative; width:82px; height:82px;
+      border-radius:10px; overflow:hidden; border:2px solid var(--border);
+      flex-shrink:0;
+    }
+    .img-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .img-thumb .main-tag {
+      position:absolute; bottom:0; left:0; right:0;
+      background:rgba(245,200,66,0.88); color:#0a0a14;
+      font-size:0.58rem; font-weight:800; text-align:center;
+      padding:2px 0; text-transform:uppercase; letter-spacing:0.05em;
+    }
+    .img-thumb .remove-img {
+      position:absolute; top:3px; right:3px;
+      width:18px; height:18px; border-radius:50%;
+      background:rgba(247,74,106,0.88); border:none;
+      color:#fff; font-size:0.65rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; line-height:1;
+    }
+
     /* EVENT CARDS */
     #events-list { display:flex; flex-direction:column; gap:16px; }
     .event-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; padding:20px 22px; animation:card-in 0.4s cubic-bezier(0.16,1,0.3,1) both; transition:border-color 0.2s; }
@@ -67,10 +102,45 @@
     .btn-delete:hover { background:rgba(247,74,106,0.2); }
     .event-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
     .event-edit-grid .field-group input, .event-edit-grid .field-group select { padding:9px 12px; font-size:0.85rem; }
-    .stats-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .stats-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
     .stat-chip { padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:0.8rem; color:var(--muted); }
     .stat-chip strong { font-weight:700; }
     .stat-chip.green strong { color:var(--green); }
+
+    /* ── IMAGE MANAGEMENT inside event edit cards ── */
+    .img-section-label {
+      font-size:0.72rem; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;
+    }
+    .img-section-label span { font-weight:400; text-transform:none; letter-spacing:0; font-size:0.72rem; color:rgba(240,238,232,0.25); }
+    .existing-imgs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+    .existing-img-thumb {
+      position:relative; width:68px; height:68px;
+      border-radius:8px; overflow:hidden; border:2px solid var(--border); flex-shrink:0;
+    }
+    .existing-img-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .existing-img-thumb .main-badge {
+      position:absolute; bottom:0; left:0; right:0;
+      background:rgba(245,200,66,0.88); color:#0a0a14;
+      font-size:0.55rem; font-weight:800; text-align:center;
+      padding:2px 0; text-transform:uppercase;
+    }
+    .existing-img-thumb .remove-btn {
+      position:absolute; top:2px; right:2px;
+      width:17px; height:17px; border-radius:50%;
+      background:rgba(247,74,106,0.88); border:none;
+      color:#fff; font-size:0.6rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-weight:700;
+    }
+    .card-img-upload-area {
+      border:1.5px dashed rgba(255,255,255,0.12); border-radius:10px;
+      padding:11px 14px; text-align:center; cursor:pointer;
+      transition:all 0.2s; position:relative;
+      font-size:0.8rem; color:var(--muted);
+    }
+    .card-img-upload-area:hover { border-color:var(--gold); background:rgba(245,200,66,0.04); }
+    .card-img-upload-area input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+
     .divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
     @media(max-width:640px){.form-grid,.event-edit-grid{grid-template-columns:1fr;}.full{grid-column:1;}}
   </style>
@@ -94,6 +164,7 @@
     <h2>Create New Event</h2>
     <span class="pill pill-gold">+ NEW</span>
   </div>
+
   <div class="card">
     <div class="form-grid">
       <div class="field-group full"><label>Event Title</label><input type="text" id="title" placeholder="e.g. Coldplay World Tour 2025"/></div>
@@ -115,6 +186,19 @@
           <option value="Other" selected>✨ Other</option>
         </select>
       </div>
+
+      <!-- IMAGE UPLOAD -->
+      <div class="field-group full">
+        <label>Event Images <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;color:rgba(240,238,232,0.3)">(up to 5 · first image = main cover)</span></label>
+        <div class="img-upload-area">
+          <input type="file" id="create-img-input" accept="image/*" multiple onchange="handleCreateImages(this)"/>
+          <div class="upload-icon">🖼️</div>
+          <p>Click or drag images here</p>
+          <p class="upload-hint">JPG, PNG, WEBP — max 5 images</p>
+        </div>
+        <div class="img-preview-row" id="create-img-preview"></div>
+      </div>
+
       <div class="full"><button class="btn-primary" id="createEventBtn">Create Event →</button></div>
     </div>
   </div>
@@ -128,8 +212,8 @@
   <div id="events-list"></div>
 </div>
 
+<!-- Canvas BG -->
 <script>
-/* Canvas BG */
 const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
 let W,H;
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
@@ -148,55 +232,251 @@ function draw(){
   requestAnimationFrame(draw);
 }
 draw();
+
+/* ─────────────────────────────────────────────
+   IMAGE HELPERS
+───────────────────────────────────────────── */
+
+// Holds base64 images for the create-new-event form
+let createImages = [];
+
+// Per-event image buffer for edit cards  { eventId: [base64, ...] }
+const editImages = {};
+
+/* Resize image to max 800px width and convert to base64 jpeg */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 800;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        const cv = document.createElement('canvas');
+        cv.width  = Math.round(img.width  * scale);
+        cv.height = Math.round(img.height * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        resolve(cv.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ── CREATE FORM image handlers ── */
+async function handleCreateImages(input) {
+  const files = Array.from(input.files).slice(0, 5);
+  createImages = [];
+  const preview = document.getElementById('create-img-preview');
+  preview.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">Processing…</span>';
+  for (const f of files) createImages.push(await fileToBase64(f));
+  renderCreatePreview();
+  input.value = '';
+}
+
+function renderCreatePreview() {
+  const preview = document.getElementById('create-img-preview');
+  preview.innerHTML = '';
+  createImages.forEach((src, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'img-thumb';
+    wrap.innerHTML = `
+      <img src="${src}" alt="preview"/>
+      ${i === 0 ? '<div class="main-tag">Main</div>' : ''}
+      <button class="remove-img" onclick="removeCreateImg(${i})">✕</button>`;
+    preview.appendChild(wrap);
+  });
+}
+
+function removeCreateImg(idx) {
+  createImages.splice(idx, 1);
+  renderCreatePreview();
+}
+
+/* ── EDIT CARD image handlers ── */
+async function handleEditImages(input, eventId) {
+  const remaining = 5 - (editImages[eventId]?.length || 0);
+  const files = Array.from(input.files).slice(0, remaining);
+  if (!editImages[eventId]) editImages[eventId] = [];
+  for (const f of files) {
+    if (editImages[eventId].length >= 5) break;
+    editImages[eventId].push(await fileToBase64(f));
+  }
+  renderEditPreview(eventId);
+  input.value = '';
+}
+
+function removeEditImg(eventId, idx) {
+  editImages[eventId].splice(idx, 1);
+  renderEditPreview(eventId);
+}
+
+function renderEditPreview(eventId) {
+  const container = document.getElementById(`edit-img-preview-${eventId}`);
+  if (!container) return;
+  container.innerHTML = '';
+  (editImages[eventId] || []).forEach((src, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'existing-img-thumb';
+    wrap.innerHTML = `
+      <img src="${src}" alt="event image"/>
+      ${i === 0 ? '<div class="main-badge">Main</div>' : ''}
+      <button class="remove-btn" onclick="removeEditImg(${eventId},${i})">✕</button>`;
+    container.appendChild(wrap);
+  });
+}
 </script>
 
 <script src="/js/api.js"></script>
 <script src="/js/admin-auth.js"></script>
 <script src="/js/admin-dashboard.js"></script>
 
-<!-- Patch loadEvents to use styled card markup -->
+<!-- ═══════════════════════════════════════════════════════
+     PATCHES: override createEvent, updateEvent, loadEvents
+     to wire up images without touching admin-dashboard.js
+════════════════════════════════════════════════════════ -->
 <script>
-(function(){
-  window.loadEvents = async function() {
+(function () {
+
+  /* ── Patch createEvent ── */
+  window.createEvent = async function () {
+    const title         = document.getElementById("title").value;
+    const description   = document.getElementById("description").value;
+    const location      = document.getElementById("location").value;
+    const event_date    = document.getElementById("event_date").value;
+    const price         = Number(document.getElementById("price").value);
+    const total_tickets = Number(document.getElementById("total_tickets").value);
+    const category      = document.getElementById("category").value;
+
+    if (!title || !event_date || !price || !total_tickets) {
+      alert("Title, Date, Price and Total Tickets are required");
+      return;
+    }
+
+    try {
+      await apiRequest("/events", "POST", {
+        title, description, location, event_date, price, total_tickets, category,
+        images: createImages.length > 0 ? createImages : undefined,
+      }, true);
+
+      alert("Event created successfully!");
+      ["title","description","location","event_date","price","total_tickets"]
+        .forEach(id => document.getElementById(id).value = "");
+      document.getElementById("category").value = "Other";
+      createImages = [];
+      document.getElementById('create-img-preview').innerHTML = '';
+      loadEvents();
+    } catch (err) {
+      alert("Error creating event: " + err.message);
+    }
+  };
+
+  /* ── Patch updateEvent ── */
+  window.updateEvent = async function (id) {
+    try {
+      const title         = document.getElementById(`title-${id}`).value;
+      const price         = Number(document.getElementById(`price-${id}`).value);
+      const event_date    = document.getElementById(`date-${id}`).value;
+      const total_tickets = Number(document.getElementById(`total-${id}`).value);
+      const category      = document.getElementById(`cat-${id}`).value;
+
+      if (!title)              { alert("Title required"); return; }
+      if (!price || price <= 0){ alert("Price must be > 0"); return; }
+      if (total_tickets <= 0)  { alert("Total tickets must be > 0"); return; }
+
+      await apiRequest(`/events/${id}`, "PUT", {
+        title, price, event_date, total_tickets, category,
+        images: editImages[id] || [],
+      }, true);
+
+      alert("Event Updated");
+      loadEvents();
+    } catch (err) {
+      alert(err.message || "Update Failed");
+    }
+  };
+
+  /* ── Patch loadEvents ── */
+  window.loadEvents = async function () {
     const list = document.getElementById("events-list");
     list.innerHTML = "";
     try {
-      const events = await apiRequest("/events","GET",null,true);
-      if(!events||events.length===0){list.innerHTML='<p style="color:var(--muted);padding:20px 0">No events available</p>';return;}
-      events.forEach((event,i)=>{
-        const sold=event.total_tickets-event.available_tickets;
-        const rev=sold*event.price;
-        const div=document.createElement("div");
-        div.className="event-card";
-        div.style.animationDelay=`${i*0.05}s`;
-        div.innerHTML=`
+      const events = await apiRequest("/events", "GET", null, true);
+      if (!events || events.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);padding:20px 0">No events available</p>';
+        return;
+      }
+
+      events.forEach((event, i) => {
+        const sold = event.total_tickets - event.available_tickets;
+        const rev  = sold * event.price;
+        const imgs = event.images || [];
+
+        // Seed the edit buffer with existing images
+        editImages[event.id] = [...imgs];
+
+        const div = document.createElement("div");
+        div.className = "event-card";
+        div.style.animationDelay = `${i * 0.05}s`;
+
+        div.innerHTML = `
           <div class="event-card-top">
-            <span class="category-badge">${event.category||'Other'}</span>
+            <span class="category-badge">${event.category || 'Other'}</span>
             <div class="card-actions">
-              <button class="btn-save" onclick="updateEvent(${event.id})">✓ Save</button>
+              <button class="btn-save"   onclick="updateEvent(${event.id})">✓ Save</button>
               <button class="btn-delete" onclick="deleteEvent(${event.id})">✕ Delete</button>
             </div>
           </div>
+
           <div class="event-edit-grid">
             <div class="field-group"><label>Title</label><input id="title-${event.id}" value="${event.title}"/></div>
-            <div class="field-group"><label>Category</label>
-              <select id="cat-${event.id}">${["Music","Sports","Comedy","Theatre","Conference","Festival","Workshop","Other"].map(c=>`<option value="${c}"${c===event.category?' selected':''}>${c}</option>`).join('')}</select>
+            <div class="field-group">
+              <label>Category</label>
+              <select id="cat-${event.id}">
+                ${["Music","Sports","Comedy","Theatre","Conference","Festival","Workshop","Other"]
+                  .map(c => `<option value="${c}"${c === event.category ? ' selected' : ''}>${c}</option>`)
+                  .join('')}
+              </select>
             </div>
             <div class="field-group"><label>Price (₹)</label><input type="number" id="price-${event.id}" value="${event.price}" oninput="ticketPreview(${event.id})"/></div>
-            <div class="field-group"><label>Date</label><input type="date" id="date-${event.id}" value="${event.event_date?event.event_date.split('T')[0]:''}"/></div>
+            <div class="field-group"><label>Date</label><input type="date" id="date-${event.id}" value="${event.event_date ? event.event_date.split('T')[0] : ''}"/></div>
             <div class="field-group"><label>Total Tickets</label><input type="number" id="total-${event.id}" value="${event.total_tickets}" oninput="ticketPreview(${event.id})"/></div>
           </div>
+
           <div class="stats-row">
             <div class="stat-chip">Available: <strong id="available-${event.id}">${event.available_tickets}</strong></div>
             <div class="stat-chip">Sold: <strong id="sold-${event.id}">${sold}</strong></div>
             <div class="stat-chip green">Revenue: <strong id="revenue-${event.id}">₹${rev}</strong></div>
+          </div>
+
+          <!-- Image management section -->
+          <div>
+            <div class="img-section-label">
+              Event Images <span>(first image = main cover · max 5)</span>
+            </div>
+            <div class="existing-imgs" id="edit-img-preview-${event.id}"></div>
+            ${imgs.length < 5 ? `
+            <div class="card-img-upload-area">
+              <input type="file" accept="image/*" multiple onchange="handleEditImages(this,${event.id})"/>
+              📎 Add images ${imgs.length > 0 ? '(' + imgs.length + '/5)' : ''}
+            </div>` : ''}
           </div>`;
+
         list.appendChild(div);
+        renderEditPreview(event.id);
       });
-    } catch(err){alert("Error loading events: "+err.message);}
+
+    } catch (err) {
+      alert("Error loading events: " + err.message);
+    }
   };
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>window.loadEvents(),100));
+
+  document.addEventListener("DOMContentLoaded", () => setTimeout(() => window.loadEvents(), 100));
 })();
 </script>
+
 </body>
 </html>
