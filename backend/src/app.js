@@ -79,26 +79,6 @@ const paymentLimiter = rateLimit({
   message: { error: "Too many payment requests. Please slow down." },
 });
 
-// Apply global limiter to all routes
-app.use(globalLimiter);
-app.use(paymentLimiter);
-app.use(authLimiter);
-
-/* =====================================================
-   🔒 Prevent Browser Caching of Protected Pages
-===================================================== */
-
-app.use((req, res, next) => {
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, private"
-  );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
-  next();
-});
-
 /* =====================================================
    🔒 Prevent Browser Caching of Protected Pages
 ===================================================== */
@@ -123,12 +103,12 @@ app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 /* =====================================================
    API Routes  ← JWT auth enforced HERE (in the routes)
 ===================================================== */
-app.use("/auth", authRoutes);
-app.use("/events", eventRoutes);
-app.use("/bookings", bookingRoutes);
-app.use("/payments", paymentRoutes);
-app.use("/seats",    seatRoutes);
-app.use("/api", revenueRoutes);
+app.use("/auth",authLimiter, authRoutes);
+app.use("/events",globalLimiter, eventRoutes);
+app.use("/bookings",globalLimiter, bookingRoutes);
+app.use("/payments",paymentLimiter, paymentRoutes);
+app.use("/seats",globalLimiter ,seatRoutes);
+app.use("/api", globalLimiter, revenueRoutes);
 
 /* =====================================================
    HTML Page Routes  ← NO JWT middleware here.

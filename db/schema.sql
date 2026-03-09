@@ -38,7 +38,7 @@ CREATE TABLE bookings (
   tickets_booked INT NOT NULL,
   ticket_amount FLOAT NOT NULL,
   convenience_fee FLOAT NOT NULL,
-  gst_amount FLOAT NOT NULL,a
+  gst_amount FLOAT NOT NULL,
   total_paid FLOAT NOT NULL,
   selected_seats TEXT DEFAULT NULL,
   razorpay_order_id VARCHAR(255) DEFAULT NULL,
