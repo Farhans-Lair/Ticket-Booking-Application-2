@@ -35,7 +35,7 @@ app.use(
    ✅ JSON Parsing
 ===================================================== */
 
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 
 /* =====================================================
    🏥 Health Check (ALB / CI)
@@ -81,6 +81,8 @@ const paymentLimiter = rateLimit({
 
 // Apply global limiter to all routes
 app.use(globalLimiter);
+app.use(paymentLimiter);
+app.use(authLimiter);
 
 /* =====================================================
    🔒 Prevent Browser Caching of Protected Pages

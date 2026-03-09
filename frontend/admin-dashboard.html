@@ -474,7 +474,12 @@ function renderEditPreview(eventId) {
     }
   };
 
-  document.addEventListener("DOMContentLoaded", () => setTimeout(() => window.loadEvents(), 100));
+  // AFTER
+   document.addEventListener("DOMContentLoaded", () => {
+     const btn = document.getElementById("createEventBtn");
+     if (btn) btn.onclick = window.createEvent;  // ← overrides the binding in admin-dashboard.js
+     setTimeout(() => window.loadEvents(), 100);
+   });
 })();
 </script>
 
