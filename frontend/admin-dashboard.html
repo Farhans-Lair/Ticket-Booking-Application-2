@@ -481,7 +481,13 @@ function renderEditPreview(eventId) {
   // AFTER
    document.addEventListener("DOMContentLoaded", () => {
      const btn = document.getElementById("createEventBtn");
-     if (btn) btn.onclick = window.createEvent;  // ← overrides the binding in admin-dashboard.js
+     if (btn) {
+       // Clone the button to strip the addEventListener("click", createEvent)
+       // that admin-dashboard.js attached — without this, both fire on click
+       // causing two events to be created (one without images, one with)
+       const fresh = btn.cloneNode(true);
+       btn.parentNode.replaceChild(fresh, btn);
+       fresh.onclick = window.createEvent;
      setTimeout(() => window.loadEvents(), 100);
    });
 })();

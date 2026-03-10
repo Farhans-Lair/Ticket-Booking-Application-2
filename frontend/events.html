@@ -110,6 +110,55 @@
     #cat-label.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 
     @media(max-width:600px) { #events-list{grid-template-columns:1fr;} .event-meta{grid-template-columns:1fr;} }
+
+    /* EVENT CARD clickable */
+    .event-card { cursor: pointer; }
+    .card-view-hint { text-align:center; font-size:0.78rem; color:var(--text-muted); padding:10px 0 2px; letter-spacing:0.04em; opacity:0.7; }
+
+    /* ══ EVENT DETAIL MODAL ══ */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; z-index:1000;
+      background:rgba(0,0,0,0.78); backdrop-filter:blur(6px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.open { display:flex; animation:fadein 0.2s ease; }
+    @keyframes fadein { from{opacity:0;}to{opacity:1;} }
+
+    .modal-box {
+      background:#12121f; border:1px solid rgba(255,255,255,0.1);
+      border-radius:22px; width:100%; max-width:620px;
+      max-height:90vh; overflow-y:auto; position:relative;
+      box-shadow:0 32px 80px rgba(0,0,0,0.7);
+      animation:modal-in 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes modal-in { from{opacity:0;transform:scale(0.94) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);} }
+
+    .modal-close {
+      position:sticky; top:14px; float:right; margin:14px 14px 0 0;
+      width:34px; height:34px; border-radius:50%;
+      background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15);
+      color:var(--text); font-size:1rem; cursor:pointer; z-index:10;
+      display:flex; align-items:center; justify-content:center;
+      transition:background 0.2s; line-height:1;
+    }
+    .modal-close:hover { background:rgba(247,74,106,0.45); }
+
+    .modal-slideshow {
+      position:relative; width:100%; height:280px;
+      background:rgba(255,255,255,0.03); overflow:hidden;
+      border-radius:22px 22px 0 0;
+    }
+    .modal-slideshow .slide { position:absolute; inset:0; opacity:0; transition:opacity 0.55s ease; }
+    .modal-slideshow .slide.active { opacity:1; }
+    .modal-slideshow .slide img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .modal-body { padding:24px 28px 28px; }
+    .modal-title { font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:900; margin-bottom:8px; line-height:1.2; }
+    .modal-desc { font-size:0.88rem; color:var(--text-muted); line-height:1.65; margin-bottom:20px; }
+    .modal-meta { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px; }
+    .modal-meta .meta-item { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:10px 14px; }
+    .modal-divider { border:none; border-top:1px solid rgba(255,255,255,0.08); margin-bottom:20px; }
+    @media(max-width:500px) { .modal-meta{grid-template-columns:1fr;} .modal-body{padding:18px 18px 22px;} }
   </style>
 </head>
 <body>
@@ -133,6 +182,14 @@
 
   <div id="category-filters"></div>
   <div id="events-list"></div>
+</div>
+
+<!-- ══ EVENT DETAIL MODAL ══ -->
+<div class="modal-overlay" id="event-modal" onclick="handleModalOverlayClick(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEventModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
 </div>
 
 <script>
@@ -267,10 +324,13 @@ function renderCategoryFilters() {
   });
 }
 
+let allEvents = [];  // cache for modal lookups
+
 async function loadEvents(category = null) {
   try {
     const url    = category ? `/events?category=${category}` : "/events";
     const events = await apiRequest(url, "GET", null, true);
+    allEvents = events || [];   // cache loaded events
     const list   = document.getElementById("events-list");
     list.innerHTML = "";
 
@@ -283,6 +343,7 @@ async function loadEvents(category = null) {
       const div = document.createElement("div");
       div.className = "event-card";
       div.style.animationDelay = `${i * 0.06}s`;
+      div.onclick = () => openEventModal(event.id);
 
       const cat  = event.category || 'Other';
       const imgs = event.images   || [];
@@ -318,25 +379,18 @@ async function loadEvents(category = null) {
           </div>`;
       }
 
-      const bookingSection = event.available_tickets === 0
-        ? `<div class="sold-out">🚫 Sold Out</div>`
-        : `<input type="number" class="ticket-input" min="1" max="${event.available_tickets}"
-             id="qty-${event.id}" placeholder="Number of tickets"/>
-           <button class="btn-book" onclick="goToSeatSelection(${event.id})">Select Seats & Book →</button>`;
+      const soldOut = event.available_tickets === 0;
 
       div.innerHTML = `
         ${slideshowHTML}
         <div class="card-body">
           <span class="category-badge">${cat}</span>
           <div class="event-title">${event.title}</div>
-          ${event.description ? `<div class="event-desc">${event.description}</div>` : ''}
           <div class="event-meta">
-            <div class="meta-item"><div class="label">📍 Location</div><div class="value">${event.location || 'TBA'}</div></div>
             <div class="meta-item"><div class="label">📅 Date</div><div class="value">${new Date(event.event_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div></div>
-            <div class="meta-item"><div class="label">🎟 Available</div><div class="value">${event.available_tickets} / ${event.total_tickets}</div></div>
             <div class="meta-item"><div class="label">💰 Price</div><div class="value">₹${event.price}</div></div>
           </div>
-          ${bookingSection}
+          <div class="card-view-hint">${soldOut ? '🚫 Sold Out' : '👆 Tap to view details & book'}</div>
         </div>`;
 
       list.appendChild(div);
@@ -351,10 +405,106 @@ async function loadEvents(category = null) {
 }
 
 function goToSeatSelection(eventId) {
-  const tickets_booked = parseInt(document.getElementById(`qty-${eventId}`).value, 10);
+  const input = document.getElementById(`modal-qty-${eventId}`);
+  const tickets_booked = parseInt(input ? input.value : 0, 10);
   if (!tickets_booked || tickets_booked <= 0) { alert("Enter a valid number of tickets"); return; }
   sessionStorage.setItem("seat_selection_meta", JSON.stringify({ event_id: eventId, tickets_booked }));
   window.location.href = "/seat-selection";
+}
+
+/* ══ MODAL LOGIC ══ */
+function openEventModal(eventId) {
+  const event = allEvents.find(e => e.id === eventId);
+  if (!event) return;
+
+  const imgs = event.images || [];
+  const cat  = event.category || 'Other';
+
+  // Build slideshow for modal (uses modal- prefix to avoid conflicts with card)
+  let slideshowHTML;
+  if (imgs.length > 0) {
+    const slidesHTML = imgs
+      .map((src, si) => `<div class="slide${si===0?' active':''}"><img src="${src}" alt="Event image ${si+1}" loading="lazy"/></div>`)
+      .join('');
+    const dotsHTML = imgs.length > 1
+      ? `<div class="slide-dots" id="modal-dots-${eventId}">
+           ${imgs.map((_,si) => `<button class="slide-dot${si===0?' active':''}" onclick="event.stopPropagation();modalSlideTo_${eventId}(${si})"></button>`).join('')}
+         </div>` : '';
+    const arrowsHTML = imgs.length > 1
+      ? `<button class="slide-arrow prev" onclick="event.stopPropagation();modalSlidePrev_${eventId}()">&#8249;</button>
+         <button class="slide-arrow next" onclick="event.stopPropagation();modalSlideNext_${eventId}()">&#8250;</button>` : '';
+    slideshowHTML = `
+      <div class="modal-slideshow">
+        <div id="modal-slides-${eventId}">${slidesHTML}</div>
+        ${dotsHTML}${arrowsHTML}
+      </div>`;
+  } else {
+    slideshowHTML = `
+      <div class="modal-slideshow">
+        <div class="no-img-placeholder" style="height:100%;">
+          <div class="icon">🎟️</div><span>No images added</span>
+        </div>
+      </div>`;
+  }
+
+  const bookingSection = event.available_tickets === 0
+    ? `<div class="sold-out">🚫 Sold Out</div>`
+    : `<input type="number" class="ticket-input" min="1" max="${event.available_tickets}"
+         id="modal-qty-${eventId}" placeholder="Number of tickets"/>
+       <button class="btn-book" onclick="goToSeatSelection(${eventId})">Select Seats & Book →</button>`;
+
+  document.getElementById('modal-content').innerHTML = `
+    ${slideshowHTML}
+    <div class="modal-body">
+      <span class="category-badge">${cat}</span>
+      <div class="modal-title">${event.title}</div>
+      ${event.description ? `<div class="modal-desc">${event.description}</div>` : ''}
+      <div class="modal-meta">
+        <div class="meta-item"><div class="label">📍 Location</div><div class="value">${event.location || 'TBA'}</div></div>
+        <div class="meta-item"><div class="label">📅 Date</div><div class="value">${new Date(event.event_date).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div></div>
+        <div class="meta-item"><div class="label">🎟 Available</div><div class="value">${event.available_tickets} / ${event.total_tickets}</div></div>
+        <div class="meta-item"><div class="label">💰 Price/Ticket</div><div class="value">₹${event.price}</div></div>
+      </div>
+      <hr class="modal-divider"/>
+      ${bookingSection}
+    </div>`;
+
+  document.getElementById('event-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Start modal slideshow handlers
+  if (imgs.length > 1) makeModalSlideshowHandlers(eventId, imgs.length);
+}
+
+function closeEventModal() {
+  document.getElementById('event-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close if clicking the dark overlay (not the box itself)
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('event-modal')) closeEventModal();
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEventModal(); });
+
+function makeModalSlideshowHandlers(eventId, total) {
+  let current = 0;
+  function goTo(idx) {
+    const slides = document.querySelectorAll(`#modal-slides-${eventId} .slide`);
+    const dots   = document.querySelectorAll(`#modal-dots-${eventId} .slide-dot`);
+    if (!slides.length) return;
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = (idx + total) % total;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+  }
+  window[`modalSlidePrev_${eventId}`] = () => goTo(current - 1);
+  window[`modalSlideNext_${eventId}`] = () => goTo(current + 1);
+  window[`modalSlideTo_${eventId}`]   = (i) => goTo(i);
+  setInterval(() => goTo(current + 1), 4000);
 }
 
 function bookTicket(eventId)      { goToSeatSelection(eventId); }
