@@ -48,7 +48,7 @@ const Event = sequelize.define("Event",
   },
 // ── IMAGES: stored as JSON array of base64 strings in a TEXT column ──
   images: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT ("long"),   // LONGTEXT — base64 images can exceed 65KB TEXT limit
     defaultValue: null,
     get() {
     const raw = this.getDataValue('images');
