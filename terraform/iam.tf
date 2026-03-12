@@ -24,6 +24,34 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# ── ADDED: CloudWatch agent — write logs and metrics from EC2 ────────────────
+resource "aws_iam_role_policy_attachment" "cloudwatch_agent" {
+  role       = aws_iam_role.backend_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+# ── ADDED: Inline policy for custom metric publishing (app-level metrics) ────
+resource "aws_iam_role_policy" "cloudwatch_put_metrics" {
+  name = "${var.project_name}-cw-put-metrics"
+  role = aws_iam_role.backend_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:PutMetricData",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 resource "aws_iam_instance_profile" "backend_instance_profile" {
   name = "${var.project_name}-backend-ec2-profile"
@@ -36,14 +64,11 @@ resource "aws_iam_instance_profile" "backend_instance_profile" {
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  # GitHub's OIDC thumbprint (stable)
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
-
 # ---------------------------
 # IAM Role for GitHub Actions
-# Matches existing role: GitHubActions-ECR-Push-Role
 # ---------------------------
 resource "aws_iam_role" "github_actions_role" {
   name = "GitHubActions-ECR-Push-Role"
@@ -68,25 +93,21 @@ resource "aws_iam_role" "github_actions_role" {
   })
 }
 
-# Matches existing: AmazonEC2ContainerRegistryFullAccess
 resource "aws_iam_role_policy_attachment" "github_ecr_full" {
   role       = aws_iam_role.github_actions_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
 }
 
-# Matches existing: AmazonEC2ContainerRegistryPowerUser
 resource "aws_iam_role_policy_attachment" "github_ecr_power" {
   role       = aws_iam_role.github_actions_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
-# Matches existing: AmazonECS_FullAccess
 resource "aws_iam_role_policy_attachment" "github_ecs_full" {
   role       = aws_iam_role.github_actions_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonECS_FullAccess"
 }
 
-# New inline policy: SSM SendCommand for CI/CD deploy step
 resource "aws_iam_role_policy" "github_actions_ssm" {
   name = "GitHubActions-SSM-Deploy-Policy"
   role = aws_iam_role.github_actions_role.id

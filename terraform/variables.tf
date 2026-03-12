@@ -1,8 +1,8 @@
 variable "github_org" {
-  default = "Farhans-Lair"   # ← change this
+  default = "Farhans-Lair"
 }
 variable "github_repo" {
-  default = "Ticket-Booking-Application-2"  # ← verify this matches your repo name
+  default = "Ticket-Booking-Application-2"
 }
 
 variable "aws_account_id" {
@@ -67,3 +67,9 @@ variable "email_pass" {
   sensitive   = true
 }
 
+# ── ADDED: CloudWatch alert recipient ────────────────────────────────────────
+variable "alert_email" {
+  description = "Email address to receive CloudWatch alarm notifications via SNS"
+  sensitive   = false
+  # Set this in terraform.tfvars or as -var="alert_email=you@example.com"
+}

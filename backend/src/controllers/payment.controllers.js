@@ -2,6 +2,8 @@ const paymentService = require("../services/payment.services");
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
 const { sendTicketEmail } = require("../services/email.services");
+const logger          = require("../config/logger");
+
 
 /*
 ====================================================
@@ -22,14 +24,21 @@ const createOrder = async (req, res, next) => {
     const selected_seats = req.body.selected_seats || [];  // array of seat numbers
 
     if (!event_id || !tickets_booked || tickets_booked <= 0) {
+      logger.warn("Create order rejected — invalid input", { userId, event_id, tickets_booked });
       return res.status(400).json({ error: "Valid event_id and tickets_booked required" });
     }
 
     if (selected_seats.length !== tickets_booked) {
+      logger.warn("Create order rejected — seat count mismatch", {
+        userId, event_id, tickets_booked, seats_provided: selected_seats.length,
+      });
       return res.status(400).json({
         error: `Please select exactly ${tickets_booked} seat(s)`
       });
     }
+
+    logger.info("Razorpay order creation started", { userId, event_id, tickets_booked, selected_seats });
+
 
     // Phase 1 — calculate amount (no DB write yet)
     const { event, ticketAmount, convenienceFee, gstAmount, totalPaid } =
@@ -38,6 +47,14 @@ const createOrder = async (req, res, next) => {
     // Create Razorpay order
     const receipt = `rcpt_u${userId}_e${event_id}_${Date.now()}`;
     const order   = await paymentService.createOrder(totalPaid, "INR", receipt);
+
+    logger.info("Razorpay order created successfully", {
+      userId,
+      event_id,
+      tickets_booked,
+      razorpay_order_id: order.id,
+      total_paid:        totalPaid,
+    });
 
     res.status(200).json({
       order_id:       order.id,
@@ -63,6 +80,12 @@ const createOrder = async (req, res, next) => {
     });
 
   } catch (err) {
+    logger.error("Razorpay order creation failed", {
+      userId:   req.user?.id,
+      event_id: req.body?.event_id,
+      error:    err.message,
+    });
+
     err.statusCode = 400;
     next(err);
   }
@@ -93,11 +116,22 @@ const verifyPayment = async (req, res, next) => {
 
     // Validate required fields
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      logger.warn("Payment verification rejected — missing Razorpay fields", { userId });
       return res.status(400).json({ error: "Missing Razorpay payment fields" });
     }
     if (!event_id || !tickets_booked) {
+      logger.warn("Payment verification rejected — missing booking meta", { userId });
       return res.status(400).json({ error: "Missing booking meta fields" });
     }
+
+    logger.info("Payment verification started", {
+      userId,
+      event_id,
+      tickets_booked,
+      razorpay_order_id,
+      razorpay_payment_id,
+    });
+
 
     // Verify signature — if false, payment is invalid or tampered
     const isValid = paymentService.verifySignature(
@@ -107,8 +141,16 @@ const verifyPayment = async (req, res, next) => {
     );
 
     if (!isValid) {
+      logger.error("Payment signature verification failed — possible tampering", {
+        userId,
+        razorpay_order_id,
+        razorpay_payment_id,
+      });
+
       return res.status(400).json({ error: "Payment verification failed. Invalid signature." });
     }
+
+    logger.info("Payment signature verified", { userId, razorpay_order_id });
 
     // Phase 2 — confirm booking in DB
     const booking = await bookingService.confirmBooking(
@@ -120,14 +162,31 @@ const verifyPayment = async (req, res, next) => {
       selected_seats || []    
     );
 
+    logger.info("Booking confirmed", {
+      userId,
+      event_id,
+      tickets_booked,
+      bookingId:          booking.id,
+      razorpay_order_id,
+      razorpay_payment_id,
+      total_paid:         booking.total_paid,
+    });
+
     // ✅ Send ticket email — failure must NOT block booking confirmation
     try {
       const user  = await User.findByPk(userId);
       const event = await Event.findByPk(parseInt(event_id, 10));
+      logger.info("Sending ticket email", { userId, email: user?.email, bookingId: booking.id });
       console.log("Sending email to:", user?.email); 
       await sendTicketEmail(user, booking, event);
+      logger.info("Ticket email sent", { userId, email: user?.email, bookingId: booking.id });
     } catch (emailErr) {
-      console.error("Email sending failed (booking still confirmed):", emailErr);
+      logger.error("Ticket email failed (booking still confirmed)", {
+        userId,
+        bookingId: booking.id,
+        error:     emailErr.message,
+      });
+
     }
 
     res.status(201).json({
@@ -136,6 +195,12 @@ const verifyPayment = async (req, res, next) => {
     });
 
   } catch (err) {
+    logger.error("Payment verification flow failed", {
+      userId:            req.user?.id,
+      event_id:          req.body?.event_id,
+      razorpay_order_id: req.body?.razorpay_order_id,
+      error:             err.message,
+    });
     err.statusCode = 400;
     next(err);
   }

@@ -1,4 +1,6 @@
 const seatService = require("../services/seat.services");
+const logger      = require("../config/logger");
+
 
 /*
 ====================================================
@@ -9,9 +11,17 @@ const seatService = require("../services/seat.services");
 const getSeats = async (req, res, next) => {
   try {
     const { eventId } = req.params;
+    logger.info("Fetching seats for event", { userId: req.user?.id, eventId });
     const seats = await seatService.getSeatsByEvent(eventId);
+    logger.info("Seats fetched", { eventId, count: seats.length });
+
     res.json(seats);
   } catch (err) {
+    logger.error("Failed to fetch seats", {
+      userId:  req.user?.id,
+      eventId: req.params?.eventId,
+      error:   err.message,
+    });
     next(err);
   }
 };

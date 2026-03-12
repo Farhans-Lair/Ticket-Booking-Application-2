@@ -50,6 +50,69 @@ ENVEOF
 chown ec2-user:ec2-user $APP_DIR/.env
 chmod 600 $APP_DIR/.env
 
+# ── ADDED: Install and configure CloudWatch Agent ────────────────────────────
+yum install -y amazon-cloudwatch-agent
+
+# Create log directory that the Docker container will mount
+mkdir -p /home/ec2-user/ticket-backend/logs
+
+# Write CloudWatch agent config
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWEOF'
+{
+  "agent": {
+    "run_as_user": "root"
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/home/ec2-user/ticket-backend/logs/app.log",
+            "log_group_name": "/ticket-app/backend",
+            "log_stream_name": "{instance_id}/app",
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S",
+            "multi_line_start_pattern": "^\\{"
+          },
+          {
+            "file_path": "/home/ec2-user/ticket-backend/logs/error.log",
+            "log_group_name": "/ticket-app/errors",
+            "log_stream_name": "{instance_id}/errors",
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S",
+            "multi_line_start_pattern": "^\\{"
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "namespace": "ticket/EC2",
+    "metrics_collected": {
+      "cpu": {
+        "measurement": ["cpu_usage_active"],
+        "metrics_collection_interval": 60
+      },
+      "mem": {
+        "measurement": ["mem_used_percent"],
+        "metrics_collection_interval": 60
+      },
+      "disk": {
+        "measurement": ["disk_used_percent"],
+        "resources": ["/"],
+        "metrics_collection_interval": 60
+      }
+    }
+  }
+}
+CWEOF
+
+# Start CloudWatch agent
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 \
+  -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+systemctl enable amazon-cloudwatch-agent
+# ────────────────────────────────────────────────────────────────────────────
+
 # Login to ECR
 aws ecr get-login-password --region ap-south-1 \
 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com
@@ -63,4 +126,5 @@ docker run -d \
   --restart always \
   --env-file $APP_DIR/.env \
   -p 3000:3000 \
+  -v /home/ec2-user/ticket-backend/logs:/app/logs \
   ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
