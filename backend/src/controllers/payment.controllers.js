@@ -1,7 +1,7 @@
 const paymentService = require("../services/payment.services");
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
-const { sendTicketEmail } = require("../services/email.services");
+const { sendTicketEmail, generateTicketPDF } = require("../services/email.services");
 const { uploadTicketToS3 }                   = require("../services/s3.services");
 const logger          = require("../config/logger");
 
@@ -174,30 +174,33 @@ const verifyPayment = async (req, res, next) => {
     });
 
 
-    // ✅ Generate ticket PDF → upload to S3 → persist S3 key on booking record
-    // Runs non-blocking; a failure here does NOT roll back the confirmed booking.
-    try {
-      const user  = await User.findByPk(userId);
-      const event = await Event.findByPk(parseInt(event_id, 10));
+    // ── Fetch user + event once — shared by S3 upload and email ──────────────
+    const user  = await User.findByPk(userId);
+    const event = await Event.findByPk(parseInt(event_id, 10));
 
+    // ✅ Generate ticket PDF → upload to S3 → persist S3 key on booking record
+    // Failure here does NOT roll back the confirmed booking.
+    try {
       logger.info("Generating ticket PDF for S3 upload", { userId, bookingId: booking.id });
 
       const pdfBuffer = await generateTicketPDF(booking, user, event);
       const s3Key     = await uploadTicketToS3(pdfBuffer, booking.id, userId);
 
-      // Persist the S3 key so future downloads can stream from S3
+      // Persist the S3 key so future downloads stream from S3
       await booking.update({ ticket_pdf_s3_key: s3Key });
 
       logger.info("Ticket PDF stored in S3", { userId, bookingId: booking.id, s3Key });
-
-
+    } catch (s3Err) {
+      logger.error("S3 PDF upload failed (booking still confirmed)", {
+        userId,
+        bookingId: booking.id,
+        error:     s3Err.message,
+      });
+    }
 
     // ✅ Send ticket email — failure must NOT block booking confirmation
     try {
-      const user  = await User.findByPk(userId);
-      const event = await Event.findByPk(parseInt(event_id, 10));
       logger.info("Sending ticket email", { userId, email: user?.email, bookingId: booking.id });
-      console.log("Sending email to:", user?.email); 
       await sendTicketEmail(user, booking, event);
       logger.info("Ticket email sent", { userId, email: user?.email, bookingId: booking.id });
     } catch (emailErr) {
@@ -205,15 +208,6 @@ const verifyPayment = async (req, res, next) => {
         userId,
         bookingId: booking.id,
         error:     emailErr.message,
-            });
-    }
-  }
-
-    catch (s3Err) {
-      logger.error("S3 PDF upload failed (booking still confirmed)", {
-        userId,
-        bookingId: booking.id,
-        error:     s3Err.message,
       });
     }
 
