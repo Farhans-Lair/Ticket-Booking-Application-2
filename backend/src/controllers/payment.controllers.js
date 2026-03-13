@@ -2,6 +2,7 @@ const paymentService = require("../services/payment.services");
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
 const { sendTicketEmail } = require("../services/email.services");
+const { uploadTicketToS3 }                   = require("../services/s3.services");
 const logger          = require("../config/logger");
 
 
@@ -172,6 +173,25 @@ const verifyPayment = async (req, res, next) => {
       total_paid:         booking.total_paid,
     });
 
+
+    // ✅ Generate ticket PDF → upload to S3 → persist S3 key on booking record
+    // Runs non-blocking; a failure here does NOT roll back the confirmed booking.
+    try {
+      const user  = await User.findByPk(userId);
+      const event = await Event.findByPk(parseInt(event_id, 10));
+
+      logger.info("Generating ticket PDF for S3 upload", { userId, bookingId: booking.id });
+
+      const pdfBuffer = await generateTicketPDF(booking, user, event);
+      const s3Key     = await uploadTicketToS3(pdfBuffer, booking.id, userId);
+
+      // Persist the S3 key so future downloads can stream from S3
+      await booking.update({ ticket_pdf_s3_key: s3Key });
+
+      logger.info("Ticket PDF stored in S3", { userId, bookingId: booking.id, s3Key });
+
+
+
     // ✅ Send ticket email — failure must NOT block booking confirmation
     try {
       const user  = await User.findByPk(userId);
@@ -185,9 +205,18 @@ const verifyPayment = async (req, res, next) => {
         userId,
         bookingId: booking.id,
         error:     emailErr.message,
-      });
-
+            });
     }
+  }
+
+    catch (s3Err) {
+      logger.error("S3 PDF upload failed (booking still confirmed)", {
+        userId,
+        bookingId: booking.id,
+        error:     s3Err.message,
+      });
+    }
+
 
     res.status(201).json({
       message: "Payment verified and booking confirmed!",

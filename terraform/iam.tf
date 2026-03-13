@@ -133,3 +133,18 @@ resource "aws_iam_role_policy" "github_actions_ssm" {
     ]
   })
 }
+
+# ── S3 inline policy — allows EC2 to upload/download ticket PDFs ─────────────
+resource "aws_iam_role_policy" "s3_ticket_policy" {
+  name = "${var.project_name}-s3-ticket-policy"
+  role = aws_iam_role.backend_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:PutObject", "s3:GetObject"]
+      Resource = "arn:aws:s3:::${var.s3_bucket_name}/tickets/*"
+    }]
+  })
+}

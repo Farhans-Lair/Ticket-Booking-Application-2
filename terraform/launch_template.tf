@@ -12,6 +12,9 @@ data "template_file" "user_data" {
     RAZORPAY_KEY_SECRET = var.razorpay_key_secret
     EMAIL_USER          = var.email_user   # ✅ add
     EMAIL_PASS          = var.email_pass   # ✅ add
+    AWS_REGION          = var.aws_region       # ── ADDED: for S3 SDK
+    S3_BUCKET_NAME      = var.s3_bucket_name   # ── ADDED: for ticket PDF storage
+
   }
 }
 

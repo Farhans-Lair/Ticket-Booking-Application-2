@@ -55,10 +55,23 @@ razorpay_payment_id: {
   allowNull: true,
 },
 
-payment_status: 
-{ type: DataTypes.ENUM('pending', 'paid', 'failed'), 
-  defaultValue: 'pending' }
-}, {
+payment_status: { type: DataTypes.ENUM('pending', 'paid', 'failed'), 
+  defaultValue: 'pending',
+}, 
+
+/**
+   * S3 object key for the generated ticket PDF.
+   * e.g.  "tickets/booking-42-user-7.pdf"
+   * NULL  → PDF was never uploaded (fallback: generate on-the-fly on download).
+   */
+  ticket_pdf_s3_key:
+   {
+    type: DataTypes.STRING(512),
+    allowNull: true,
+    defaultValue: null,
+  },
+},
+{
   tableName: "bookings",
   timestamps: true,
   createdAt: "booking_date",

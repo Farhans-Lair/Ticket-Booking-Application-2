@@ -44,6 +44,7 @@ CREATE TABLE bookings (
   razorpay_order_id VARCHAR(255) DEFAULT NULL,
   razorpay_payment_id VARCHAR(255) DEFAULT NULL,
   payment_status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
+  ticket_pdf_s3_key VARCHAR(512) DEFAULT NULL,  -- S3 object key for pre-generated ticket PDF
   booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
 

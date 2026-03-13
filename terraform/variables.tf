@@ -73,3 +73,10 @@ variable "alert_email" {
   sensitive   = false
   # Set this in terraform.tfvars or as -var="alert_email=you@example.com"
 }
+
+# ── ADDED: S3 bucket for ticket PDF storage ───────────────────────────────────
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket that stores generated ticket PDFs"
+  type        = string
+  # Set this in terraform.tfvars: s3_bucket_name = "ticketverse-tickets"
+}

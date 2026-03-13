@@ -1,6 +1,7 @@
 const bookingService = require("../services/booking.services");
 const { User, Event } = require("../models");
 const { generateTicketPDF } = require("../services/email.services");
+const { fetchTicketFromS3 } = require("../services/s3.services");
 const logger           = require("../config/logger");
 
 
@@ -36,10 +37,26 @@ const downloadTicket = async (req, res, next) => {
       return res.status(404).json({ error: "Booking not found" });
     }
 
+    let pdfBuffer;
+
+    if (booking.ticket_pdf_s3_key) {
+      // ── Fast path: stream the pre-generated PDF from S3 ──────────────────
+      logger.info("Serving ticket PDF from S3", {
+        userId, bookingId, s3Key: booking.ticket_pdf_s3_key,
+      });
+      pdfBuffer = await fetchTicketFromS3(booking.ticket_pdf_s3_key);
+    } else {
+      // ── Fallback: generate on-the-fly (e.g. S3 upload failed at booking time)
+      logger.warn("ticket_pdf_s3_key missing — generating PDF on-the-fly", {
+        userId, bookingId,
+      });
+
+
     const user  = await User.findByPk(userId);
     const event = await Event.findByPk(booking.event_id);
+    pdfBuffer = await generateTicketPDF(booking, user, event);
 
-    const pdfBuffer = await generateTicketPDF(booking, user, event);
+    }
 
     logger.info("Ticket PDF generated and sent", { userId, bookingId, eventId: booking.event_id });
 

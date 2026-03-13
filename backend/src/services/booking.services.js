@@ -5,7 +5,7 @@ const seatService = require("./seat.services"); // ✅ was imported but never us
 
 
 // Constants extracted — easy to update in one place
-const CONVENIENCE_FEE_PER_TICKET = 20;
+const CONVENIENCE_FEE_PER_TICKET = .10;
 const GST_RATE = 0.18;
 
 /*
