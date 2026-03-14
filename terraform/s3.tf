@@ -2,7 +2,7 @@
 
 resource "aws_s3_bucket" "ticket_pdfs" {
   bucket        = var.s3_bucket_name
-  force_destroy = false  # set true only if you want terraform destroy to delete the bucket + contents
+  force_destroy = true  # set true only if you want terraform destroy to delete the bucket + contents
 }
 
 # Block all public access — tickets are private documents

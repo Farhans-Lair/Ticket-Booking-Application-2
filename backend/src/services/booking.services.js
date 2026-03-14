@@ -5,8 +5,8 @@ const seatService = require("./seat.services"); // ✅ was imported but never us
 
 
 // Constants extracted — easy to update in one place
-const CONVENIENCE_FEE_PER_TICKET = .10;
-const GST_RATE = 0.18;
+const CONVENIENCE_FEE_RATE = 0.10; // 10% of ticket amount
+const GST_RATE             = 0.09; // 9% of convenience fee
 
 /*
 ====================================================
@@ -28,7 +28,7 @@ const calculateBookingAmount = async (eventId, tickets_booked) => {
   }
 
   const ticketAmount   = event.price * tickets_booked;
-  const convenienceFee = CONVENIENCE_FEE_PER_TICKET * tickets_booked;
+  const convenienceFee = ticketAmount * CONVENIENCE_FEE_RATE;
   const gstAmount      = convenienceFee * GST_RATE;
   const totalPaid      = ticketAmount + convenienceFee + gstAmount;
 
@@ -81,7 +81,7 @@ const confirmBooking = async (
 
     // Revenue calculation (mirrors Phase 1)
     const ticketAmount   = event.price * tickets_booked;
-    const convenienceFee = CONVENIENCE_FEE_PER_TICKET * tickets_booked;
+    const convenienceFee = ticketAmount * CONVENIENCE_FEE_RATE;
     const gstAmount      = convenienceFee * GST_RATE;
     const totalPaid      = ticketAmount + convenienceFee + gstAmount;
 
