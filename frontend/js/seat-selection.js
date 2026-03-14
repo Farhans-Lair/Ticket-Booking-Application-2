@@ -3,12 +3,11 @@ let requiredCount   = 0;
 let currentEventId  = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // ── Auth check: role drives UI routing, cookie handles API security ────────
-  const role = localStorage.getItem("role");
-  if (!role) {
-    alert("Please login first");
-    window.location.replace("/");
-    return;
+  // ── Verify session with server via cookie ─────────────────────────────────
+  try {
+    await apiRequest("/auth/me", "GET");
+  } catch (err) {
+    return; // api.js 401 handler redirects to "/"
   }
 
   const raw = sessionStorage.getItem("seat_selection_meta");
@@ -17,7 +16,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.replace("/events-page");
     return;
   }
-
   const meta = JSON.parse(raw);
   currentEventId = meta.event_id;
   requiredCount  = meta.tickets_booked;

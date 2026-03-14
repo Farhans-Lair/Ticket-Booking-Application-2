@@ -6,13 +6,20 @@ window.addEventListener("pageshow", function (event) {
   if (event.persisted) window.location.reload();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
- const role = localStorage.getItem("role");
-  if (!role) {
-    alert("Please login first");
-    window.location.replace("/");
+document.addEventListener("DOMContentLoaded", async () => {
+ // ── Verify session with server via cookie — do NOT rely on localStorage ───
+  // localStorage.role is only a UI hint; the real auth check is the HttpOnly
+  // cookie verified by GET /auth/me. This handles cases where the cookie was
+  // silently dropped (e.g. Secure flag on HTTP) or localStorage was cleared.
+  try {
+    const session = await apiRequest("/auth/me", "GET");
+    // Sync localStorage with the server's authoritative role value
+    localStorage.setItem("role", session.role);
+  } catch (err) {
+    // 401 — cookie missing or expired → api.js already redirects to "/"
     return;
   }
+
 
   renderCategoryFilters();
   loadEvents();

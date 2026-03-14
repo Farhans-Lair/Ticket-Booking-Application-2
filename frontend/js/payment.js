@@ -1,10 +1,9 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // ── Auth check: role drives UI routing, cookie handles API security ────────
-  const role = localStorage.getItem("role");
-  if (!role) {
-    alert("Please login first");
-    window.location.replace("/");
-    return;
+document.addEventListener("DOMContentLoaded", async() => {
+  // ── Verify session with server via cookie ─────────────────────────────────
+  try {
+    await apiRequest("/auth/me", "GET");
+  } catch (err) {
+    return; // api.js 401 handler redirects to "/"
   }
 
   const raw = sessionStorage.getItem("razorpay_order");
@@ -13,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.replace("/events-page");
     return;
   }
-
   const orderData = JSON.parse(raw);
   renderSummary(orderData.breakdown);
   renderPayButton(orderData);

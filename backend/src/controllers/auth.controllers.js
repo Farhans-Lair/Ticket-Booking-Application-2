@@ -77,10 +77,19 @@ const loginVerify = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
+    // ── COOKIE_SECURE controls the Secure flag ────────────────────────────────
+    // Set COOKIE_SECURE=true in .env ONLY when HTTPS is enabled.
+    // Never tie this to NODE_ENV — the node:alpine Docker image sets
+    // NODE_ENV=production by default, which would make cookies Secure
+    // even on plain HTTP, causing them to be silently dropped by the browser.
+    const isSecure = process.env.COOKIE_SECURE === "true";
+
+
+
     // ── Set HttpOnly cookie — JS cannot read or steal this ──────────────────
     res.cookie("token", token, {
       httpOnly: true,                                   // not accessible via JS
-      secure:   process.env.NODE_ENV === "production",  // HTTPS only in prod
+      secure:   isSecure,
       sameSite: "lax",
       path: "/",                               // CSRF protection
       maxAge:   60 * 60 * 1000,                         // 1 hour in ms
@@ -101,14 +110,27 @@ const loginVerify = async (req, res, next) => {
  * Clears the HttpOnly auth cookie.
  */
 const logout = (req, res) => {
+  const isSecure = process.env.COOKIE_SECURE === "true";
   res.clearCookie("token", {
     httpOnly: true,
-    secure:   process.env.NODE_ENV === "production",
+    secure:   isSecure,
     sameSite: "lax",
     path:     "/"
   });
   logger.info("User logged out", { userId: req.user?.id });
   res.json({ message: "Logged out successfully" });
+};
+
+/**
+ * GET /auth/me
+ * Returns the logged-in user's id and role from the cookie.
+ * Used by frontend pages to verify the session is still valid
+ * rather than relying solely on localStorage.
+ * Returns 401 if cookie is missing or expired.
+ */
+const me = (req, res) => {
+  // req.user is populated by the authenticate middleware
+  res.json({ userId: req.user.id, role: req.user.role });
 };
 
 
@@ -119,5 +141,5 @@ module.exports =
   loginRequest,
   loginVerify,
   logout,
-
+  me,
 };

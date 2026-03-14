@@ -24,6 +24,9 @@ router.post("/login-verify", loginVerifyValidator, validate, authController.logi
 // ─── Logout — clears the HttpOnly cookie ─────────────────────────────────────
 router.post("/logout", authenticate, authController.logout);
 
+// ─── Me — verify session and return role (used by frontend pages on load) ────
+router.get("/me", authenticate, authController.me);
+
 
 module.exports = router;
 

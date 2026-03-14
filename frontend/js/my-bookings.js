@@ -1,13 +1,12 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
-  // ── Auth check: role drives UI routing, cookie handles API security ────────
-  const role = localStorage.getItem("role");
-  if (!role) {
-    window.location.replace("/");
-    return;
-
+  // ── Verify session with server via cookie ─────────────────────────────────
+  try {
+    const session = await apiRequest("/auth/me", "GET");
+    localStorage.setItem("role", session.role);
+  } catch (err) {
+    return; // api.js 401 handler redirects to "/"
   }
-
   document
     .getElementById("logoutBtn")
     .addEventListener("click", logout);
