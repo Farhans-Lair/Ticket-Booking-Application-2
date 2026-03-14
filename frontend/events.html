@@ -295,9 +295,13 @@ const CATEGORIES = ['All','Music','Sports','Comedy','Theatre','Conference','Fest
 
 window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
-  if (!token) { alert("Please login first"); window.location.replace("/"); return; }
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const session = await apiRequest("/auth/me", "GET");
+    localStorage.setItem("role", session.role);
+  } catch (err) {
+    return; // api.js 401 handler redirects to "/"
+  }
   renderCategoryFilters();
   loadEvents();
   document.getElementById("logoutBtn").addEventListener("click", logout);
@@ -510,7 +514,10 @@ function makeModalSlideshowHandlers(eventId, total) {
 function bookTicket(eventId)      { goToSeatSelection(eventId); }
 function initiatePayment(eventId) { goToSeatSelection(eventId); }
 function goMyBookings()           { window.location.replace("/my-bookings"); }
-function logout()                 { localStorage.clear(); window.location.replace("/"); }
+function logout() {
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+}
 </script>
 
 <script src="/js/api.js"></script>

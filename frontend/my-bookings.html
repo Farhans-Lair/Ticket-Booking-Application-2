@@ -155,9 +155,13 @@ draw();
 <script src="/js/api.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
-  if (!token) { window.location.replace("/"); return; }
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const session = await apiRequest("/auth/me", "GET");
+    localStorage.setItem("role", session.role);
+  } catch (err) {
+    return; // api.js 401 handler redirects to "/"
+  }
   document.getElementById("logoutBtn").addEventListener("click", logout);
   loadBookings();
 });
@@ -242,9 +246,8 @@ async function loadBookings() {
 async function downloadTicket(e, bookingId) {
   e.preventDefault();
   try {
-    const token    = localStorage.getItem("token");
     const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
-      headers: { "Authorization": `Bearer ${token}` }
+      credentials: "include"
     });
     if (!response.ok) throw new Error("Failed to download ticket");
     const blob = await response.blob();
@@ -258,7 +261,10 @@ async function downloadTicket(e, bookingId) {
 }
 
 function goBack()  { window.location.replace("/events-page"); }
-function logout()  { localStorage.clear(); window.location.replace("/"); }
+function logout() {
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+}
 </script>
 </body>
 </html>

@@ -8,7 +8,8 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");  // ── ADDED: read HttpOnly cookies
 
 
-
+const authenticate   = require("./middleware/auth.middleware");
+const authController = require("./controllers/auth.controllers");
 const authRoutes = require("./routes/auth.routes");
 const eventRoutes = require("./routes/event.routes");
 const bookingRoutes = require("./routes/booking.routes");
@@ -107,6 +108,15 @@ app.use((req, res, next) => {
 ===================================================== */
 app.use("/js", express.static(path.join(__dirname, "../../frontend/js")));
 app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
+
+/* =====================================================
+   API Routes  ← JWT auth enforced HERE (in the routes)
+===================================================== */
+// ── /auth/me uses globalLimiter — it is called on EVERY page load to verify
+// the session cookie. Using authLimiter (max 10/15min) here would rate-limit
+// users out of their own session after just a few page navigations.
+app.get("/auth/me", globalLimiter, authenticate, authController.me);
+
 
 /* =====================================================
    API Routes  ← JWT auth enforced HERE (in the routes)

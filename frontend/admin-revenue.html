@@ -328,9 +328,10 @@ document.getElementById('report-date').textContent =
   'Report as of ' + new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'});
 
 document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
-  const role  = localStorage.getItem("role");
-  if (!token || role !== 'admin') { alert("Admins Only"); window.location.replace("/"); return; }
+  // Token is in HttpOnly cookie — check role from localStorage for UI routing
+  // Actual API security is enforced server-side via the cookie
+  const role = localStorage.getItem("role");
+  if (role !== 'admin') { alert("Admins Only"); window.location.replace("/"); return; }
   loadRevenue();
 });
 
@@ -433,7 +434,10 @@ async function loadRevenue() {
 }
 
 function goBack()  { window.location.href = "/admin"; }
-function logout()  { localStorage.clear(); window.location.replace("/"); }
+function logout() {
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+}
 </script>
 </body>
 </html>
