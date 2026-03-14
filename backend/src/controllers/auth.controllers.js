@@ -81,14 +81,15 @@ const loginVerify = async (req, res, next) => {
     res.cookie("token", token, {
       httpOnly: true,                                   // not accessible via JS
       secure:   process.env.NODE_ENV === "production",  // HTTPS only in prod
-      sameSite: "strict",                               // CSRF protection
+      sameSite: "lax",
+      path: "/",                               // CSRF protection
       maxAge:   60 * 60 * 1000,                         // 1 hour in ms
     });
 
 
     logger.info("User logged in successfully", { userId, role, email });
 
-    res.json({ token, role });
+    res.json({ role });
   } catch (err) {
     logger.error("Login OTP verification failed", { email: req.body?.email, error: err.message });
     next(err);
@@ -103,7 +104,8 @@ const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure:   process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
+    path:     "/"
   });
   logger.info("User logged out", { userId: req.user?.id });
   res.json({ message: "Logged out successfully" });

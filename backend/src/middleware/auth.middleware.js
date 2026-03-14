@@ -19,7 +19,8 @@ const authenticate = (req, res, next) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure:   process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
+      path:     "/",
     });
 
     return res.status(401).json({ error: "Session expired. Please log in again." });
