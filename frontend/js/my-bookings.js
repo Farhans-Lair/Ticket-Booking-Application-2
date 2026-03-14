@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  const token = localStorage.getItem("token");
-
-  if (!token) {
+  // ── Auth check: role drives UI routing, cookie handles API security ────────
+  const role = localStorage.getItem("role");
+  if (!role) {
     window.location.replace("/");
     return;
+
   }
 
   document
@@ -78,9 +79,8 @@ async function loadBookings() {
 async function downloadTicket(e, bookingId) {
   e.preventDefault();
   try {
-    const token = localStorage.getItem("token");
     const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
-      headers: { "Authorization": `Bearer ${token}` }
+      credentials : "include"
     });
 
     if (!response.ok) throw new Error("Failed to download ticket");

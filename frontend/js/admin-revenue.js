@@ -1,12 +1,8 @@
 document.addEventListener("DOMContentLoaded",()=>{
-
-const token =
-localStorage.getItem("token");
-
 const role =
 localStorage.getItem("role");
 
-if(!token || role !== 'admin'){
+if(role !== 'admin'){
 alert("Admins Only");
 window.location.replace("/");
 return;
@@ -114,8 +110,11 @@ window.location.href="/admin";
 }
 
 function logout(){
-localStorage.clear();
-window.location.replace("/");
-
+fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => {
+      localStorage.clear();
+      window.location.replace("/");
+    });
 }
+
 

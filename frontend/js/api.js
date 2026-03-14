@@ -7,21 +7,21 @@ async function apiRequest(path, method = "GET", body = null, auth = false) {
     "Content-Type": "application/json"
   };
 
-  if (auth) {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
+    credentials: "include",
     body: body ? JSON.stringify(body) : null
   });
 
-  if (!response.ok) {
-    const text = await response.text();
+  if (!response.ok) 
+    {
+// If 401, redirect to login — session expired or not logged in
+    if (response.status === 401) {
+      window.location.replace("/");
+      return;
+  }
+  const text = await response.text();
     throw new Error(text || "Request failed");
   }
 

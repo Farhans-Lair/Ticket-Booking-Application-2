@@ -5,6 +5,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");  // ── ADDED: read HttpOnly cookies
+
 
 
 const authRoutes = require("./routes/auth.routes");
@@ -25,11 +27,17 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000", process.env.FRONTEND_URL,].filter(Boolean),
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type"],
+    credentials : true,
   })
 );
+
+/* =====================================================
+   ✅ Cookie Parser  (must be before routes)
+===================================================== */
+app.use(cookieParser());
 
 /* =====================================================
    ✅ JSON Parsing

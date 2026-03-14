@@ -10,9 +10,8 @@ window.addEventListener("pageshow", function (event) {
 // 🔐 Check Admin Access
 document.addEventListener("DOMContentLoaded", () => {
   const role = localStorage.getItem("role");
-  const token = localStorage.getItem("token");
 
-  if (!token || role !== 'admin') {
+  if (role !== 'admin') {
     alert("Access Denied! Admins only.");
     window.location.replace("/");
     return;
@@ -186,6 +185,9 @@ window.location.href="/admin/revenue";
 
 // 🔹 Logout
 function logout() {
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => {
   localStorage.clear();
   window.location.replace("/");
+});
 }

@@ -1,21 +1,11 @@
 const jwt = require("jsonwebtoken");
 
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ error: "Authorization header missing" });
-  }
-
-  // Ensure proper Bearer format
-  if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Invalid authorization format" });
-  }
-
-  const token = authHeader.split(" ")[1];
+  // ── Read token from HttpOnly cookie (never from Authorization header) ──────
+  const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(401).json({ error: "Token missing" });
+    return res.status(401).json({ error: "Not authenticated. Please log in." });
   }
 
   try {
@@ -26,7 +16,13 @@ const authenticate = (req, res, next) => {
 
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Invalid or expired token" });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return res.status(401).json({ error: "Session expired. Please log in again." });
   }
 };
 

@@ -77,6 +77,15 @@ const loginVerify = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
+    // ── Set HttpOnly cookie — JS cannot read or steal this ──────────────────
+    res.cookie("token", token, {
+      httpOnly: true,                                   // not accessible via JS
+      secure:   process.env.NODE_ENV === "production",  // HTTPS only in prod
+      sameSite: "strict",                               // CSRF protection
+      maxAge:   60 * 60 * 1000,                         // 1 hour in ms
+    });
+
+
     logger.info("User logged in successfully", { userId, role, email });
 
     res.json({ token, role });
@@ -86,11 +95,27 @@ const loginVerify = async (req, res, next) => {
   }
 };
 
+/**
+ * POST /auth/logout
+ * Clears the HttpOnly auth cookie.
+ */
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  logger.info("User logged out", { userId: req.user?.id });
+  res.json({ message: "Logged out successfully" });
+};
+
+
 module.exports =
  {
   signupRequest,
   signupVerify,
   loginRequest,
   loginVerify,
+  logout,
 
 };

@@ -7,8 +7,8 @@ window.addEventListener("pageshow", function (event) {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
+ const role = localStorage.getItem("role");
+  if (!role) {
     alert("Please login first");
     window.location.replace("/");
     return;

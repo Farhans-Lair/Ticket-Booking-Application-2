@@ -139,6 +139,7 @@ async function loginVerify() {
     const res = await fetch(`${API_BASE_URL}/auth/login-verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials : "include",
       body: JSON.stringify({ email, otp }),
     });
 
@@ -149,7 +150,8 @@ async function loginVerify() {
       return;
     }
 
-    localStorage.setItem("token", data.token);
+     // ── Token is now in an HttpOnly cookie — never touches JS ────────────────
+    // Store only the role for UI routing (non-sensitive, not a security token)
     localStorage.setItem("role",  data.role);
 
     // Role-based redirect

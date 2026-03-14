@@ -3,8 +3,9 @@ let requiredCount   = 0;
 let currentEventId  = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
+  // ── Auth check: role drives UI routing, cookie handles API security ────────
+  const role = localStorage.getItem("role");
+  if (!role) {
     alert("Please login first");
     window.location.replace("/");
     return;
