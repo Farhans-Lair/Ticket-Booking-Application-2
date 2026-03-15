@@ -262,9 +262,16 @@ async function downloadTicket(e, bookingId) {
 
 function goBack()  { window.location.replace("/events-page"); }
 function logout() {
+  const userId = localStorage.getItem('userId');
+  // Broadcast to all other tabs of this same user so they redirect immediately.
+  // Tabs belonging to a different user (different userId) ignore this message.
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: 'LOGOUT', userId });
+  }
   fetch("/auth/logout", { method: "POST", credentials: "include" })
     .finally(() => { localStorage.clear(); window.location.replace("/"); });
 }
 </script>
+<script src="/js/auth-channel.js"></script>
 </body>
 </html>

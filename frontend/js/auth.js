@@ -151,8 +151,11 @@ async function loginVerify() {
     }
 
      // ── Token is now in an HttpOnly cookie — never touches JS ────────────────
-    // Store only the role for UI routing (non-sensitive, not a security token)
+    // Store only role + userId for UI routing and cross-tab session matching.
+    // Neither value is a security token — the real auth is the HttpOnly cookie.
     localStorage.setItem("role",  data.role);
+    localStorage.setItem("userId", String(data.userId));
+
 
     // Role-based redirect
     if (data.role === "admin") {

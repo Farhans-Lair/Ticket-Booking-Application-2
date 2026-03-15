@@ -98,7 +98,11 @@ const loginVerify = async (req, res, next) => {
 
     logger.info("User logged in successfully", { userId, role, email });
 
-    res.json({ role });
+    // Return userId so the frontend can store it in localStorage.
+    // This is used by auth-channel.js to match tabs to the correct user
+    // when broadcasting a logout — ensuring only the logged-out user's tabs
+    // are redirected and other users' tabs (e.g. admin vs user) are unaffected.
+    res.json({ role, userId });
   } catch (err) {
     logger.error("Login OTP verification failed", { email: req.body?.email, error: err.message });
     next(err);

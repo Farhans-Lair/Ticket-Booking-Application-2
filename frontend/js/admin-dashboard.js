@@ -185,6 +185,16 @@ window.location.href="/admin/revenue";
 
 // 🔹 Logout
 function logout() {
+
+const userId = localStorage.getItem('userId');
+
+  // Notify all other tabs of THIS user to log out immediately.
+  // _authChannel is provided by auth-channel.js (loaded before this script).
+  // Tabs of a different user (different userId) will ignore the message.
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: 'LOGOUT', userId });
+  }
+
   fetch("/auth/logout", { method: "POST", credentials: "include" })
     .finally(() => {
   localStorage.clear();

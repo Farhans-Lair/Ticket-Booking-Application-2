@@ -129,6 +129,18 @@ function initiatePayment(eventId) { goToSeatSelection(eventId); }
 function goMyBookings() { window.location.replace("/my-bookings"); }
 
 function logout() {
+
+  const userId = localStorage.getItem('userId');
+  // Broadcast to all other tabs of this same user so they redirect immediately.
+  // Tabs belonging to a different user (different userId) will ignore this.
+  // _authChannel is set by auth-channel.js which must be loaded on the page.
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: 'LOGOUT', userId });
+  }
+  // Clear the server-side HttpOnly cookie, then wipe localStorage and redirect.
+  fetch('/auth/logout', { method: 'POST', credentials: 'include' })
+    .finally(() => {
   localStorage.clear();
   window.location.replace("/");
+});
 }
