@@ -150,11 +150,17 @@ async function loginVerify() {
       return;
     }
 
-     // ── Token is now in an HttpOnly cookie — never touches JS ────────────────
-    // Store only role + userId for UI routing and cross-tab session matching.
-    // Neither value is a security token — the real auth is the HttpOnly cookie.
-    localStorage.setItem("role",  data.role);
-    localStorage.setItem("userId", String(data.userId));
+ // ── Token is now in an HttpOnly cookie — never touches JS ────────────────
+    // Store role + userId in sessionStorage (NOT localStorage).
+    // sessionStorage is per-tab — each tab has its own independent copy.
+    // Using localStorage caused two bugs:
+    //   1. Admin login on Tab B overwrote user's userId in Tab A → my-bookings
+    //      used admin's cookie and showed empty bookings for the user.
+    //   2. User logout read admin's userId from localStorage and broadcast it →
+    //      admin tab matched the userId and got logged out too.
+
+    sessionStorage.setItem("role",  data.role);
+    sessionStorage.setItem("userId", String(data.userId));
 
 
     // Role-based redirect

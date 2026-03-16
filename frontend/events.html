@@ -298,7 +298,8 @@ window.addEventListener("pageshow", e => { if (e.persisted) window.location.relo
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
-    localStorage.setItem("role", session.role);
+    // sessionStorage is per-tab — safe from cross-tab overwrites.
+    sessionStorage.setItem("role", session.role);
   } catch (err) {
     return; // api.js 401 handler redirects to "/"
   }
@@ -515,19 +516,17 @@ function bookTicket(eventId)      { goToSeatSelection(eventId); }
 function initiatePayment(eventId) { goToSeatSelection(eventId); }
 function goMyBookings()           { window.location.replace("/my-bookings"); }
 function logout() {
-
-  const userId = localStorage.getItem('userId');
-  // Broadcast to all other tabs of this same user so they redirect immediately.
-  // Tabs belonging to a different user (different userId) ignore this message.
+  // Read userId from sessionStorage (per-tab) — NOT localStorage.
+  const userId = sessionStorage.getItem('userId');
   if (window._authChannel && userId) {
     window._authChannel.postMessage({ type: 'LOGOUT', userId });
   }
-
   fetch("/auth/logout", { method: "POST", credentials: "include" })
-    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+    .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 }
 </script>
 
 <script src="/js/api.js"></script>
+<script src="/js/auth-channel.js"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
     // Sync localStorage with the server's authoritative role value
-    localStorage.setItem("role", session.role);
+    sessionStorage.setItem("role", session.role);
   } catch (err) {
     // 401 — cookie missing or expired → api.js already redirects to "/"
     return;
@@ -130,7 +130,7 @@ function goMyBookings() { window.location.replace("/my-bookings"); }
 
 function logout() {
 
-  const userId = localStorage.getItem('userId');
+  const userId = sessionStorage.getItem('userId');
   // Broadcast to all other tabs of this same user so they redirect immediately.
   // Tabs belonging to a different user (different userId) will ignore this.
   // _authChannel is set by auth-channel.js which must be loaded on the page.
@@ -140,7 +140,7 @@ function logout() {
   // Clear the server-side HttpOnly cookie, then wipe localStorage and redirect.
   fetch('/auth/logout', { method: 'POST', credentials: 'include' })
     .finally(() => {
-  localStorage.clear();
+  sessionStorage.clear();
   window.location.replace("/");
 });
 }

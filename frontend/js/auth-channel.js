@@ -40,7 +40,11 @@
 
     if (!msg || msg.type !== 'LOGOUT') return;
 
-    const myUserId = localStorage.getItem('userId');
+
+    // Read userId from sessionStorage (per-tab) — NOT localStorage.
+    // With localStorage, admin logging in on Tab B would overwrite the user's
+    // userId, causing this tab to match the wrong broadcast and log out.
+    const myUserId = sessionStorage.getItem('userId');
 
     // Guard: only act when our userId matches the broadcaster's userId.
     // This ensures:
@@ -48,7 +52,7 @@
     //   - Admin Tab is unaffected when a user broadcasts (different userId).
     //   - User Tab is unaffected when admin broadcasts (different userId).
     if (myUserId && myUserId === String(msg.userId)) {
-      localStorage.clear();
+      sessionStorage.clear();
       window.location.replace('/');
     }
   };

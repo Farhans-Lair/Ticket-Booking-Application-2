@@ -9,7 +9,7 @@ window.addEventListener("pageshow", function (event) {
 
 // 🔐 Check Admin Access
 document.addEventListener("DOMContentLoaded", () => {
-  const role = localStorage.getItem("role");
+  const role = sessionStorage.getItem("role");
 
   if (role !== 'admin') {
     alert("Access Denied! Admins only.");
@@ -186,7 +186,11 @@ window.location.href="/admin/revenue";
 // 🔹 Logout
 function logout() {
 
-const userId = localStorage.getItem('userId');
+// Read from sessionStorage (per-tab) — after the fix, userId is no longer
+  // stored in localStorage, so this must use sessionStorage.
+
+
+const userId = sessionStorage.getItem('userId');
 
   // Notify all other tabs of THIS user to log out immediately.
   // _authChannel is provided by auth-channel.js (loaded before this script).
@@ -197,7 +201,7 @@ const userId = localStorage.getItem('userId');
 
   fetch("/auth/logout", { method: "POST", credentials: "include" })
     .finally(() => {
-  localStorage.clear();
+  sessionStorage.clear();
   window.location.replace("/");
 });
 }

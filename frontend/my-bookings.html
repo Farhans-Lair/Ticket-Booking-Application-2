@@ -156,91 +156,152 @@ draw();
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
+  let cookieConflict = false;
+
   try {
     const session = await apiRequest("/auth/me", "GET");
-    localStorage.setItem("role", session.role);
+    const myUserId = sessionStorage.getItem("userId");
+
+    if (myUserId && String(session.userId) !== myUserId) {
+      // Cookie overwritten by another user on a different tab.
+      // Do NOT redirect — serve from sessionStorage cache instead.
+      cookieConflict = true;
+    } else {
+      sessionStorage.setItem("role", session.role);
+    }
   } catch (err) {
     return; // api.js 401 handler redirects to "/"
   }
   document.getElementById("logoutBtn").addEventListener("click", logout);
-  loadBookings();
+  loadBookings(cookieConflict);
 });
 
-async function loadBookings() {
-  try {
-    const bookings  = await apiRequest("/bookings/my-bookings", "GET", null, true);
-    const container = document.getElementById("bookings-list");
-    container.innerHTML = "";
+function _bookingsCacheKey() {
+  return 'bookingsCache_' + (sessionStorage.getItem('userId') || 'unknown');
+}
 
-    if (!bookings.length) {
+function _showConflictBanner() {
+  if (document.getElementById('session-conflict-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'session-conflict-banner';
+  banner.style.cssText = [
+    'background:rgba(245,200,66,0.12)',
+    'border:1px solid rgba(245,200,66,0.35)',
+    'border-radius:10px',
+    'padding:12px 18px',
+    'margin-bottom:18px',
+    'font-size:0.85rem',
+    'color:#f5c842',
+    'display:flex',
+    'align-items:center',
+    'gap:10px',
+  ].join(';');
+  banner.innerHTML = `
+    <span style="font-size:1.1rem">⚠️</span>
+    <span>Another user is active in a different tab. Showing your saved bookings —
+    they are <strong>your bookings</strong> and have not changed.</span>`;
+  const list = document.getElementById('bookings-list');
+  list.parentNode.insertBefore(banner, list);
+}
+
+async function loadBookings(fromCache = false) {
+  const container = document.getElementById('bookings-list');
+  const cacheKey  = _bookingsCacheKey();
+
+  if (fromCache) {
+    _showConflictBanner();
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      renderBookings(JSON.parse(cached), container);
+    } else {
       container.innerHTML = `
         <div class="empty-state">
-          <div class="emoji">🎟️</div>
-          <h3>No bookings yet</h3>
-          <p>Book your first event and it'll appear here.</p>
+          <div class="emoji">⚠️</div>
+          <h3>Session conflict</h3>
+          <p>Another user logged in on a different tab before your bookings could
+             be loaded. Please log out and log back in to view your bookings.</p>
         </div>`;
-      return;
     }
+    return;
+  }
 
-    bookings.forEach((b, i) => {
-      const statusClass = b.payment_status === "paid"   ? "paid"
-                        : b.payment_status === "failed" ? "failed"
-                        : "pending";
-
-      let seatsDisplay = [];
-      if (b.selected_seats) {
-        try { seatsDisplay = JSON.parse(b.selected_seats); }
-        catch (e) { seatsDisplay = [b.selected_seats]; }
-      }
-
-      // ── Main image: show only the first image from the event's images array ──
-      const imgs    = b.Event.images || [];
-      const mainImg = imgs[0] || null;
-      const imgHTML = mainImg
-        ? `<div class="booking-main-img"><img src="${mainImg}" alt="${b.Event.title}" loading="lazy"/></div>`
-        : `<div class="booking-main-img"><div class="no-img"><span>🎟️</span>No event image</div></div>`;
-
-      const card = document.createElement("div");
-      card.className = `booking-card status-${statusClass}`;
-      card.style.animationDelay = `${i * 0.07}s`;
-
-      card.innerHTML = `
-        ${imgHTML}
-        <div class="card-header">
-          <div>
-            <div class="event-name">${b.Event.title}</div>
-            <div class="event-date">📅 ${new Date(b.Event.event_date).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
-          </div>
-          <span class="status-badge ${statusClass}">${b.payment_status}</span>
-        </div>
-        <div class="card-body">
-          <div class="info-grid">
-            <div class="info-item"><div class="label">🎟 Tickets</div><div class="value">${b.tickets_booked}</div></div>
-            <div class="info-item"><div class="label">💰 Price/Ticket</div><div class="value">₹${b.Event.price}</div></div>
-            <div class="info-item"><div class="label">🏷 Conv. Fee</div><div class="value">₹${b.convenience_fee.toFixed(2)}</div></div>
-            <div class="info-item"><div class="label">📊 GST (18%)</div><div class="value">₹${b.gst_amount.toFixed(2)}</div></div>
-            <div class="info-item"><div class="label">💳 Total Paid</div><div class="value gold">₹${b.total_paid.toFixed(2)}</div></div>
-            <div class="info-item"><div class="label">🕐 Booked On</div><div class="value">${new Date(b.booking_date).toLocaleDateString('en-IN')}</div></div>
-          </div>
-          ${seatsDisplay.length > 0 ? `
-          <div class="seats-row">
-            <div class="label">🪑 Seats</div>
-            <div class="seat-tags">${seatsDisplay.map(s => `<span class="seat-tag">${s}</span>`).join('')}</div>
-          </div>` : ''}
-          ${b.razorpay_payment_id && b.razorpay_payment_id !== 'N/A'
-            ? `<div class="payment-id">Payment ID: ${b.razorpay_payment_id}</div>` : ''}
-          ${b.payment_status === "paid" ? `
-          <a href="/bookings/${b.id}/download-ticket"
-             onclick="downloadTicket(event,${b.id})"
-             class="download-btn">⬇ Download Ticket PDF</a>` : ''}
-        </div>`;
-
-      container.appendChild(card);
-    });
-
+  try {
+    const bookings = await apiRequest("/bookings/my-bookings", "GET", null, true);
+    // Cache for this tab — cleared on logout via sessionStorage.clear()
+    sessionStorage.setItem(cacheKey, JSON.stringify(bookings));
+    renderBookings(bookings, container);
   } catch (err) {
     alert(err.message || "Error loading bookings");
   }
+}
+
+function renderBookings(bookings, container) {
+  container.innerHTML = "";
+
+  if (!bookings.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">🎟️</div>
+        <h3>No bookings yet</h3>
+        <p>Book your first event and it'll appear here.</p>
+      </div>`;
+    return;
+  }
+
+  bookings.forEach((b, i) => {
+    const statusClass = b.payment_status === "paid"   ? "paid"
+                      : b.payment_status === "failed" ? "failed"
+                      : "pending";
+
+    let seatsDisplay = [];
+    if (b.selected_seats) {
+      try { seatsDisplay = JSON.parse(b.selected_seats); }
+      catch (e) { seatsDisplay = [b.selected_seats]; }
+    }
+
+    const imgs    = b.Event.images || [];
+    const mainImg = imgs[0] || null;
+    const imgHTML = mainImg
+      ? `<div class="booking-main-img"><img src="${mainImg}" alt="${b.Event.title}" loading="lazy"/></div>`
+      : `<div class="booking-main-img"><div class="no-img"><span>🎟️</span>No event image</div></div>`;
+
+    const card = document.createElement("div");
+    card.className = `booking-card status-${statusClass}`;
+    card.style.animationDelay = `${i * 0.07}s`;
+
+    card.innerHTML = `
+      ${imgHTML}
+      <div class="card-header">
+        <div>
+          <div class="event-name">${b.Event.title}</div>
+          <div class="event-date">📅 ${new Date(b.Event.event_date).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+        </div>
+        <span class="status-badge ${statusClass}">${b.payment_status}</span>
+      </div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item"><div class="label">🎟 Tickets</div><div class="value">${b.tickets_booked}</div></div>
+          <div class="info-item"><div class="label">💰 Price/Ticket</div><div class="value">₹${b.Event.price}</div></div>
+          <div class="info-item"><div class="label">🏷 Conv. Fee</div><div class="value">₹${b.convenience_fee.toFixed(2)}</div></div>
+          <div class="info-item"><div class="label">📊 GST (18%)</div><div class="value">₹${b.gst_amount.toFixed(2)}</div></div>
+          <div class="info-item"><div class="label">💳 Total Paid</div><div class="value gold">₹${b.total_paid.toFixed(2)}</div></div>
+          <div class="info-item"><div class="label">🕐 Booked On</div><div class="value">${new Date(b.booking_date).toLocaleDateString('en-IN')}</div></div>
+        </div>
+        ${seatsDisplay.length > 0 ? `
+        <div class="seats-row">
+          <div class="label">🪑 Seats</div>
+          <div class="seat-tags">${seatsDisplay.map(s => `<span class="seat-tag">${s}</span>`).join('')}</div>
+        </div>` : ''}
+        ${b.razorpay_payment_id && b.razorpay_payment_id !== 'N/A'
+          ? `<div class="payment-id">Payment ID: ${b.razorpay_payment_id}</div>` : ''}
+        ${b.payment_status === "paid" ? `
+        <a href="/bookings/${b.id}/download-ticket"
+           onclick="downloadTicket(event,${b.id})"
+           class="download-btn">⬇ Download Ticket PDF</a>` : ''}
+      </div>`;
+
+    container.appendChild(card);
+  });
 }
 
 async function downloadTicket(e, bookingId) {
@@ -262,14 +323,12 @@ async function downloadTicket(e, bookingId) {
 
 function goBack()  { window.location.replace("/events-page"); }
 function logout() {
-  const userId = localStorage.getItem('userId');
-  // Broadcast to all other tabs of this same user so they redirect immediately.
-  // Tabs belonging to a different user (different userId) ignore this message.
+  const userId = sessionStorage.getItem('userId');
   if (window._authChannel && userId) {
     window._authChannel.postMessage({ type: 'LOGOUT', userId });
   }
   fetch("/auth/logout", { method: "POST", credentials: "include" })
-    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+    .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 }
 </script>
 <script src="/js/auth-channel.js"></script>
