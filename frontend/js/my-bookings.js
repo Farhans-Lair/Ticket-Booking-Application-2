@@ -154,8 +154,14 @@ function renderBookings(bookings, container) {
 async function downloadTicket(e, bookingId) {
   e.preventDefault();
   try {
+    // This is a direct fetch (not apiRequest) so we must manually attach the
+    // Authorization header. Without it, the backend middleware falls back to
+    // the shared cookie which may belong to a different user (e.g. admin logged
+    // in on another tab), causing the ownership check to fail.
+    const tabToken = sessionStorage.getItem("token");
     const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
-      credentials : "include"
+      credentials: "include",
+      headers: tabToken ? { "Authorization": `Bearer ${tabToken}` } : {}
     });
 
     if (!response.ok) throw new Error("Failed to download ticket");

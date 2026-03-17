@@ -98,11 +98,17 @@ const loginVerify = async (req, res, next) => {
 
     logger.info("User logged in successfully", { userId, role, email });
 
-    // Return userId so the frontend can store it in localStorage.
-    // This is used by auth-channel.js to match tabs to the correct user
-    // when broadcasting a logout — ensuring only the logged-out user's tabs
-    // are redirected and other users' tabs (e.g. admin vs user) are unaffected.
-    res.json({ role, userId });
+    // Return token, role, and userId so the frontend can:
+    //  • Store the token in sessionStorage (per-tab) and send it as
+    //    Authorization: Bearer on every API call — this means each tab
+    //    always uses its own token regardless of what the shared cookie holds.
+    //  • Store role + userId in sessionStorage for UI routing and cross-tab
+    //    logout matching via auth-channel.js.
+    //
+    // The HttpOnly cookie is kept as a fallback for pages that do not use
+    // apiRequest (e.g. direct fetch calls), but apiRequest now prefers the
+    // per-tab sessionStorage token via the Authorization header.
+    res.json({ role, userId, token });
   } catch (err) {
     logger.error("Login OTP verification failed", { email: req.body?.email, error: err.message });
     next(err);

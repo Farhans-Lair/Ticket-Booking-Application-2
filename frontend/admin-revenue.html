@@ -320,6 +320,7 @@
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/auth-channel.js"></script>
 <script src="/js/admin-auth.js"></script>
 
 <script>
@@ -328,9 +329,9 @@ document.getElementById('report-date').textContent =
   'Report as of ' + new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'});
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Token is in HttpOnly cookie — check role from localStorage for UI routing
-  // Actual API security is enforced server-side via the cookie
-  const role = localStorage.getItem("role");
+  // Read role from sessionStorage (per-tab) — not localStorage which is shared
+  // across all tabs and would be overwritten by a different user logging in.
+  const role = sessionStorage.getItem("role");
   if (role !== 'admin') { alert("Admins Only"); window.location.replace("/"); return; }
   loadRevenue();
 });
@@ -435,8 +436,12 @@ async function loadRevenue() {
 
 function goBack()  { window.location.href = "/admin"; }
 function logout() {
+  const userId = sessionStorage.getItem('userId');
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: 'LOGOUT', userId });
+  }
   fetch("/auth/logout", { method: "POST", credentials: "include" })
-    .finally(() => { localStorage.clear(); window.location.replace("/"); });
+    .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 }
 </script>
 </body>

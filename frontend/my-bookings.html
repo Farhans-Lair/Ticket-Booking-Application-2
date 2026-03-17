@@ -307,8 +307,13 @@ function renderBookings(bookings, container) {
 async function downloadTicket(e, bookingId) {
   e.preventDefault();
   try {
+    // Direct fetch — must manually attach Authorization header so the backend
+    // middleware uses this tab's own JWT, not the shared cookie (which may
+    // belong to a different user logged in on another tab).
+    const tabToken = sessionStorage.getItem("token");
     const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
-      credentials: "include"
+      credentials: "include",
+      headers: tabToken ? { "Authorization": `Bearer ${tabToken}` } : {}
     });
     if (!response.ok) throw new Error("Failed to download ticket");
     const blob = await response.blob();

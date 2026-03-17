@@ -185,23 +185,18 @@ window.location.href="/admin/revenue";
 
 // 🔹 Logout
 function logout() {
-
-// Read from sessionStorage (per-tab) — after the fix, userId is no longer
-  // stored in localStorage, so this must use sessionStorage.
-
-
-const userId = sessionStorage.getItem('userId');
-
-  // Notify all other tabs of THIS user to log out immediately.
-  // _authChannel is provided by auth-channel.js (loaded before this script).
+  // Read userId from sessionStorage (per-tab).
+  // Broadcast so all other tabs of this same user log out immediately.
   // Tabs of a different user (different userId) will ignore the message.
+  const userId = sessionStorage.getItem('userId');
+
   if (window._authChannel && userId) {
     window._authChannel.postMessage({ type: 'LOGOUT', userId });
   }
 
   fetch("/auth/logout", { method: "POST", credentials: "include" })
     .finally(() => {
-  sessionStorage.clear();
-  window.location.replace("/");
-});
+      sessionStorage.clear();
+      window.location.replace("/");
+    });
 }

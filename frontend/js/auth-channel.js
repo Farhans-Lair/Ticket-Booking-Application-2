@@ -7,13 +7,13 @@
  * are immediately redirected to the login page.
  *
  * Key design decisions:
- *  • Messages are matched by userId (stored in localStorage on login), NOT by
+ *  • Messages are matched by userId (stored in sessionStorage on login), NOT by
  *    role. This means an admin logging out does NOT affect a simultaneously
  *    open user session and vice-versa.
  *  • The channel is same-origin only — messages never cross domains.
  *  • window._authChannel is exposed so each page's logout function can call
  *    _authChannel.postMessage({ type: 'LOGOUT', userId }) before clearing
- *    localStorage and redirecting.
+ *    sessionStorage and redirecting.
  */
 (function () {
   'use strict';

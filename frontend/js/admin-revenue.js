@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded",()=>{
-const role =
-localStorage.getItem("role");
+  // Read role from sessionStorage (per-tab) — localStorage is shared across
+  // all tabs and would be overwritten if a different user logs in on another tab.
+  const role = sessionStorage.getItem("role");
 
 if(role !== 'admin'){
 alert("Admins Only");
@@ -110,9 +111,15 @@ window.location.href="/admin";
 }
 
 function logout(){
-fetch("/auth/logout", { method: "POST", credentials: "include" })
+  // Read userId from sessionStorage (per-tab) so the broadcast targets only
+  // this user's tabs — not a different user who may be logged in on another tab.
+  const userId = sessionStorage.getItem('userId');
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: 'LOGOUT', userId });
+  }
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
     .finally(() => {
-      localStorage.clear();
+      sessionStorage.clear();
       window.location.replace("/");
     });
 }

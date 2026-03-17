@@ -30,7 +30,7 @@ app.use(
   cors({
     origin: ["http://localhost:3000", process.env.FRONTEND_URL,].filter(Boolean),
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"],  // Authorization needed for per-tab Bearer token
     credentials : true,
   })
 );
