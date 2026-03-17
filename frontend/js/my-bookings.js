@@ -6,6 +6,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
 
+    // Always store userId from the authoritative server response.
+    // This is required by auth-channel.js to match logout broadcasts.
+    // Without it, tabs opened without the login form have userId = null
+    // and never receive the logout signal from other tabs.
+    sessionStorage.setItem("userId", String(session.userId));
+
     const myUserId = sessionStorage.getItem("userId");
 
     if (myUserId && String(session.userId) !== myUserId) {

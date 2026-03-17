@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const session = await apiRequest("/auth/me", "GET");
     // Sync localStorage with the server's authoritative role value
     sessionStorage.setItem("role", session.role);
+    sessionStorage.setItem("userId", String(session.userId));
   } catch (err) {
     // 401 — cookie missing or expired → api.js already redirects to "/"
     return;

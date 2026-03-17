@@ -1,7 +1,11 @@
 document.addEventListener("DOMContentLoaded", async() => {
   // ── Verify session with server via cookie ─────────────────────────────────
   try {
-    await apiRequest("/auth/me", "GET");
+    const session = await apiRequest("/auth/me", "GET");
+    // Store userId so auth-channel.js can match logout broadcasts from other
+    // tabs of the same user. Without this, this tab stays open after logout.
+    sessionStorage.setItem("userId", String(session.userId));
+
   } catch (err) {
     return; // api.js 401 handler redirects to "/"
   }
