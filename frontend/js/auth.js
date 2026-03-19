@@ -162,6 +162,8 @@ async function loginVerify() {
     // Role-based redirect
     if (data.role === "admin") {
       window.location.href = "/admin";
+    } else if (data.role === "organizer") {
+      window.location.href = "/organizer-dashboard";
     } else {
       window.location.href = "/events-page";
     }
