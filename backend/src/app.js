@@ -1,177 +1,160 @@
 require("dotenv").config();
-require("./models"); // 👈 Initialize DB Models
+require("./models"); // Initialize DB models & associations
 
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const rateLimit = require("express-rate-limit");
-const cookieParser = require("cookie-parser");  // ── ADDED: read HttpOnly cookies
+const express      = require("express");
+const cors         = require("cors");
+const path         = require("path");
+const rateLimit    = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 
-
-const authenticate   = require("./middleware/auth.middleware");
-const authController = require("./controllers/auth.controllers");
-const authRoutes = require("./routes/auth.routes");
-const eventRoutes = require("./routes/event.routes");
-const bookingRoutes = require("./routes/booking.routes");
-const revenueRoutes = require("./routes/revenue.routes");
-const adminRoutes = require("./routes/admin.routes");
-const paymentRoutes = require("./routes/payment.routes");
-const seatRoutes    = require("./routes/seat.routes");
-const errorHandler = require("./middleware/error.middleware");
-
+const authenticate      = require("./middleware/auth.middleware");
+const authController    = require("./controllers/auth.controllers");
+const authRoutes        = require("./routes/auth.routes");
+const eventRoutes       = require("./routes/event.routes");
+const bookingRoutes     = require("./routes/booking.routes");
+const revenueRoutes     = require("./routes/revenue.routes");
+const adminRoutes       = require("./routes/admin.routes");
+const paymentRoutes     = require("./routes/payment.routes");
+const seatRoutes        = require("./routes/seat.routes");
+const organizerRoutes   = require("./routes/organizer.routes");   // ← NEW
+const errorHandler      = require("./middleware/error.middleware");
 
 const app = express();
 
 /* =====================================================
-   ✅ CORS CONFIG (Environment-safe)
+   CORS CONFIG
 ===================================================== */
-
 app.use(
   cors({
-    origin: ["http://localhost:3000", process.env.FRONTEND_URL,].filter(Boolean),
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],  // Authorization needed for per-tab Bearer token
-    credentials : true,
+    origin: [
+      "http://localhost:3000",
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
+    methods:      ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials:  true,
   })
 );
 
 /* =====================================================
-   ✅ Cookie Parser  (must be before routes)
+   Cookie Parser (must be before routes)
 ===================================================== */
 app.use(cookieParser());
 
 /* =====================================================
-   ✅ JSON Parsing
+   JSON Parsing
 ===================================================== */
-
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: "25mb" }));
 
 /* =====================================================
-   🏥 Health Check (ALB / CI)
+   Health Check (ALB / CI)
 ===================================================== */
-
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
 /* =====================================================
-   🔒 RATE LIMITERS
+   RATE LIMITERS
 ===================================================== */
 
-// 1. Global limiter — all routes
-//    100 requests per 15 minutes per IP
+// Global — 100 req / 15 min per IP
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,   // sends RateLimit-* headers to client
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, max: 100,
+  standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many requests. Please try again later." },
 });
 
-// 2. Auth limiter — stricter for login/register/OTP
-//    10 attempts per 15 minutes per IP (brute-force protection)
+// Auth — stricter (10 / 15 min) for brute-force protection
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, max: 10,
+  standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many login attempts. Please try again in 15 minutes." },
 });
 
-// 3. Payment limiter — prevent payment endpoint abuse
-//    20 requests per 15 minutes per IP
+// Payment — 20 / 15 min
 const paymentLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, max: 20,
+  standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many payment requests. Please slow down." },
 });
 
 /* =====================================================
-   🔒 Prevent Browser Caching of Protected Pages
+   Prevent Browser Caching of Protected Pages
 ===================================================== */
-
 app.use((req, res, next) => {
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, private"
-  );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma",        "no-cache");
+  res.setHeader("Expires",       "0");
   next();
 });
 
 /* =====================================================
    Static Assets (JS & CSS only)
 ===================================================== */
-app.use("/js", express.static(path.join(__dirname, "../../frontend/js")));
+app.use("/js",  express.static(path.join(__dirname, "../../frontend/js")));
 app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 
 /* =====================================================
-   API Routes  ← JWT auth enforced HERE (in the routes)
+   /auth/me — global limiter (called on every page load)
 ===================================================== */
-// ── /auth/me uses globalLimiter — it is called on EVERY page load to verify
-// the session cookie. Using authLimiter (max 10/15min) here would rate-limit
-// users out of their own session after just a few page navigations.
 app.get("/auth/me", globalLimiter, authenticate, authController.me);
 
+/* =====================================================
+   API Routes
+===================================================== */
+app.use("/auth",       authLimiter,    authRoutes);
+app.use("/events",     globalLimiter,  eventRoutes);
+app.use("/bookings",   globalLimiter,  bookingRoutes);
+app.use("/payments",   paymentLimiter, paymentRoutes);
+app.use("/seats",      globalLimiter,  seatRoutes);
+app.use("/api",        globalLimiter,  revenueRoutes);
+app.use("/organizer",  globalLimiter,  organizerRoutes);   // ← NEW
 
 /* =====================================================
-   API Routes  ← JWT auth enforced HERE (in the routes)
-===================================================== */
-app.use("/auth",authLimiter, authRoutes);
-app.use("/events",globalLimiter, eventRoutes);
-app.use("/bookings",globalLimiter, bookingRoutes);
-app.use("/payments",paymentLimiter, paymentRoutes);
-app.use("/seats",globalLimiter ,seatRoutes);
-app.use("/api", globalLimiter, revenueRoutes);
-
-/* =====================================================
-   HTML Page Routes  ← NO JWT middleware here.
-   Auth is handled client-side via localStorage checks
-   in admin-auth.js, events.js, my-bookings.js etc.
+   HTML Page Routes (auth enforced client-side)
 ===================================================== */
 
-// Login / Register page (public)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/index.html"));
-});
+// Public
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/index.html"))
+);
 
-// Events page (client-side auth check in events.js)
-app.get("/events-page", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/events.html"));
-});
-
-// My Bookings page (client-side auth check in my-bookings.js)
-app.get("/my-bookings", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/my-bookings.html"));
-});
-
-// Payment page (client-side auth check in payment.js)
-app.get("/payment", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/payment.html"));
-});
-
-app.get("/seat-selection", (req, res) => {
+// User pages
+app.get("/events-page", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/events.html"))
+);
+app.get("/my-bookings", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/my-bookings.html"))
+);
+app.get("/payment", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/payment.html"))
+);
+app.get("/seat-selection", (req, res) =>
   res.sendFile(path.join(__dirname, "../../frontend/seat-selection.html"))
-});
+);
 
-app.use("/admin",adminRoutes);
+// Organizer pages (NEW)
+app.get("/organizer-register", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/organizer-register.html"))
+);
+app.get("/organizer-dashboard", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/organizer-dashboard.html"))
+);
+app.get("/organizer-events", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/organizer-events.html"))
+);
+app.get("/organizer-revenue", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/organizer-revenue.html"))
+);
+
+// Admin pages
+app.use("/admin", adminRoutes);
 
 /* =====================================================
-   ❌ 404 Handler
+   404 Handler
 ===================================================== */
-
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Route not found",
-  });
-});
+app.use((req, res) => res.status(404).json({ error: "Route not found." }));
 
 /* =====================================================
-   Global Error Handler (uses error.middleware.js)
+   Global Error Handler
 ===================================================== */
 app.use(errorHandler);
 
