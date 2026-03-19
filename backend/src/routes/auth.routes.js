@@ -1,32 +1,45 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
+
 const authController = require("../controllers/auth.controllers");
+const validate       = require("../middleware/validate.middleware");
+const authenticate   = require("../middleware/auth.middleware");
 
-const validate = require("../middleware/validate.middleware");
+const {
+  signupRequestValidator,
+  signupVerifyValidator,
+  loginRequestValidator,
+  loginVerifyValidator,
+  organizerSignupRequestValidator,
+  organizerSignupVerifyValidator,
+} = require("../validators/auth.validator");
 
-const {signupRequestValidator, signupVerifyValidator,loginRequestValidator, loginVerifyValidator,} = require("../validators/auth.validator");
+// ─── User signup ─────────────────────────────────────────────────────────────
+router.post("/signup-request", signupRequestValidator,  validate, authController.signupRequest);
+router.post("/signup-verify",  signupVerifyValidator,   validate, authController.signupVerify);
 
-const authenticate = require("../middleware/auth.middleware");
+// ─── Login ────────────────────────────────────────────────────────────────────
+router.post("/login-request",  loginRequestValidator,   validate, authController.loginRequest);
+router.post("/login-verify",   loginVerifyValidator,    validate, authController.loginVerify);
 
+// ─── Organizer signup (NEW) ───────────────────────────────────────────────────
+// Step 1: submit business details + send OTP
+router.post(
+  "/organizer-signup-request",
+  organizerSignupRequestValidator,
+  validate,
+  authController.organizerSignupRequest
+);
+// Step 2: verify OTP → creates user (role=organizer) + profile (status=pending)
+router.post(
+  "/organizer-signup-verify",
+  organizerSignupVerifyValidator,
+  validate,
+  authController.organizerSignupVerify
+);
 
-// ─── Signup with email OTP ────────────────────────────────────────────────────
-// Step 1: Validate details + send OTP
-router.post("/signup-request", signupRequestValidator, validate, authController.signupRequest);
-// Step 2: Verify OTP + create account
-router.post("/signup-verify", signupVerifyValidator, validate, authController.signupVerify);
-
-// ─── Login with email OTP (2FA) ───────────────────────────────────────────────
-// Step 1: Validate credentials + send OTP
-router.post("/login-request", loginRequestValidator, validate, authController.loginRequest);
-// Step 2: Verify OTP + return JWT
-router.post("/login-verify", loginVerifyValidator, validate, authController.loginVerify);
-
-// ─── Logout — clears the HttpOnly cookie ─────────────────────────────────────
+// ─── Session ──────────────────────────────────────────────────────────────────
 router.post("/logout", authenticate, authController.logout);
-
-// ─── Me — verify session and return role (used by frontend pages on load) ────
-router.get("/me", authenticate, authController.me);
-
+router.get("/me",      authenticate, authController.me);
 
 module.exports = router;
-

@@ -8,6 +8,14 @@ const Event = sequelize.define("Event",
     autoIncrement: true,
     primaryKey: true,
   },
+
+  // NULL  → event owned by super-admin (platform event)
+    // INT   → event owned by an approved organizer
+    organizer_id: {
+      type: DataTypes.INTEGER,
+      defaultValue: null,
+    },
+
   title: {
     type: DataTypes.STRING(200),
     allowNull: false,
