@@ -14,26 +14,26 @@ const {
   organizerSignupVerifyValidator,
 } = require("../validators/auth.validator");
 
-// ─── User signup ─────────────────────────────────────────────────────────────
-router.post("/signup-request", signupRequestValidator,  validate, authController.signupRequest);
-router.post("/signup-verify",  signupVerifyValidator,   validate, authController.signupVerify);
+// ─── User signup ──────────────────────────────────────────────────────────────
+router.post("/signup-request", ...signupRequestValidator,  validate, authController.signupRequest);
+router.post("/signup-verify",  ...signupVerifyValidator,   validate, authController.signupVerify);
 
 // ─── Login ────────────────────────────────────────────────────────────────────
-router.post("/login-request",  loginRequestValidator,   validate, authController.loginRequest);
-router.post("/login-verify",   loginVerifyValidator,    validate, authController.loginVerify);
+router.post("/login-request",  ...loginRequestValidator,   validate, authController.loginRequest);
+router.post("/login-verify",   ...loginVerifyValidator,    validate, authController.loginVerify);
 
-// ─── Organizer signup (NEW) ───────────────────────────────────────────────────
+// ─── Organizer signup ─────────────────────────────────────────────────────────
 // Step 1: submit business details + send OTP
 router.post(
   "/organizer-signup-request",
-  organizerSignupRequestValidator,
+  ...organizerSignupRequestValidator,   // ← spread so Express sees individual middleware functions
   validate,
   authController.organizerSignupRequest
 );
 // Step 2: verify OTP → creates user (role=organizer) + profile (status=pending)
 router.post(
   "/organizer-signup-verify",
-  organizerSignupVerifyValidator,
+  ...organizerSignupVerifyValidator,    // ← same fix
   validate,
   authController.organizerSignupVerify
 );
