@@ -95,4 +95,11 @@ router.put(
   organizerController.rejectOrganizer
 );
 
+// Delete organizer account  DELETE /organizer/admin/organizers/:id
+router.delete(
+  "/admin/organizers/:id",
+  authenticate, authorizeAdmin,
+  organizerController.deleteOrganizer
+);
+
 module.exports = router;

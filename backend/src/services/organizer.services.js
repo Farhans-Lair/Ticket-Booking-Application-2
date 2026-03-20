@@ -177,6 +177,21 @@ const rejectOrganizer = async (profileId, reason) => {
   return profile;
 };
 
+/** Admin permanently deletes an organizer — removes their user account.
+ *  CASCADE in the DB takes care of: organizer_profile, events (SET NULL on organizer_id),
+ *  and bookings tied to this user.
+ */
+const deleteOrganizer = async (profileId) => {
+  const profile = await OrganizerProfile.findByPk(profileId, {
+    include: [{ model: User, attributes: ["id"] }],
+  });
+  if (!profile) return null;
+
+  // Deleting the User cascades to OrganizerProfile automatically (FK ON DELETE CASCADE)
+  await User.destroy({ where: { id: profile.user_id } });
+  return true;
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -187,4 +202,5 @@ module.exports = {
   getAllOrganizers,
   approveOrganizer,
   rejectOrganizer,
+  deleteOrganizer,
 };

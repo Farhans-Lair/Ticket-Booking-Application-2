@@ -243,6 +243,22 @@ const rejectOrganizer = async (req, res, next) => {
   }
 };
 
+/**
+ * DELETE /organizer/admin/organizers/:id
+ * Permanently removes the organizer account (user + profile + their events' organizer_id NULLed).
+ */
+const deleteOrganizer = async (req, res, next) => {
+  try {
+    const result = await organizerService.deleteOrganizer(req.params.id);
+    if (!result) return res.status(404).json({ error: "Organizer profile not found." });
+    logger.info("Organizer deleted", { adminId: req.user?.id, profileId: req.params.id });
+    res.json({ message: "Organizer account deleted successfully." });
+  } catch (err) {
+    logger.error("Organizer deletion failed", { adminId: req.user?.id, profileId: req.params?.id, error: err.message });
+    next(err);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -256,4 +272,5 @@ module.exports = {
   listOrganizers,
   approveOrganizer,
   rejectOrganizer,
+  deleteOrganizer,
 };
