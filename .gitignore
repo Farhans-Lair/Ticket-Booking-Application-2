@@ -84,3 +84,16 @@ logs/
 tmp/
 temp/
 .cache/
+
+# =============================================================
+#  ADD THESE LINES to your existing .gitignore
+#  (Prevents private keys from ever being committed to git)
+# =============================================================
+
+# TLS Certificates — NEVER commit private keys
+certs/
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx

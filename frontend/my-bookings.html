@@ -288,7 +288,7 @@ function renderBookings(bookings, container) {
           <div class="info-item"><div class="label">🎟 Tickets</div><div class="value">${b.tickets_booked}</div></div>
           <div class="info-item"><div class="label">💰 Price/Ticket</div><div class="value">₹${b.Event.price}</div></div>
           <div class="info-item"><div class="label">🏷 Conv. Fee</div><div class="value">₹${b.convenience_fee.toFixed(2)}</div></div>
-          <div class="info-item"><div class="label">📊 GST (18%)</div><div class="value">₹${b.gst_amount.toFixed(2)}</div></div>
+          <div class="info-item"><div class="label">📊 GST (9%)</div><div class="value">₹${b.gst_amount.toFixed(2)}</div></div>
           <div class="info-item"><div class="label">💳 Total Paid</div><div class="value gold">₹${b.total_paid.toFixed(2)}</div></div>
           <div class="info-item"><div class="label">🕐 Booked On</div><div class="value">${new Date(b.booking_date).toLocaleDateString('en-IN')}</div></div>
         </div>

@@ -28,11 +28,22 @@ services:
         condition: service_healthy
 
     ports:
-      - "3000:3000"
+      - "443:3000"   # HTTPS  — visit https://localhost
+      - "80:3001"    # HTTP redirect → HTTPS automatically
+
     env_file:
       - .env
     environment:
       DB_HOST: mysql
+      HTTPS_PORT: 3000          # port INSIDE the container
+      HTTP_PORT: 3001           # redirect port INSIDE the container
+      SSL_KEY_PATH: /app/certs/server.key
+      SSL_CERT_PATH: /app/certs/server.crt
+
+    volumes:
+      # Mount certs as read-only; never bake secrets into an image
+      - ./certs:/app/certs:ro
+
     command: ["node", "src/server.js"]
 
 volumes:

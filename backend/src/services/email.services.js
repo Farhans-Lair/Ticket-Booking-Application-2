@@ -172,7 +172,7 @@ function generateTicketPDF(booking, user, event) {
 
     payRow("Ticket Amount",    `Rs. ${booking.ticket_amount.toFixed(2)}`,   ry);
     payRow("Convenience Fee",  `Rs. ${booking.convenience_fee.toFixed(2)}`, ry + 14);
-    payRow("GST (18%)",        `Rs. ${booking.gst_amount.toFixed(2)}`,      ry + 28);
+    payRow("GST (9%)",        `Rs. ${booking.gst_amount.toFixed(2)}`,      ry + 28);
 
     // Total divider
     doc.moveTo(rx, ry + 42).lineTo(W - M - 4, ry + 42)
@@ -231,7 +231,7 @@ async function sendTicketEmail(user, booking, event) {
           <tr><td style="padding:8px;border:1px solid #ddd;"><b>Tickets</b></td><td style="padding:8px;border:1px solid #ddd;">${booking.tickets_booked}</td></tr>
           <tr><td style="padding:8px;border:1px solid #ddd;"><b>Ticket Amount</b></td><td style="padding:8px;border:1px solid #ddd;">₹${booking.ticket_amount.toFixed(2)}</td></tr>
           <tr><td style="padding:8px;border:1px solid #ddd;"><b>Convenience Fee</b></td><td style="padding:8px;border:1px solid #ddd;">₹${booking.convenience_fee.toFixed(2)}</td></tr>
-          <tr><td style="padding:8px;border:1px solid #ddd;"><b>GST (18%)</b></td><td style="padding:8px;border:1px solid #ddd;">₹${booking.gst_amount.toFixed(2)}</td></tr>
+          <tr><td style="padding:8px;border:1px solid #ddd;"><b>GST (9%)</b></td><td style="padding:8px;border:1px solid #ddd;">₹${booking.gst_amount.toFixed(2)}</td></tr>
           <tr><td style="padding:8px;border:1px solid #ddd;"><b>Total Paid</b></td><td style="padding:8px;border:1px solid #ddd;">₹${booking.total_paid.toFixed(2)}</td></tr>
         </table>
         <p style="margin-top:16px;">Your ticket PDF is attached. See you at the event! 🎶</p>

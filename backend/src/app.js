@@ -23,18 +23,50 @@ const app = express();
 
 /* =====================================================
    CORS CONFIG
+   Accept both http (redirect) and https origins so
+   development works seamlessly.
 ===================================================== */
+
+
+const HTTPS_PORT = process.env.HTTPS_PORT || 3000;
+const HTTP_PORT  = process.env.HTTP_PORT  || 3001;
+
+const allowedOrigins = [
+  `https://localhost:${HTTPS_PORT}`,
+  `http://localhost:${HTTP_PORT}`,
+  process.env.FRONTEND_URL,          // production URL if set
+].filter(Boolean);
+
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
-    methods:      ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, Postman, same-origin server calls)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods:        ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials:  true,
+    credentials:    true,
   })
 );
+
+/* =====================================================
+   Security Headers (basic hardening)
+===================================================== */
+app.use((req, res, next) => {
+  // Tell browsers to always use HTTPS for 1 year
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  // Prevent clickjacking
+  res.setHeader("X-Frame-Options", "DENY");
+  // Prevent MIME-type sniffing
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  // Basic XSS protection header (belt + suspenders with CSP)
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  next();
+});
 
 /* =====================================================
    Cookie Parser (must be before routes)
