@@ -4,25 +4,20 @@ exec > /var/log/user-data.log 2>&1
 
 yum update -y
 
-# 🔥 Install MySQL 8.0 client
 # Remove conflicting mariadb packages first
 yum remove mariadb mariadb-libs -y || true
 
 # Add MySQL 8.0 community repo
 yum install https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm -y
-
-# Enable MySQL 8.0 community repo
 yum-config-manager --enable mysql80-community
-
-# Install MySQL client only (no server — DB is on RDS)
 yum install mysql-community-client -y
 
-# 🔥 Install Docker correctly
+# Install Docker
 yum install -y docker
 systemctl enable docker
 systemctl start docker
 
-# Wait until Docker daemon is REALLY ready
+# Wait until Docker daemon is ready
 until docker info >/dev/null 2>&1; do
   sleep 5
 done
@@ -32,9 +27,16 @@ usermod -aG docker ec2-user
 APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
-# 🔥 Write .env using Terraform-injected vars
+# Write .env
+#
+# USE_HTTPS=false  — The ALB terminates TLS. Node.js runs plain HTTP
+#                    on port 3000 inside the VPC. No certs on EC2.
+#
+# COOKIE_SECURE=true — Cookies are sent over HTTPS (the user's browser
+#                      talks HTTPS to the ALB), so Secure flag is correct.
 cat <<'ENVEOF'> $APP_DIR/.env
 PORT=3000
+USE_HTTPS=false
 DB_PORT=3306
 DB_HOST=${DB_HOST}
 DB_NAME=${DB_NAME}
@@ -47,19 +49,17 @@ EMAIL_USER=${EMAIL_USER}
 EMAIL_PASS=${EMAIL_PASS}
 AWS_REGION=${AWS_REGION}
 S3_BUCKET_NAME=${S3_BUCKET_NAME}
-COOKIE_SECURE=false
+COOKIE_SECURE=true
 ENVEOF
 
 chown ec2-user:ec2-user $APP_DIR/.env
 chmod 600 $APP_DIR/.env
 
-# ── ADDED: Install and configure CloudWatch Agent ────────────────────────────
+# Install and configure CloudWatch Agent
 yum install -y amazon-cloudwatch-agent
 
-# Create log directory that the Docker container will mount
 mkdir -p /home/ec2-user/ticket-backend/logs
 
-# Write CloudWatch agent config
 cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWEOF'
 {
   "agent": {
@@ -108,13 +108,11 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWEO
 }
 CWEOF
 
-# Start CloudWatch agent
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
   -a fetch-config -m ec2 \
   -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 systemctl enable amazon-cloudwatch-agent
-# ────────────────────────────────────────────────────────────────────────────
 
 # Login to ECR
 aws ecr get-login-password --region ap-south-1 \
@@ -123,7 +121,8 @@ aws ecr get-login-password --region ap-south-1 \
 # Remove old container if exists
 docker rm -f ticket-backend || true
 
-# Run backend container
+# Run container — plain HTTP, no cert mounts needed on EC2.
+# The mkcert cert is on the ALB (uploaded to IAM by Terraform).
 docker run -d \
   --name ticket-backend \
   --restart always \

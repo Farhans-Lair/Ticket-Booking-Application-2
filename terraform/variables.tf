@@ -67,16 +67,17 @@ variable "email_pass" {
   sensitive   = true
 }
 
-# ── ADDED: CloudWatch alert recipient ────────────────────────────────────────
 variable "alert_email" {
   description = "Email address to receive CloudWatch alarm notifications via SNS"
   sensitive   = false
-  # Set this in terraform.tfvars or as -var="alert_email=you@example.com"
 }
 
-# ── ADDED: S3 bucket for ticket PDF storage ───────────────────────────────────
 variable "s3_bucket_name" {
   description = "Name of the S3 bucket that stores generated ticket PDFs"
   type        = string
-  # Set this in terraform.tfvars: s3_bucket_name = "ticketverse-tickets"
+}
+
+variable "cert_chain_path" {
+  description = "Absolute path to the mkcert CA root certificate (rootCA.pem). Find it by running: mkcert -CAROOT"
+  type        = string
 }
