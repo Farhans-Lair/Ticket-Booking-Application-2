@@ -37,6 +37,7 @@ mkdir -p $APP_DIR
 cat <<'ENVEOF'> $APP_DIR/.env
 PORT=3000
 USE_HTTPS=false
+FRONTEND_URL=https://${ALB_DNS}
 DB_PORT=3306
 DB_HOST=${DB_HOST}
 DB_NAME=${DB_NAME}

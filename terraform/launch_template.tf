@@ -14,6 +14,7 @@ data "template_file" "user_data" {
     EMAIL_PASS          = var.email_pass   # ✅ add
     AWS_REGION          = var.aws_region       # ── ADDED: for S3 SDK
     S3_BUCKET_NAME      = var.s3_bucket_name   # ── ADDED: for ticket PDF storage
+    ALB_DNS = aws_lb.ticket_alb.dns_name
 
   }
 }
