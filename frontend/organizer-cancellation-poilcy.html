@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cancellation Policies — Organizer Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #574fd6;
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --card2: #16213e;
+      --border: #2a2a45;
+      --text: #e2e8f0;
+      --muted: #8b8fa8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    nav {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .nav-links  { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a.active { border-bottom: 2px solid var(--primary); padding-bottom: 2px; }
+    .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: .4rem .9rem; border-radius: 8px; cursor: pointer; font-size: .85rem; transition: all .2s; }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    .page { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .page-header { margin-bottom: 2.2rem; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; }
+    .page-header p  { color: var(--muted); margin-top: .35rem; font-size: .9rem; }
+
+    /* Explainer card */
+    .info-card {
+      background: rgba(108,99,255,0.07); border: 1px solid rgba(108,99,255,0.2);
+      border-radius: 14px; padding: 1.2rem 1.6rem; margin-bottom: 2rem;
+      font-size: .875rem; color: var(--muted); line-height: 1.6;
+    }
+    .info-card strong { color: var(--text); }
+
+    /* Event selector */
+    .section-title { font-size: 1rem; font-weight: 600; margin-bottom: .9rem; color: var(--text); }
+    .event-select-row { display: flex; gap: 12px; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; }
+    select, input[type="number"] {
+      background: var(--card2); border: 1px solid var(--border); color: var(--text);
+      padding: .6rem 1rem; border-radius: 10px; font-size: .9rem; font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    select:focus, input[type="number"]:focus { border-color: var(--primary); }
+    select { min-width: 280px; cursor: pointer; }
+    .btn-load { padding: .6rem 1.4rem; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: 600; font-size: .875rem; cursor: pointer; transition: background .2s; }
+    .btn-load:hover { background: var(--primary-dark); }
+
+    /* Policy editor */
+    .policy-editor { display: none; }
+    .policy-editor.visible { display: block; }
+
+    .toggle-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1.6rem; }
+    .toggle-label { font-size: .9rem; font-weight: 600; }
+    .toggle { position: relative; display: inline-block; width: 48px; height: 26px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 26px; cursor: pointer; transition: .3s; }
+    .toggle-slider::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .3s; }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+    /* Tier cards */
+    .tiers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .btn-add-tier { display: inline-flex; align-items: center; gap: 6px; padding: .5rem 1rem; background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.25); color: var(--primary); border-radius: 9px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: background .2s; }
+    .btn-add-tier:hover { background: rgba(108,99,255,0.22); }
+
+    #tiers-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.6rem; }
+
+    .tier-card {
+      background: var(--card2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.2rem; display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px; align-items: end;
+    }
+    .tier-field label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); display: block; margin-bottom: 6px; }
+    .tier-field input { width: 100%; padding: .55rem .9rem; }
+    .tier-hint { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+    .btn-remove-tier { padding: .5rem .7rem; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: var(--danger); border-radius: 8px; cursor: pointer; font-size: .85rem; align-self: flex-end; transition: background .2s; }
+    .btn-remove-tier:hover { background: rgba(239,68,68,0.1); }
+
+    /* Preview */
+    .preview-section { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 1.8rem; }
+    .preview-section h3 { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: .9rem; }
+    .preview-timeline { display: flex; flex-direction: column; gap: 8px; }
+    .preview-row { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.03); }
+    .preview-row .pct { font-weight: 700; }
+    .pct-full  { color: var(--success); }
+    .pct-part  { color: var(--warning); }
+    .pct-none  { color: var(--danger); }
+
+    .btn-save { width: 100%; padding: .85rem; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: .5rem; }
+    .btn-save:hover { background: var(--primary-dark); }
+    .btn-save:disabled { opacity: .5; cursor: default; }
+
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: .88rem; font-weight: 600; z-index: 9999; animation: toast-in .25s ease; pointer-events: none; }
+    .toast.success { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color: var(--success); }
+    .toast.error   { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); }
+    @keyframes toast-in { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
+
+    .loader { color: var(--muted); font-size: .9rem; padding: 1rem 0; }
+
+    @media (max-width:600px) {
+      .tier-card { grid-template-columns: 1fr; }
+      .event-select-row { flex-direction: column; align-items: stretch; }
+      select { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">TicketVerse Organizer</span>
+  <div class="nav-links">
+    <a href="/organizer-dashboard">Dashboard</a>
+    <a href="/organizer-events">My Events</a>
+    <a href="/organizer-revenue">Revenue</a>
+    <a href="/organizer-cancellation-policy" class="active">Cancellation Policies</a>
+    <button class="btn-logout" id="logoutBtn">Logout</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>⚙️ Cancellation Policies</h1>
+    <p>Define how much refund attendees receive when they cancel before your event.</p>
+  </div>
+
+  <div class="info-card">
+    <strong>How policies work:</strong> Each event can have one cancellation policy made up of <strong>tiers</strong>.
+    Each tier specifies a cutoff time (hours before the event) and the refund percentage users receive.
+    When a user cancels, the system checks how many hours are left until the event and applies the
+    <strong>most generous matching tier</strong>. If no policy is set, cancellations are not allowed.
+  </div>
+
+  <!-- Event Selector -->
+  <div>
+    <div class="section-title">1. Select an event</div>
+    <div class="event-select-row">
+      <select id="event-select">
+        <option value="">— Loading your events… —</option>
+      </select>
+      <button class="btn-load" onclick="loadPolicy()">Load Policy</button>
+    </div>
+  </div>
+
+  <!-- Policy Editor -->
+  <div id="policy-editor" class="policy-editor">
+
+    <div class="section-title">2. Configure cancellation policy</div>
+
+    <!-- Enable / Disable toggle -->
+    <div class="toggle-row">
+      <label class="toggle">
+        <input type="checkbox" id="allow-toggle" checked onchange="toggleAllowed(this)"/>
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label" id="toggle-label">Cancellations Enabled</span>
+    </div>
+
+    <div id="tiers-section">
+      <!-- Tier cards -->
+      <div class="tiers-header">
+        <span class="section-title" style="margin:0">3. Refund tiers</span>
+        <button class="btn-add-tier" onclick="addTier()">＋ Add Tier</button>
+      </div>
+
+      <div id="tiers-container"></div>
+
+      <!-- Live preview -->
+      <div class="preview-section" id="preview-section">
+        <h3>📋 Policy Preview</h3>
+        <div class="preview-timeline" id="preview-timeline"></div>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="savePolicy()">💾 Save Cancellation Policy</button>
+  </div>
+
+  <div id="loader" class="loader" style="display:none;">Loading policy…</div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" style="display:none;"></div>
+
+<script src="/js/api.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const session = await apiRequest("/auth/me", "GET");
+    if (session.role !== "organizer" && session.role !== "admin") {
+      window.location.replace("/");
+      return;
+    }
+    sessionStorage.setItem("userId", String(session.userId));
+    sessionStorage.setItem("role", session.role);
+  } catch (err) {
+    return; // api.js redirects on 401
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+
+  await loadEvents();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD ORGANIZER'S EVENTS
+// ─────────────────────────────────────────────────────────────────────────────
+let _events = [];
+
+async function loadEvents() {
+  try {
+    _events = await apiRequest("/organizer/events", "GET", null, true);
+    const sel = document.getElementById("event-select");
+    sel.innerHTML = `<option value="">— Select an event —</option>`;
+
+    if (!_events.length) {
+      sel.innerHTML = `<option value="">No events found. Create an event first.</option>`;
+      return;
+    }
+
+    _events.forEach(e => {
+      const opt = document.createElement("option");
+      opt.value = e.id;
+      const dt = new Date(e.event_date).toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", year: "numeric"
+      });
+      opt.textContent = `${e.title} — ${dt}`;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    showToast("Could not load events: " + err.message, "error");
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD POLICY FOR SELECTED EVENT
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadPolicy() {
+  const eventId = document.getElementById("event-select").value;
+  if (!eventId) { showToast("Please select an event first.", "error"); return; }
+
+  const loader = document.getElementById("loader");
+  const editor = document.getElementById("policy-editor");
+  loader.style.display = "block";
+  editor.classList.remove("visible");
+
+  try {
+    const data = await apiRequest(`/cancellations/policy/${eventId}`, "GET", null, true);
+
+    // Toggle
+    const allowToggle = document.getElementById("allow-toggle");
+    allowToggle.checked = data.is_cancellation_allowed !== false;
+    updateToggleLabel(allowToggle.checked);
+
+    // Tiers
+    document.getElementById("tiers-container").innerHTML = "";
+    const tiers = (data.exists && data.tiers && data.tiers.length)
+      ? data.tiers
+      : [
+          { hours_before: 72, refund_percent: 100 },
+          { hours_before: 24, refund_percent: 50  },
+          { hours_before: 0,  refund_percent: 0   },
+        ];
+
+    tiers.forEach(t => addTier(t.hours_before, t.refund_percent));
+    updatePreview();
+
+    loader.style.display = "none";
+    editor.classList.add("visible");
+  } catch (err) {
+    loader.style.display = "none";
+    showToast("Error loading policy: " + err.message, "error");
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TIER MANAGEMENT
+// ─────────────────────────────────────────────────────────────────────────────
+let _tierCount = 0;
+
+function addTier(hours = 48, pct = 100) {
+  _tierCount++;
+  const id = `tier-${_tierCount}`;
+  const container = document.getElementById("tiers-container");
+
+  const card = document.createElement("div");
+  card.className = "tier-card";
+  card.id = id;
+  card.innerHTML = `
+    <div class="tier-field">
+      <label>Hours before event ⏰</label>
+      <input type="number" class="tier-hours" min="0" value="${hours}" oninput="updatePreview()" placeholder="e.g. 48"/>
+      <div class="tier-hint">If this many hours remain → apply refund below</div>
+    </div>
+    <div class="tier-field">
+      <label>Refund % 💸</label>
+      <input type="number" class="tier-pct" min="0" max="100" value="${pct}" oninput="updatePreview()" placeholder="0–100"/>
+      <div class="tier-hint">% of total amount refunded to user</div>
+    </div>
+    <button class="btn-remove-tier" onclick="removeTier('${id}')">🗑</button>`;
+
+  container.appendChild(card);
+  updatePreview();
+}
+
+function removeTier(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  updatePreview();
+}
+
+function getTiers() {
+  const cards = document.querySelectorAll("#tiers-container .tier-card");
+  const tiers = [];
+  cards.forEach(card => {
+    const h = parseFloat(card.querySelector(".tier-hours").value);
+    const p = parseFloat(card.querySelector(".tier-pct").value);
+    if (!isNaN(h) && !isNaN(p)) {
+      tiers.push({ hours_before: h, refund_percent: p });
+    }
+  });
+  return tiers;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LIVE PREVIEW
+// ─────────────────────────────────────────────────────────────────────────────
+function updatePreview() {
+  const tiers = getTiers();
+  const timeline = document.getElementById("preview-timeline");
+  timeline.innerHTML = "";
+
+  if (!tiers.length) {
+    timeline.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">Add tiers to see preview.</p>`;
+    return;
+  }
+
+  // Sort by hours_before descending for display
+  const sorted = [...tiers].sort((a, b) => b.hours_before - a.hours_before);
+
+  sorted.forEach((tier, i) => {
+    const nextTier = sorted[i + 1];
+    let rangeLabel;
+    if (i === 0) {
+      rangeLabel = `${tier.hours_before}+ hours before event`;
+    } else if (nextTier) {
+      rangeLabel = `${nextTier.hours_before}h – ${tier.hours_before}h before event`;
+    } else {
+      rangeLabel = `Under ${tier.hours_before} hours before event`;
+    }
+
+    const pctClass = tier.refund_percent === 100 ? "pct-full"
+                   : tier.refund_percent === 0   ? "pct-none"
+                   : "pct-part";
+
+    const row = document.createElement("div");
+    row.className = "preview-row";
+    row.innerHTML = `<span>${rangeLabel}</span><span class="pct ${pctClass}">${tier.refund_percent}% refund</span>`;
+    timeline.appendChild(row);
+  });
+
+  // No match = no refund
+  const minHours = Math.min(...sorted.map(t => t.hours_before));
+  if (minHours > 0) {
+    const row = document.createElement("div");
+    row.className = "preview-row";
+    row.innerHTML = `<span>Less than ${minHours} hours (or event passed)</span><span class="pct pct-none">0% refund</span>`;
+    timeline.appendChild(row);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOGGLE
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleAllowed(checkbox) {
+  updateToggleLabel(checkbox.checked);
+  document.getElementById("tiers-section").style.opacity = checkbox.checked ? "1" : "0.4";
+  document.getElementById("tiers-section").style.pointerEvents = checkbox.checked ? "auto" : "none";
+}
+
+function updateToggleLabel(checked) {
+  document.getElementById("toggle-label").textContent = checked
+    ? "Cancellations Enabled"
+    : "Cancellations Disabled";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAVE
+// ─────────────────────────────────────────────────────────────────────────────
+async function savePolicy() {
+  const eventId = document.getElementById("event-select").value;
+  if (!eventId) { showToast("Select an event first.", "error"); return; }
+
+  const isCancellationAllowed = document.getElementById("allow-toggle").checked;
+  const tiers = getTiers();
+
+  if (isCancellationAllowed && tiers.length === 0) {
+    showToast("Add at least one refund tier.", "error");
+    return;
+  }
+
+  // Validate: refund_percent in 0–100
+  for (const t of tiers) {
+    if (t.refund_percent < 0 || t.refund_percent > 100) {
+      showToast("Refund % must be between 0 and 100.", "error");
+      return;
+    }
+    if (t.hours_before < 0) {
+      showToast("Hours before event cannot be negative.", "error");
+      return;
+    }
+  }
+
+  const btn = document.querySelector(".btn-save");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try {
+    await apiRequest(`/cancellations/policy/${eventId}`, "PUT", {
+      tiers,
+      is_cancellation_allowed: isCancellationAllowed,
+    }, true);
+
+    showToast("✅ Cancellation policy saved!", "success");
+  } catch (err) {
+    showToast("Save failed: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "💾 Save Cancellation Policy";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+function showToast(msg, type = "success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `toast ${type}`;
+  el.style.display = "block";
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = "none"; }, 3500);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOGOUT
+// ─────────────────────────────────────────────────────────────────────────────
+function logout() {
+  const userId = sessionStorage.getItem("userId");
+  if (window._authChannel && userId) {
+    window._authChannel.postMessage({ type: "LOGOUT", userId });
+  }
+  fetch("/auth/logout", { method: "POST", credentials: "include" })
+    .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
+}
+</script>
+<script src="/js/auth-channel.js"></script>
+</body>
+</html>

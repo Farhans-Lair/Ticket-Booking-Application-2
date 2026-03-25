@@ -23,10 +23,18 @@ OrganizerProfile.belongsTo(User,         { foreignKey: "user_id" });
 User.hasMany(Event,      { foreignKey: "organizer_id", as: "OrganizerEvents" });
 Event.belongsTo(User,    { foreignKey: "organizer_id", as: "Organizer" });
 
+// ── Cancellation Policy relationships ───────────────────────
+// Each event has at most one cancellation policy
+Event.hasOne(CancellationPolicy,            { foreignKey: "event_id", as: "CancellationPolicy" });
+CancellationPolicy.belongsTo(Event,         { foreignKey: "event_id" });
+CancellationPolicy.belongsTo(User,          { foreignKey: "organizer_id", as: "Organizer" });
+
+
 module.exports = {
   User,
   Event,
   Booking,
   Seat,
   OrganizerProfile,
+  CancellationPolicy,
 };

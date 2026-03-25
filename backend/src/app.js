@@ -17,6 +17,7 @@ const adminRoutes       = require("./routes/admin.routes");
 const paymentRoutes     = require("./routes/payment.routes");
 const seatRoutes        = require("./routes/seat.routes");
 const organizerRoutes   = require("./routes/organizer.routes");   // ← NEW
+const cancellationRoutes = require("./routes/cancellation.routes"); // ← CANCELLATION
 const errorHandler      = require("./middleware/error.middleware");
 
 const app = express();
@@ -139,6 +140,8 @@ app.use("/payments",   paymentLimiter, paymentRoutes);
 app.use("/seats",      globalLimiter,  seatRoutes);
 app.use("/api",        globalLimiter,  revenueRoutes);
 app.use("/organizer",  globalLimiter,  organizerRoutes);   // ← NEW
+app.use("/cancellations",  globalLimiter,  cancellationRoutes); // ← CANCELLATION
+
 
 /* =====================================================
    HTML Page Routes (auth enforced client-side)
@@ -175,6 +178,10 @@ app.get("/organizer-events", (req, res) =>
 );
 app.get("/organizer-revenue", (req, res) =>
   res.sendFile(path.join(__dirname, "../../frontend/organizer-revenue.html"))
+);
+
+app.get("/organizer-cancellation-policy", (req, res) =>
+  res.sendFile(path.join(__dirname, "../../frontend/organizer-cancellation-policy.html"))
 );
 
 // Admin pages

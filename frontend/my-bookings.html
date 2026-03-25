@@ -102,6 +102,33 @@
     .download-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:11px; background:linear-gradient(135deg,var(--green),#3bb78f); color:#0a0a14; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; text-decoration:none; cursor:pointer; border:none; transition:transform 0.15s, box-shadow 0.2s; box-shadow:0 4px 16px rgba(66,230,149,0.25); }
     .download-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(66,230,149,0.38); }
 
+    /* Cancel button */
+    .cancel-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:11px; background:transparent; border:1.5px solid var(--red); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; margin-left:10px; }
+    .cancel-btn:hover { background:rgba(247,74,106,0.1); transform:translateY(-2px); }
+    .cancelled-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(247,74,106,0.08); border:1px solid rgba(247,74,106,0.2); color:var(--red); font-size:0.82rem; font-weight:600; }
+    .refunded-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.2); color:var(--accent); font-size:0.82rem; font-weight:600; }
+    .refund-pending-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(255,159,67,0.1); border:1px solid rgba(255,159,67,0.2); color:var(--orange); font-size:0.82rem; font-weight:600; }
+
+    /* Cancel modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .modal-box { background:#13132a; border:1px solid var(--border); border-radius:20px; padding:32px; max-width:440px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.5); animation:modal-in 0.25s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes modal-in { from{opacity:0;transform:scale(0.94)translateY(12px);}to{opacity:1;transform:scale(1)translateY(0);} }
+    .modal-box h2 { font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:6px; }
+    .modal-box p { color:var(--muted); font-size:0.9rem; margin-bottom:20px; }
+    .refund-box { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:16px 20px; margin-bottom:22px; }
+    .refund-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.88rem; color:var(--muted); }
+    .refund-row:last-child { margin-bottom:0; font-size:1rem; font-weight:700; color:var(--text); padding-top:10px; border-top:1px solid var(--border); }
+    .refund-row span.hi { color:var(--gold); }
+    .modal-actions { display:flex; gap:12px; }
+    .btn-confirm-cancel { flex:1; padding:13px; border-radius:11px; background:var(--red); color:#fff; font-weight:700; font-family:'DM Sans',sans-serif; font-size:0.9rem; border:none; cursor:pointer; transition:opacity 0.2s; }
+    .btn-confirm-cancel:hover { opacity:0.85; }
+    .btn-keep { flex:1; padding:13px; border-radius:11px; background:var(--card); border:1px solid var(--border); color:var(--muted); font-weight:600; font-family:'DM Sans',sans-serif; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+    .btn-keep:hover { color:var(--text); border-color:rgba(255,255,255,0.15); }
+    .policy-tiers { margin-bottom:16px; }
+    .policy-tier-row { display:flex; justify-content:space-between; font-size:0.82rem; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--muted); }
+    .policy-tier-row:last-child { border-bottom:none; }
+    .policy-tier-row strong { color:var(--text); }
+
     .empty-state { text-align:center; padding:80px 20px; }
     .empty-state .emoji { font-size:3.5rem; margin-bottom:16px; }
     .empty-state h3 { font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:8px; }
@@ -270,8 +297,31 @@ function renderBookings(bookings, container) {
       ? `<div class="booking-main-img"><img src="${mainImg}" alt="${b.Event.title}" loading="lazy"/></div>`
       : `<div class="booking-main-img"><div class="no-img"><span>🎟️</span>No event image</div></div>`;
 
+    // ── Cancellation status footer ───────────────────────────────────────────
+    const cancStatus = b.cancellation_status || "active";
+
+    let actionHTML = "";
+    if (b.payment_status === "paid") {
+      if (cancStatus === "active") {
+        actionHTML = `
+          <a href="/bookings/${b.id}/download-ticket"
+             onclick="downloadTicket(event,${b.id})"
+             class="download-btn">⬇ Download Ticket PDF</a>
+          <button class="cancel-btn" onclick="openCancelModal(${b.id}, '${b.Event.title}')">✕ Cancel Booking</button>`;
+      } else if (cancStatus === "cancelled") {
+        actionHTML = `<span class="cancelled-badge">✕ Cancelled — no refund</span>`;
+      } else if (cancStatus === "refund_pending") {
+        const refundAmt = b.refund_amount ? `₹${parseFloat(b.refund_amount).toFixed(2)}` : "";
+        actionHTML = `<span class="refund-pending-badge">⏳ Refund of ${refundAmt} processing…</span>`;
+      } else if (cancStatus === "refunded") {
+        const refundAmt = b.refund_amount ? `₹${parseFloat(b.refund_amount).toFixed(2)}` : "";
+        actionHTML = `<span class="refunded-badge">✓ Refunded ${refundAmt}</span>`;
+      }
+    }
+
     const card = document.createElement("div");
     card.className = `booking-card status-${statusClass}`;
+    card.id = `booking-card-${b.id}`;
     card.style.animationDelay = `${i * 0.07}s`;
 
     card.innerHTML = `
@@ -299,10 +349,9 @@ function renderBookings(bookings, container) {
         </div>` : ''}
         ${b.razorpay_payment_id && b.razorpay_payment_id !== 'N/A'
           ? `<div class="payment-id">Payment ID: ${b.razorpay_payment_id}</div>` : ''}
-        ${b.payment_status === "paid" ? `
-        <a href="/bookings/${b.id}/download-ticket"
-           onclick="downloadTicket(event,${b.id})"
-           class="download-btn">⬇ Download Ticket PDF</a>` : ''}
+        <div class="card-actions" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          ${actionHTML}
+        </div>
       </div>`;
 
     container.appendChild(card);
@@ -341,6 +390,164 @@ function logout() {
     .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 }
 </script>
+<!-- ═══════════════════════════════════════════════════════ CANCEL MODAL -->
+<div id="cancel-modal" style="display:none;" class="modal-backdrop" onclick="closeCancelModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2>Cancel Booking</h2>
+    <p id="modal-event-name" style="color:var(--text);font-weight:600;margin-bottom:4px;"></p>
+    <p id="modal-loading">Loading refund details…</p>
+
+    <div id="modal-policy-section" style="display:none;">
+      <div id="modal-no-cancel" style="display:none;margin-bottom:18px;">
+        <div style="background:rgba(247,74,106,0.08);border:1px solid rgba(247,74,106,0.2);border-radius:10px;padding:14px 16px;color:var(--red);font-size:0.88rem;">
+          ⛔ <strong>Cancellation not available</strong>
+          <p id="modal-no-cancel-reason" style="margin-top:6px;color:var(--muted);font-size:0.83rem;"></p>
+        </div>
+      </div>
+
+      <div id="modal-refund-section" style="display:none;">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;">Refund Policy Tiers</div>
+        <div id="modal-policy-tiers" class="policy-tiers"></div>
+        <div class="refund-box">
+          <div class="refund-row"><span>Total Paid</span><span id="modal-total-paid">—</span></div>
+          <div class="refund-row"><span>Refund %</span><span id="modal-refund-pct">—</span></div>
+          <div class="refund-row"><span>You will receive</span><span class="hi" id="modal-refund-amt">—</span></div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;">
+          ⚠️ This action is <strong style="color:var(--text);">irreversible</strong>. The refund will be credited to your original payment method within 5–7 business days.
+        </p>
+      </div>
+
+      <div class="modal-actions" id="modal-actions">
+        <button class="btn-keep" onclick="closeCancelModal()">Keep Booking</button>
+        <button class="btn-confirm-cancel" id="modal-confirm-btn" onclick="confirmCancellation()" style="display:none;">Yes, Cancel & Refund</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _cancelBookingId = null;
+let _cancelPreview   = null;
+
+async function openCancelModal(bookingId, eventTitle) {
+  _cancelBookingId = bookingId;
+  _cancelPreview   = null;
+
+  document.getElementById("modal-event-name").textContent  = eventTitle;
+  document.getElementById("modal-loading").style.display   = "block";
+  document.getElementById("modal-policy-section").style.display = "none";
+  document.getElementById("cancel-modal").style.display    = "flex";
+  document.getElementById("modal-confirm-btn").style.display = "none";
+
+  try {
+    const tabToken = sessionStorage.getItem("token");
+    const resp = await fetch(`/cancellations/preview/${bookingId}`, {
+      credentials: "include",
+      headers: tabToken ? { "Authorization": `Bearer ${tabToken}` } : {}
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Preview failed");
+
+    _cancelPreview = data;
+
+    document.getElementById("modal-loading").style.display = "none";
+    document.getElementById("modal-policy-section").style.display = "block";
+
+    if (!data.cancellationAllowed) {
+      document.getElementById("modal-no-cancel").style.display = "block";
+      document.getElementById("modal-refund-section").style.display = "none";
+      document.getElementById("modal-no-cancel-reason").textContent = data.reason || "";
+      document.getElementById("modal-confirm-btn").style.display = "none";
+    } else {
+      document.getElementById("modal-no-cancel").style.display = "none";
+      document.getElementById("modal-refund-section").style.display = "block";
+      document.getElementById("modal-confirm-btn").style.display = "block";
+
+      // Populate policy tiers
+      const tiersEl = document.getElementById("modal-policy-tiers");
+      tiersEl.innerHTML = "";
+      if (data.policy && data.policy.length) {
+        const sorted = [...data.policy].sort((a, b) => b.hours_before - a.hours_before);
+        sorted.forEach(tier => {
+          const row = document.createElement("div");
+          row.className = "policy-tier-row";
+          const label = tier.hours_before === 0
+            ? "Less than 1 hour before"
+            : `${tier.hours_before}+ hours before event`;
+          row.innerHTML = `<span>${label}</span><strong style="color:${tier.refund_percent===100?'var(--green)':tier.refund_percent===0?'var(--red)':'var(--orange)'}">${tier.refund_percent}% refund</strong>`;
+          tiersEl.appendChild(row);
+        });
+      } else {
+        tiersEl.innerHTML = `<p style="color:var(--muted);font-size:0.82rem;">No tiers configured</p>`;
+      }
+
+      document.getElementById("modal-total-paid").textContent  = `₹${parseFloat(data.totalPaid).toFixed(2)}`;
+      document.getElementById("modal-refund-pct").textContent  = `${data.refundPercent}%`;
+      document.getElementById("modal-refund-amt").textContent  = `₹${parseFloat(data.refundAmount).toFixed(2)}`;
+    }
+  } catch (err) {
+    document.getElementById("modal-loading").textContent = "Error: " + err.message;
+  }
+}
+
+function closeCancelModal(e) {
+  if (e && e.target !== document.getElementById("cancel-modal")) return;
+  document.getElementById("cancel-modal").style.display = "none";
+  _cancelBookingId = null;
+  _cancelPreview   = null;
+}
+
+async function confirmCancellation() {
+  if (!_cancelBookingId) return;
+
+  const btn = document.getElementById("modal-confirm-btn");
+  btn.disabled = true;
+  btn.textContent = "Cancelling…";
+
+  try {
+    const tabToken = sessionStorage.getItem("token");
+    const resp = await fetch(`/cancellations/${_cancelBookingId}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(tabToken ? { "Authorization": `Bearer ${tabToken}` } : {})
+      }
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Cancellation failed");
+
+    document.getElementById("cancel-modal").style.display = "none";
+
+    // Update the card in-place without full page reload
+    const card = document.getElementById(`booking-card-${_cancelBookingId}`);
+    if (card) {
+      const actionsEl = card.querySelector(".card-actions");
+      if (actionsEl) {
+        if (data.cancellationStatus === "refund_pending") {
+          actionsEl.innerHTML = `<span class="refund-pending-badge">⏳ Refund of ₹${parseFloat(data.refundAmount).toFixed(2)} processing…</span>`;
+        } else {
+          actionsEl.innerHTML = `<span class="cancelled-badge">✕ Cancelled — ₹${parseFloat(data.refundAmount).toFixed(2)} refund initiated</span>`;
+        }
+      }
+    }
+
+    // Invalidate cache so next load is fresh
+    const cacheKey = 'bookingsCache_' + (sessionStorage.getItem('userId') || 'unknown');
+    sessionStorage.removeItem(cacheKey);
+
+    _cancelBookingId = null;
+    _cancelPreview   = null;
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Yes, Cancel & Refund";
+    alert("Cancellation failed: " + err.message);
+  }
+}
+</script>
+
 <script src="/js/auth-channel.js"></script>
 </body>
 </html>
+  

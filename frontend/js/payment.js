@@ -38,7 +38,7 @@ function renderSummary(breakdown) {
       <tr><td>Tickets</td><td>${breakdown.tickets_booked}</td></tr>${seatsHtml}
       <tr><td>Ticket Amount</td><td>₹${breakdown.ticket_amount.toFixed(2)}</td></tr>
       <tr><td>Convenience Fee</td><td>₹${breakdown.convenience_fee.toFixed(2)}</td></tr>
-      <tr><td>GST (18%)</td><td>₹${breakdown.gst_amount.toFixed(2)}</td></tr>
+      <tr><td>GST (9%)</td><td>₹${breakdown.gst_amount.toFixed(2)}</td></tr>
       <tr class="total-row"><td><strong>Total Payable</strong></td><td><strong>₹${breakdown.total_paid.toFixed(2)}</strong></td></tr>
     </table>
   `;

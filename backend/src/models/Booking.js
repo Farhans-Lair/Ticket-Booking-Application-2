@@ -59,6 +59,30 @@ payment_status: { type: DataTypes.ENUM('pending', 'paid', 'failed'),
   defaultValue: 'pending',
 }, 
 
+cancellation_status: {
+  type: DataTypes.ENUM('active', 'cancelled', 'refund_pending', 'refunded'),
+  allowNull: false,
+  defaultValue: 'active',
+},
+
+refund_amount: {
+  type: DataTypes.FLOAT,
+  allowNull: true,
+  defaultValue: null,
+},
+
+razorpay_refund_id: {
+  type: DataTypes.STRING,
+  allowNull: true,
+  defaultValue: null,
+},
+
+cancelled_at: {
+  type: DataTypes.DATE,
+  allowNull: true,
+  defaultValue: null,
+},
+
 /**
    * S3 object key for the generated ticket PDF.
    * e.g.  "tickets/booking-42-user-7.pdf"

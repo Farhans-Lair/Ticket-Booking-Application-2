@@ -51,7 +51,30 @@ const bookSeats = async (eventId, seatNumbers, transaction) => {
   return seats;
 };
 
+/*
+====================================================
+ RELEASE SEATS BACK TO AVAILABLE
+ Called when a booking is cancelled.
+ Sets the specified seats back to 'available'.
+====================================================
+*/
+const releaseSeats = async (eventId, seatNumbers, transaction) => {
+  if (!seatNumbers || seatNumbers.length === 0) return;
+
+  await Seat.update(
+    { status: "available" },
+    {
+      where: {
+        event_id: eventId,
+        seat_number: seatNumbers,
+      },
+      transaction,
+    }
+  );
+};
+
 module.exports = {
   getSeatsByEvent,
   bookSeats,
+  releaseSeats,
 };
