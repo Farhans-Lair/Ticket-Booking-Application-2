@@ -3,6 +3,8 @@ const Event            = require("./Event");
 const Booking          = require("./Booking");
 const Seat             = require("./Seat");
 const OrganizerProfile = require("./OrganizerProfile");
+const CancellationPolicy  = require("./CancellationPolicy");
+
 
 // ── Core booking relationships ──────────────────────────────
 Event.hasMany(Booking,   { foreignKey: "event_id" });
