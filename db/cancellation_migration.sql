@@ -54,3 +54,17 @@ ALTER TABLE bookings
   ADD COLUMN cancelled_at
     TIMESTAMP DEFAULT NULL
     AFTER razorpay_refund_id;
+
+
+-- ── 3. Cancellation fee tracking columns (added in v2) ───────────────────────
+--
+-- cancellation_fee     : 5% of (ticket_amount + convenience_fee), excl. GST
+-- cancellation_fee_gst : 5% GST charged on the cancellation_fee
+-- applied_tier_hours   : the hours_before value of the matched policy tier.
+--                        Used by revenue dashboard to determine whether
+--                        convenience_fee was retained (< 72) or refunded (≥ 72).
+-- ─────────────────────────────────────────────────────────────────────────────
+ALTER TABLE bookings
+  ADD COLUMN cancellation_fee      FLOAT   DEFAULT NULL AFTER cancelled_at,
+  ADD COLUMN cancellation_fee_gst  FLOAT   DEFAULT NULL AFTER cancellation_fee,
+  ADD COLUMN applied_tier_hours    INT     DEFAULT NULL AFTER cancellation_fee_gst;

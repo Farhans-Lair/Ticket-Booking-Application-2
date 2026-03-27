@@ -84,6 +84,37 @@ cancelled_at: {
 },
 
 /**
+ * 5% of (ticket_amount + convenience_fee), exclusive of GST.
+ * Charged on every cancellation regardless of tier.
+ */
+cancellation_fee: {
+  type: DataTypes.FLOAT,
+  allowNull: true,
+  defaultValue: null,
+},
+
+/**
+ * 5% GST levied on the cancellation_fee.
+ */
+cancellation_fee_gst: {
+  type: DataTypes.FLOAT,
+  allowNull: true,
+  defaultValue: null,
+},
+
+/**
+ * The hours_before value of the matched policy tier at cancellation time.
+ * ≥ 72 → high tier: convenience fee refunded, only cancellation charges retained.
+ *  < 72 → low tier : convenience fee retained by platform.
+ */
+applied_tier_hours: {
+  type: DataTypes.INTEGER,
+  allowNull: true,
+  defaultValue: null,
+},
+
+
+/**
    * S3 object key for the generated ticket PDF.
    * e.g.  "tickets/booking-42-user-7.pdf"
    * NULL  → PDF was never uploaded (fallback: generate on-the-fly on download).

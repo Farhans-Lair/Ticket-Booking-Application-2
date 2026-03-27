@@ -1,5 +1,5 @@
-const { Op }           = require("sequelize");
 const { OrganizerProfile, User, Event, Booking } = require("../models");
+const { getEffectiveRevenue } = require("./cancellation.services");
 
 // ─────────────────────────────────────────────────────────────
 // PROFILE
@@ -62,19 +62,35 @@ const getOrganizerRevenue = async (organizerId) => {
         where: { payment_status: "paid" },
         required: false,
         attributes: [
-          "id",
-          "tickets_booked",
-          "ticket_amount",
-          "convenience_fee",
-          "gst_amount",
-          "total_paid",
-          "booking_date",
+          "id", "tickets_booked", "ticket_amount", "convenience_fee",
+          "gst_amount", "total_paid", "payment_status", "cancellation_status",
+          "refund_amount", "cancellation_fee", "cancellation_fee_gst",
+          "applied_tier_hours", "booking_date",
         ],
       },
     ],
   });
 
-  return events.filter((e) => e.Bookings && e.Bookings.length > 0);
+  return events
+    .filter(e => e.Bookings && e.Bookings.length > 0)
+    .map(event => {
+      const enrichedBookings = event.Bookings.map(b => {
+        const eff = getEffectiveRevenue(b);
+        return { ...b.toJSON(), ...eff };
+      });
+
+      const eventTotals = enrichedBookings.reduce((acc, b) => {
+        acc.effective_ticket       += b.effective_ticket;
+        acc.effective_conv         += b.effective_conv;
+        acc.effective_gst          += b.effective_gst;
+        acc.effective_cancellation += b.effective_cancellation;
+        acc.effective_total        += b.effective_total;
+        acc.tickets_sold           += b.tickets_booked;
+        return acc;
+      }, { effective_ticket: 0, effective_conv: 0, effective_gst: 0, effective_cancellation: 0, effective_total: 0, tickets_sold: 0 });
+
+      return { ...event.toJSON(), Bookings: enrichedBookings, eventTotals };
+    });
 };
 
 /**
@@ -88,28 +104,33 @@ const getOrganizerStats = async (organizerId) => {
         model: Booking,
         where: { payment_status: "paid" },
         required: false,
-        attributes: ["tickets_booked", "total_paid"],
+        attributes: [
+          "tickets_booked", "ticket_amount", "convenience_fee", "gst_amount",
+          "total_paid", "cancellation_status", "refund_amount",
+          "cancellation_fee", "cancellation_fee_gst", "applied_tier_hours",
+        ],
       },
     ],
   });
 
-  let totalRevenue   = 0;
-  let totalTickets   = 0;
-  let totalBookings  = 0;
+  let totalRevenue  = 0;
+  let totalTickets  = 0;
+  let totalBookings = 0;
 
-  events.forEach((event) => {
-    (event.Bookings || []).forEach((b) => {
-      totalRevenue  += b.total_paid    || 0;
-      totalTickets  += b.tickets_booked || 0;
+  events.forEach(event => {
+    (event.Bookings || []).forEach(b => {
+      const eff = getEffectiveRevenue(b);
+      totalRevenue  += eff.effective_total;
+      totalTickets  += b.tickets_booked;
       totalBookings += 1;
     });
   });
 
   return {
-    totalEvents:   events.length,
+    totalEvents:      events.length,
     totalBookings,
     totalTicketsSold: totalTickets,
-    totalRevenue:  parseFloat(totalRevenue.toFixed(2)),
+    totalRevenue:     parseFloat(totalRevenue.toFixed(2)),
   };
 };
 

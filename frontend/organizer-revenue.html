@@ -110,7 +110,7 @@
 
   async function loadRevenue() {
     try {
-      const res   = await fetch("/organizer/revenue", { headers });
+      const res    = await fetch("/organizer/revenue", { headers });
       if (res.status === 401) { window.location.href = "/"; return; }
       const events = await res.json();
 
@@ -120,21 +120,19 @@
             <div class="icon">💰</div>
             <p>No paid bookings yet. Revenue will appear here once tickets are sold.</p>
           </div>`;
-        // Zero out summary
         ["sumEvents","sumBookings","sumTickets","sumRevenue"].forEach(id =>
           document.getElementById(id).textContent = id === "sumRevenue" ? "₹0" : "0"
         );
         return;
       }
 
-      // Compute summary totals
+      // Summary totals — use effective (post-cancellation) revenue
       let totalRevenue = 0, totalBookings = 0, totalTickets = 0;
       events.forEach(ev => {
-        (ev.Bookings || []).forEach(b => {
-          totalRevenue  += b.total_paid        || 0;
-          totalBookings += 1;
-          totalTickets  += b.tickets_booked    || 0;
-        });
+        const et = ev.eventTotals || {};
+        totalRevenue  += et.effective_total || 0;
+        totalBookings += (ev.Bookings || []).length;
+        totalTickets  += et.tickets_sold    || 0;
       });
 
       document.getElementById("sumEvents").textContent   = events.length;
@@ -144,10 +142,11 @@
 
       // Per-event cards
       document.getElementById("revenueList").innerHTML = events.map((ev, i) => {
-        const bookings    = ev.Bookings || [];
-        const evRevenue   = bookings.reduce((s, b) => s + (b.total_paid || 0), 0);
-        const evTickets   = bookings.reduce((s, b) => s + (b.tickets_booked || 0), 0);
-        const evDate      = new Date(ev.event_date).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+        const bookings = ev.Bookings   || [];
+        const et       = ev.eventTotals || {};
+        const evDate   = new Date(ev.event_date).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+        const netRev   = (et.effective_total || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+        const hasCancellations = bookings.some(b => b.is_cancelled);
 
         return `
           <div class="event-card">
@@ -158,36 +157,57 @@
               </div>
               <div style="display:flex;align-items:center;gap:1.5rem;">
                 <div class="event-totals">
-                  <div class="event-revenue">₹${evRevenue.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</div>
-                  <div class="event-tickets">${evTickets} ticket(s) sold · ${bookings.length} booking(s)</div>
+                  <div class="event-revenue">₹${netRev}</div>
+                  <div class="event-tickets">${et.tickets_sold||0} ticket(s) · ${bookings.length} booking(s)${hasCancellations ? " · <span style=\'color:var(--danger);\'>some cancelled</span>" : ""}</div>
                 </div>
                 <span class="chevron" id="chevron-${i}">▼</span>
               </div>
             </div>
             <div class="bookings-table-wrap" id="bookings-${i}">
+              <!-- Fee summary strip -->
+              <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:.9rem 1.5rem;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);font-size:.8rem;">
+                <span style="color:var(--muted);">Ticket Rev: <strong style="color:var(--text)">₹${(et.effective_ticket||0).toFixed(2)}</strong></span>
+                <span style="color:var(--muted);">Conv. Fee: <strong style="color:var(--warning)">₹${(et.effective_conv||0).toFixed(2)}</strong></span>
+                <span style="color:var(--muted);">GST: <strong style="color:var(--text)">₹${(et.effective_gst||0).toFixed(2)}</strong></span>
+                <span style="color:var(--muted);">Canc. Fees: <strong style="color:var(--danger)">₹${(et.effective_cancellation||0).toFixed(2)}</strong></span>
+                <span style="color:var(--muted);">Net: <strong style="color:var(--success)">₹${(et.effective_total||0).toFixed(2)}</strong></span>
+              </div>
               <table>
                 <thead>
                   <tr>
                     <th>Booking #</th>
                     <th>Tickets</th>
-                    <th>Ticket Amount</th>
+                    <th>Ticket Rev.</th>
                     <th>Conv. Fee</th>
                     <th>GST</th>
-                    <th>Total Paid</th>
+                    <th>Canc. Fee+GST</th>
+                    <th>Net</th>
+                    <th>Status</th>
                     <th>Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${bookings.map(b => `
-                    <tr>
+                  ${bookings.map(b => {
+                    const cancCharge  = b.is_cancelled ? ((b.cancellation_fee||0)+(b.cancellation_fee_gst||0)) : 0;
+                    const statusText  = b.cancellation_status === "refunded"       ? "Refunded"
+                                      : b.cancellation_status === "refund_pending" ? "Refund Pending"
+                                      : b.cancellation_status === "cancelled"      ? "Cancelled"
+                                      : "Active";
+                    const statusColor = b.is_cancelled ? "var(--danger)" : "var(--success)";
+                    return `<tr>
                       <td>#${b.id}</td>
                       <td>${b.tickets_booked}</td>
-                      <td>₹${Number(b.ticket_amount).toLocaleString("en-IN")}</td>
-                      <td>₹${Number(b.convenience_fee).toLocaleString("en-IN")}</td>
-                      <td>₹${Number(b.gst_amount).toLocaleString("en-IN")}</td>
-                      <td style="font-weight:700;color:var(--success)">₹${Number(b.total_paid).toLocaleString("en-IN")}</td>
-                      <td>${new Date(b.booking_date).toLocaleDateString("en-IN")}</td>
-                    </tr>`).join("")}
+                      <td>₹${(b.effective_ticket||0).toFixed(2)}</td>
+                      <td style="color:var(--warning)">₹${(b.effective_conv||0).toFixed(2)}</td>
+                      <td>₹${(b.effective_gst||0).toFixed(2)}</td>
+                      <td style="color:${b.is_cancelled ? "var(--danger)" : "var(--muted)"}">
+                        ${b.is_cancelled ? "-₹"+cancCharge.toFixed(2) : "—"}
+                      </td>
+                      <td style="font-weight:700;color:var(--success)">₹${(b.effective_total||0).toFixed(2)}</td>
+                      <td><span style="padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700;background:${b.is_cancelled?"rgba(239,68,68,0.1)":"rgba(34,197,94,0.1)"};color:${statusColor};">${statusText}</span></td>
+                      <td style="color:var(--muted)">${new Date(b.booking_date).toLocaleDateString("en-IN")}</td>
+                    </tr>`;
+                  }).join("")}
                 </tbody>
               </table>
             </div>

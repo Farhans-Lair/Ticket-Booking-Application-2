@@ -4,6 +4,12 @@ const { Booking, Event, CancellationPolicy } = require("../models");
 const seatService = require("./seat.services");
 const logger = require("../config/logger");
 
+
+const CANCELLATION_FEE_RATE     = 0.05;
+const CANCELLATION_FEE_GST_RATE = 0.05;
+const HIGH_TIER_CUTOFF_HOURS    = 72;
+
+
 // ──────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ──────────────────────────────────────────────────────────────────────────────
@@ -11,6 +17,7 @@ const logger = require("../config/logger");
 const getRazorpayInstance = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     throw new Error("Razorpay credentials missing.");
+    
   }
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID.trim(),
@@ -18,326 +25,213 @@ const getRazorpayInstance = () => {
   });
 };
 
-/**
- * Given a list of tiers (sorted by hours_before DESC) and the hours
- * remaining until the event, return the applicable refund percentage.
- *
- * Tiers example:
- *   [{ hours_before: 72, refund_percent: 100 },
- *    { hours_before: 24, refund_percent: 50  },
- *    { hours_before: 0,  refund_percent: 0   }]
- *
- * Logic: walk tiers from highest hours_before to lowest.
- * Return refund_percent of the first tier where hoursUntilEvent >= hours_before.
- */
-const computeRefundPercent = (tiers, hoursUntilEvent) => {
-  // Sort descending by hours_before so we pick the most generous applicable tier
+const matchTier = (tiers, hoursUntilEvent) => {
   const sorted = [...tiers].sort((a, b) => b.hours_before - a.hours_before);
-
   for (const tier of sorted) {
-    if (hoursUntilEvent >= tier.hours_before) {
-      return tier.refund_percent;
-    }
+    if (hoursUntilEvent >= tier.hours_before) return tier;
   }
-  // Fallback — event is past or below all tiers → no refund
-  return 0;
+  return null;
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// POLICY CRUD (organizer)
-// ──────────────────────────────────────────────────────────────────────────────
+const computeCancellationBreakdown = (booking, tier) => {
+  const { ticket_amount, convenience_fee, total_paid } = booking;
+  const cancellation_fee     = parseFloat(((ticket_amount + convenience_fee) * CANCELLATION_FEE_RATE).toFixed(2));
+  const cancellation_fee_gst = parseFloat((cancellation_fee * CANCELLATION_FEE_GST_RATE).toFixed(2));
+  const total_canc_charge    = cancellation_fee + cancellation_fee_gst;
+  const applied_tier_hours   = tier.hours_before;
+  const isHighTier           = applied_tier_hours >= HIGH_TIER_CUTOFF_HOURS;
 
-/**
- * Create or update the cancellation policy for an event.
- * Only the organizer who owns the event may set it.
- *
- * @param {number} organizerId
- * @param {number} eventId
- * @param {Array}  tiers  — [{ hours_before, refund_percent }]
- * @param {boolean} isCancellationAllowed
- */
-const upsertCancellationPolicy = async (
-  organizerId,
-  eventId,
-  tiers,
-  isCancellationAllowed = true
-) => {
-  // Verify event belongs to this organizer
+  let refund_to_user;
+  if (isHighTier) {
+    refund_to_user = parseFloat(Math.max(0, total_paid - total_canc_charge).toFixed(2));
+  } else {
+    const gross_refund = parseFloat((ticket_amount * (tier.refund_percent / 100)).toFixed(2));
+    refund_to_user     = parseFloat(Math.max(0, gross_refund - total_canc_charge).toFixed(2));
+  }
+
+  return { cancellation_fee, cancellation_fee_gst, refund_to_user, applied_tier_hours, isHighTier };
+};
+
+const getEffectiveRevenue = (b) => {
+  const isActive = !b.cancellation_status || b.cancellation_status === "active";
+  if (isActive) {
+    return {
+      effective_ticket: b.ticket_amount, effective_conv: b.convenience_fee,
+      effective_gst: b.gst_amount, effective_cancellation: 0,
+      effective_total: b.total_paid, is_cancelled: false,
+    };
+  }
+
+  const cancFee    = b.cancellation_fee     || 0;
+  const cancFeeGst = b.cancellation_fee_gst || 0;
+  const cancTotal  = cancFee + cancFeeGst;
+  const refund     = b.refund_amount        || 0;
+  const isHighTier = (b.applied_tier_hours  || 0) >= HIGH_TIER_CUTOFF_HOURS;
+
+  if (refund === 0 && !isHighTier) {
+    return {
+      effective_ticket: b.ticket_amount, effective_conv: b.convenience_fee,
+      effective_gst: b.gst_amount, effective_cancellation: 0,
+      effective_total: b.total_paid, is_cancelled: true,
+    };
+  }
+
+  if (isHighTier) {
+    return {
+      effective_ticket: 0, effective_conv: 0, effective_gst: 0,
+      effective_cancellation: cancTotal, effective_total: cancTotal, is_cancelled: true,
+    };
+  }
+
+  const netRetained      = b.total_paid - refund;
+  const effective_conv   = b.convenience_fee;
+  const effective_gst    = b.gst_amount;
+  const effective_ticket = Math.max(0, netRetained - effective_conv - effective_gst - cancTotal);
+  return {
+    effective_ticket, effective_conv, effective_gst,
+    effective_cancellation: cancTotal, effective_total: netRetained, is_cancelled: true,
+  };
+};
+
+// ── Policy CRUD ──────────────────────────────────────────────────────────────
+const upsertCancellationPolicy = async (organizerId, eventId, tiers, isCancellationAllowed = true) => {
   const event = await Event.findOne({ where: { id: eventId, organizer_id: organizerId } });
-  if (!event) {
-    throw Object.assign(new Error("Event not found or you do not own this event."), {
-      statusCode: 404,
-    });
-  }
+  if (!event) throw Object.assign(new Error("Event not found or you do not own this event."), { statusCode: 404 });
 
-  // Validate tiers
-  if (!Array.isArray(tiers) || tiers.length === 0) {
-    throw Object.assign(new Error("At least one refund tier is required."), {
-      statusCode: 400,
-    });
-  }
+  if (!Array.isArray(tiers) || tiers.length === 0)
+    throw Object.assign(new Error("At least one refund tier is required."), { statusCode: 400 });
+
   for (const tier of tiers) {
-    if (
-      typeof tier.hours_before !== "number" ||
-      typeof tier.refund_percent !== "number" ||
-      tier.hours_before < 0 ||
-      tier.refund_percent < 0 ||
-      tier.refund_percent > 100
-    ) {
-      throw Object.assign(
-        new Error(
-          "Each tier must have hours_before (≥ 0) and refund_percent (0–100)."
-        ),
-        { statusCode: 400 }
-      );
-    }
+    if (typeof tier.hours_before !== "number" || typeof tier.refund_percent !== "number" ||
+        tier.hours_before < 0 || tier.refund_percent < 0 || tier.refund_percent > 100)
+      throw Object.assign(new Error("Each tier must have hours_before (≥ 0) and refund_percent (0–100)."), { statusCode: 400 });
   }
 
-  // Upsert
-  const [policy, created] = await CancellationPolicy.upsert(
-    {
-      event_id: eventId,
-      organizer_id: organizerId,
-      tiers,
-      is_cancellation_allowed: isCancellationAllowed,
-    },
+  const [policy] = await CancellationPolicy.upsert(
+    { event_id: eventId, organizer_id: organizerId, tiers, is_cancellation_allowed: isCancellationAllowed },
     { returning: true }
   );
-
-  logger.info("Cancellation policy upserted", {
-    organizerId,
-    eventId,
-    created,
-    tiers,
-    isCancellationAllowed,
-  });
-
+  logger.info("Cancellation policy upserted", { organizerId, eventId });
   return policy;
 };
 
-/**
- * Fetch the cancellation policy for an event.
- * Returns null if no policy has been set.
- */
-const getCancellationPolicy = async (eventId) => {
-  return await CancellationPolicy.findOne({ where: { event_id: eventId } });
-};
+const getCancellationPolicy = async (eventId) =>
+  await CancellationPolicy.findOne({ where: { event_id: eventId } });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// CANCELLATION PREVIEW (user — no mutation)
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * Returns the refund amount the user would receive if they cancel now.
- * Does NOT modify any records.
- */
+// ── Preview ──────────────────────────────────────────────────────────────────
 const previewCancellation = async (bookingId, userId) => {
   const booking = await Booking.findOne({
     where: { id: bookingId, user_id: userId },
     include: [{ model: Event, attributes: ["title", "event_date", "organizer_id"] }],
   });
 
-  if (!booking) {
-    throw Object.assign(new Error("Booking not found."), { statusCode: 404 });
-  }
-  if (booking.payment_status !== "paid") {
-    throw Object.assign(new Error("Only paid bookings can be cancelled."), {
-      statusCode: 400,
-    });
-  }
-  if (booking.cancellation_status !== "active") {
-    throw Object.assign(
-      new Error(`Booking is already ${booking.cancellation_status}.`),
-      { statusCode: 400 }
-    );
-  }
+  if (!booking) throw Object.assign(new Error("Booking not found."), { statusCode: 404 });
+  if (booking.payment_status !== "paid")
+    throw Object.assign(new Error("Only paid bookings can be cancelled."), { statusCode: 400 });
+  if (booking.cancellation_status !== "active")
+    throw Object.assign(new Error(`Booking is already ${booking.cancellation_status}.`), { statusCode: 400 });
 
   const policy = await getCancellationPolicy(booking.event_id);
+  if (!policy || !policy.is_cancellation_allowed)
+    return { cancellationAllowed: false, reason: "The organizer has not enabled cancellations for this event.", refundAmount: 0, refundPercent: 0 };
 
-  if (!policy || !policy.is_cancellation_allowed) {
-    return {
-      cancellationAllowed: false,
-      reason: "The organizer has not enabled cancellations for this event.",
-      refundAmount: 0,
-      refundPercent: 0,
-    };
-  }
+  const now             = new Date();
+  const hoursUntilEvent = (new Date(booking.Event.event_date) - now) / (1000 * 60 * 60);
+  if (hoursUntilEvent <= 0)
+    return { cancellationAllowed: false, reason: "The event has already started or passed.", refundAmount: 0, refundPercent: 0 };
 
-  const now = new Date();
-  const eventDate = new Date(booking.Event.event_date);
-  const hoursUntilEvent = (eventDate - now) / (1000 * 60 * 60);
+  const tier = matchTier(policy.tiers, hoursUntilEvent);
+  if (!tier)
+    return { cancellationAllowed: false, reason: "No matching refund tier for the current time.", refundAmount: 0, refundPercent: 0 };
 
-  if (hoursUntilEvent <= 0) {
-    return {
-      cancellationAllowed: false,
-      reason: "The event has already started or passed.",
-      refundAmount: 0,
-      refundPercent: 0,
-    };
-  }
-
-  const refundPercent = computeRefundPercent(policy.tiers, hoursUntilEvent);
-  const refundAmount = parseFloat(
-    ((booking.total_paid * refundPercent) / 100).toFixed(2)
-  );
+  const bd = computeCancellationBreakdown(booking, tier);
 
   return {
-    cancellationAllowed: true,
-    refundAmount,
-    refundPercent,
-    hoursUntilEvent: Math.floor(hoursUntilEvent),
-    totalPaid: booking.total_paid,
-    policy: policy.tiers,
+    cancellationAllowed:  true,
+    refundAmount:         bd.refund_to_user,
+    refundPercent:        tier.refund_percent,
+    cancellationFee:      bd.cancellation_fee,
+    cancellationFeeGst:   bd.cancellation_fee_gst,
+    isHighTier:           bd.isHighTier,
+    appliedTierHours:     bd.applied_tier_hours,
+    hoursUntilEvent:      Math.floor(hoursUntilEvent),
+    totalPaid:            booking.total_paid,
+    ticketAmount:         booking.ticket_amount,
+    convenienceFee:       booking.convenience_fee,
+    convenienceRetained:  !bd.isHighTier,
+    policy:               policy.tiers,
   };
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// CANCEL BOOKING + INITIATE RAZORPAY REFUND
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * Cancels a booking and initiates a Razorpay refund.
- * Uses a DB transaction so seats + ticket count are restored atomically.
- */
+// ── Cancel + Refund ──────────────────────────────────────────────────────────
 const cancelBooking = async (bookingId, userId) => {
-  // Preview first to validate eligibility (throws on ineligible)
   const preview = await previewCancellation(bookingId, userId);
-
-  if (!preview.cancellationAllowed) {
+  if (!preview.cancellationAllowed)
     throw Object.assign(new Error(preview.reason), { statusCode: 400 });
-  }
 
   return await sequelize.transaction(async (t) => {
-    // Re-fetch with lock inside transaction
     const booking = await Booking.findOne({
       where: { id: bookingId, user_id: userId },
-      include: [{ model: Event }],
-      lock: t.LOCK.UPDATE,
-      transaction: t,
+      include: [{ model: Event }], lock: t.LOCK.UPDATE, transaction: t,
     });
-
     if (!booking) throw Object.assign(new Error("Booking not found."), { statusCode: 404 });
-    if (booking.cancellation_status !== "active") {
-      throw Object.assign(
-        new Error(`Booking already ${booking.cancellation_status}.`),
-        { statusCode: 400 }
-      );
-    }
+    if (booking.cancellation_status !== "active")
+      throw Object.assign(new Error(`Booking already ${booking.cancellation_status}.`), { statusCode: 400 });
 
-    // ── Restore available ticket count ─────────────────────────────────────
-    const event = await Event.findByPk(booking.event_id, {
-      lock: t.LOCK.UPDATE,
-      transaction: t,
-    });
+    const event = await Event.findByPk(booking.event_id, { lock: t.LOCK.UPDATE, transaction: t });
     event.available_tickets += booking.tickets_booked;
     await event.save({ transaction: t });
 
-    // ── Restore seats to 'available' ───────────────────────────────────────
     let selectedSeats = [];
-    try {
-      selectedSeats = JSON.parse(booking.selected_seats || "[]");
-    } catch (_) {}
+    try { selectedSeats = JSON.parse(booking.selected_seats || "[]"); } catch (_) {}
+    if (selectedSeats.length > 0) await seatService.releaseSeats(booking.event_id, selectedSeats, t);
 
-    if (selectedSeats.length > 0) {
-      await seatService.releaseSeats(booking.event_id, selectedSeats, t);
-    }
-
-    // ── Initiate Razorpay refund ────────────────────────────────────────────
-    let razorpay_refund_id = null;
-    let finalCancellationStatus = "cancelled"; // if refund is ₹0
+    let razorpay_refund_id      = null;
+    let finalCancellationStatus = "cancelled";
 
     if (preview.refundAmount > 0 && booking.razorpay_payment_id) {
       try {
-        const razorpay = getRazorpayInstance();
-        const refund = await razorpay.payments.refund(
-          booking.razorpay_payment_id,
-          {
-            amount: Math.round(preview.refundAmount * 100), // paise
-            notes: {
-              booking_id: String(bookingId),
-              reason: "Customer cancellation",
-            },
-          }
-        );
-        razorpay_refund_id = refund.id;
+        const refund = await getRazorpayInstance().payments.refund(booking.razorpay_payment_id, {
+          amount: Math.round(preview.refundAmount * 100),
+          notes: { booking_id: String(bookingId), reason: "Customer cancellation" },
+        });
+        razorpay_refund_id      = refund.id;
         finalCancellationStatus = "refund_pending";
-
-        logger.info("Razorpay refund initiated", {
-          bookingId,
-          userId,
-          refundId: refund.id,
-          refundAmount: preview.refundAmount,
-        });
-      } catch (razorpayErr) {
-        // Refund API failure must NOT roll back the cancellation.
-        // Mark as cancelled; the admin can manually process the refund.
-        logger.error("Razorpay refund API failed — booking still cancelled", {
-          bookingId,
-          userId,
-          error: razorpayErr.message,
-        });
-        finalCancellationStatus = "cancelled";
+        logger.info("Razorpay refund initiated", { bookingId, refundId: refund.id, refundAmount: preview.refundAmount });
+      } catch (err) {
+        logger.error("Razorpay refund failed — booking still cancelled", { bookingId, error: err.message });
       }
     }
 
-    // ── Persist cancellation on booking record ──────────────────────────────
-    await booking.update(
-      {
-        cancellation_status: finalCancellationStatus,
-        refund_amount: preview.refundAmount,
-        razorpay_refund_id,
-        cancelled_at: new Date(),
-      },
-      { transaction: t }
-    );
+    await booking.update({
+      cancellation_status:  finalCancellationStatus,
+      refund_amount:        preview.refundAmount,
+      razorpay_refund_id,
+      cancelled_at:         new Date(),
+      cancellation_fee:     preview.cancellationFee,
+      cancellation_fee_gst: preview.cancellationFeeGst,
+      applied_tier_hours:   preview.appliedTierHours,
+    }, { transaction: t });
 
-    logger.info("Booking cancelled", {
-      bookingId,
-      userId,
-      refundAmount: preview.refundAmount,
-      cancellationStatus: finalCancellationStatus,
-    });
+    logger.info("Booking cancelled", { bookingId, userId, refundAmount: preview.refundAmount, appliedTierHours: preview.appliedTierHours });
 
     return {
-      booking,
-      refundAmount: preview.refundAmount,
-      refundPercent: preview.refundPercent,
-      cancellationStatus: finalCancellationStatus,
-      razorpay_refund_id,
+      booking, refundAmount: preview.refundAmount, refundPercent: preview.refundPercent,
+      cancellationFee: preview.cancellationFee, cancellationFeeGst: preview.cancellationFeeGst,
+      isHighTier: preview.isHighTier, cancellationStatus: finalCancellationStatus, razorpay_refund_id,
     };
   });
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// RAZORPAY WEBHOOK — mark refund as completed
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * Called when Razorpay fires a refund.processed webhook.
- * Finds the booking by razorpay_refund_id and marks it 'refunded'.
- */
 const markRefundComplete = async (razorpay_refund_id) => {
   const booking = await Booking.findOne({ where: { razorpay_refund_id } });
-  if (!booking) {
-    logger.warn("Refund webhook — booking not found for refund ID", {
-      razorpay_refund_id,
-    });
-    return null;
-  }
-
+  if (!booking) { logger.warn("Refund webhook — booking not found", { razorpay_refund_id }); return null; }
   await booking.update({ cancellation_status: "refunded" });
-
-  logger.info("Refund marked complete via webhook", {
-    bookingId: booking.id,
-    razorpay_refund_id,
-  });
+  logger.info("Refund marked complete", { bookingId: booking.id, razorpay_refund_id });
   return booking;
 };
 
 module.exports = {
-  upsertCancellationPolicy,
-  getCancellationPolicy,
-  previewCancellation,
-  cancelBooking,
-  markRefundComplete,
+  upsertCancellationPolicy, getCancellationPolicy,
+  previewCancellation, cancelBooking, markRefundComplete, getEffectiveRevenue,
 };

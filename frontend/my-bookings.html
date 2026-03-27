@@ -410,11 +410,14 @@ function logout() {
         <div id="modal-policy-tiers" class="policy-tiers"></div>
         <div class="refund-box">
           <div class="refund-row"><span>Total Paid</span><span id="modal-total-paid">—</span></div>
-          <div class="refund-row"><span>Refund %</span><span id="modal-refund-pct">—</span></div>
+          <div class="refund-row" id="modal-tier-row"><span>Tier Applied</span><span id="modal-tier-label">—</span></div>
+          <div class="refund-row" id="modal-conv-row"><span>Convenience Fee</span><span id="modal-conv-status">—</span></div>
+          <div class="refund-row"><span>Cancellation Fee (5%)</span><span id="modal-canc-fee" style="color:var(--red)">—</span></div>
+          <div class="refund-row"><span>GST on Canc. Fee (5%)</span><span id="modal-canc-fee-gst" style="color:var(--red)">—</span></div>
           <div class="refund-row"><span>You will receive</span><span class="hi" id="modal-refund-amt">—</span></div>
         </div>
         <p style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;">
-          ⚠️ This action is <strong style="color:var(--text);">irreversible</strong>. The refund will be credited to your original payment method within 5–7 business days.
+          ⚠️ This action is <strong style="color:var(--text);">irreversible</strong>. Refund will be credited to your original payment method within 5–7 business days.
         </p>
       </div>
 
@@ -483,8 +486,24 @@ async function openCancelModal(bookingId, eventTitle) {
       }
 
       document.getElementById("modal-total-paid").textContent  = `₹${parseFloat(data.totalPaid).toFixed(2)}`;
-      document.getElementById("modal-refund-pct").textContent  = `${data.refundPercent}%`;
-      document.getElementById("modal-refund-amt").textContent  = `₹${parseFloat(data.refundAmount).toFixed(2)}`;
+
+      // Tier label
+      const tierLabel = data.isHighTier
+        ? `72h+ tier (full ticket refund)`
+        : `${data.appliedTierHours}h tier (${data.refundPercent}% ticket refund)`;
+      document.getElementById("modal-tier-label").textContent = tierLabel;
+
+      // Convenience fee row
+      const convEl = document.getElementById("modal-conv-status");
+      if (data.convenienceRetained) {
+        convEl.innerHTML = `<span style="color:var(--orange)">₹${parseFloat(data.convenienceFee).toFixed(2)} retained</span>`;
+      } else {
+        convEl.innerHTML = `<span style="color:var(--green)">₹${parseFloat(data.convenienceFee).toFixed(2)} refunded</span>`;
+      }
+
+      document.getElementById("modal-canc-fee").textContent     = `-₹${parseFloat(data.cancellationFee).toFixed(2)}`;
+      document.getElementById("modal-canc-fee-gst").textContent = `-₹${parseFloat(data.cancellationFeeGst).toFixed(2)}`;
+      document.getElementById("modal-refund-amt").textContent   = `₹${parseFloat(data.refundAmount).toFixed(2)}`;
     }
   } catch (err) {
     document.getElementById("modal-loading").textContent = "Error: " + err.message;
