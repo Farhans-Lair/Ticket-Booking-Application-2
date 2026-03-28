@@ -125,7 +125,30 @@ applied_tier_hours: {
     allowNull: true,
     defaultValue: null,
   },
+
+/**
+   * S3 key for the booking invoice PDF.
+   * Generated and uploaded when payment is verified (verifyPayment event).
+   * NULL → invoice was never uploaded (fallback: generate on-the-fly).
+   */
+  booking_invoice_s3_key: {
+    type: DataTypes.STRING(512),
+    allowNull: true,
+    defaultValue: null,
+  },
+
+  /**
+   * S3 key for the cancellation invoice PDF.
+   * Generated and uploaded when booking is cancelled (cancelBooking event).
+   * NULL → invoice was never uploaded (fallback: generate on-the-fly).
+   */
+  cancellation_invoice_s3_key: {
+    type: DataTypes.STRING(512),
+    allowNull: true,
+    defaultValue: null,
+  },
 },
+
 {
   tableName: "bookings",
   timestamps: true,

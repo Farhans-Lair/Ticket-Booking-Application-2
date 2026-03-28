@@ -4,51 +4,46 @@ const authenticate = require("../middleware/auth.middleware");
 const authorizeOrganizer = require("../middleware/authorizeOrganizer");
 const cancellationController = require("../controllers/cancellation.controllers");
 
-// ──────────────────────────────────────────────────────────────────────────────
-// WEBHOOK (no auth — Razorpay calls this)
-// Must be registered BEFORE express.json() parses the body,
-// but since app.js already applies express.json() globally we accept
-// the parsed body and re-stringify for HMAC verification.
-// ──────────────────────────────────────────────────────────────────────────────
+// ── WEBHOOK (no auth — Razorpay calls this) ───────────────────────────────────
 router.post(
   "/webhook/refund",
   (req, res, next) => cancellationController.handleRefundWebhook(req, res, next)
 );
 
-// ──────────────────────────────────────────────────────────────────────────────
-// USER ROUTES (any logged-in user)
-// ──────────────────────────────────────────────────────────────────────────────
+// ── USER ROUTES ───────────────────────────────────────────────────────────────
 
-// Preview: how much refund would I get if I cancel now?
+// Preview refund before cancelling
 router.get(
   "/preview/:bookingId",
   authenticate,
   (req, res, next) => cancellationController.previewCancellation(req, res, next)
 );
 
-// Cancel a booking
+// Cancel a booking — also triggers cancellation invoice generation
 router.post(
   "/:bookingId",
   authenticate,
   (req, res, next) => cancellationController.cancelBooking(req, res, next)
 );
 
-// ──────────────────────────────────────────────────────────────────────────────
-// SHARED ROUTE — readable by both users and organizers
-// ──────────────────────────────────────────────────────────────────────────────
+// Download cancellation invoice PDF
+// Generated when booking is cancelled (booking-cancelled event).
+router.get(
+  "/:bookingId/download-invoice",
+  authenticate,
+  (req, res, next) => cancellationController.downloadCancellationInvoice(req, res, next)
+);
 
-// Get policy for an event (used in event detail and organizer dashboard)
+// ── SHARED (user + organizer) ─────────────────────────────────────────────────
+
 router.get(
   "/policy/:eventId",
   authenticate,
   (req, res, next) => cancellationController.getPolicy(req, res, next)
 );
 
-// ──────────────────────────────────────────────────────────────────────────────
-// ORGANIZER ROUTES
-// ──────────────────────────────────────────────────────────────────────────────
+// ── ORGANIZER ROUTES ──────────────────────────────────────────────────────────
 
-// Create / update policy for an event
 router.put(
   "/policy/:eventId",
   authenticate,
