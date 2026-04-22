@@ -15,7 +15,7 @@ jobs:
 
     env:
       AWS_REGION: ap-south-1
-      AWS_ACCOUNT_ID: 680318115068
+      AWS_ACCOUNT_ID: 453551850734
       ECR_REPOSITORY: ticket-backend
 
       DB_HOST: 127.0.0.1

@@ -1,29 +1,29 @@
-# ============================================================
-# CloudWatch — Log Groups
-# ============================================================
+# =============================================================
+# cloudwatch.tf
+#
+# Observability for Spring Boot on EC2 + RDS
+# =============================================================
 
+# --- Log Groups ---
 resource "aws_cloudwatch_log_group" "app_logs" {
-  name              = "/ticket-app/backend"
+  name              = "/ticketapp/backend"
   retention_in_days = 30
-
-  tags = {
-    Name = "${var.project_name}-app-logs"
-  }
+  tags              = { Name = "${var.project_name}-app-logs" }
 }
 
 resource "aws_cloudwatch_log_group" "error_logs" {
-  name              = "/ticket-app/errors"
+  name              = "/ticketapp/errors"
   retention_in_days = 30
-
-  tags = {
-    Name = "${var.project_name}-error-logs"
-  }
+  tags              = { Name = "${var.project_name}-error-logs" }
 }
 
-# ============================================================
-# SNS — Alert topic and email subscription
-# ============================================================
+resource "aws_cloudwatch_log_group" "bootstrap_logs" {
+  name              = "/ticketapp/ec2-bootstrap"
+  retention_in_days = 7
+  tags              = { Name = "${var.project_name}-bootstrap-logs" }
+}
 
+# --- SNS Alert Topic ---
 resource "aws_sns_topic" "alerts" {
   name = "${var.project_name}-alerts"
 }
@@ -34,14 +34,10 @@ resource "aws_sns_topic_subscription" "email_alert" {
   endpoint  = var.alert_email
 }
 
-# ============================================================
-# CloudWatch Alarms
-# ============================================================
-
-# --- ALB: high 5xx errors (booking / payment routes failing) ---
+# --- CloudWatch Alarms ---
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   alarm_name          = "${var.project_name}-alb-5xx-errors"
-  alarm_description   = "High 5xx errors on ALB — booking or payment routes may be failing"
+  alarm_description   = "High 5xx on ALB"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "HTTPCode_Target_5XX_Count"
@@ -49,19 +45,14 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   period              = 60
   statistic           = "Sum"
   threshold           = 10
-
-  dimensions = {
-    LoadBalancer = aws_lb.ticket_alb.arn_suffix
-  }
-
-  alarm_actions = [aws_sns_topic.alerts.arn]
-  ok_actions    = [aws_sns_topic.alerts.arn]
+  dimensions          = { LoadBalancer = aws_lb.ticketapp_alb.arn_suffix }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
-# --- ALB: no healthy backend instances (site is down) ---
-resource "aws_cloudwatch_metric_alarm" "asg_healthy_hosts" {
+resource "aws_cloudwatch_metric_alarm" "alb_no_healthy_hosts" {
   alarm_name          = "${var.project_name}-no-healthy-hosts"
-  alarm_description   = "Zero healthy EC2 hosts behind ALB — application is down"
+  alarm_description   = "Zero healthy EC2 hosts"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 1
   metric_name         = "HealthyHostCount"
@@ -69,19 +60,31 @@ resource "aws_cloudwatch_metric_alarm" "asg_healthy_hosts" {
   period              = 60
   statistic           = "Average"
   threshold           = 1
-
   dimensions = {
     TargetGroup  = aws_lb_target_group.backend_tg.arn_suffix
-    LoadBalancer = aws_lb.ticket_alb.arn_suffix
+    LoadBalancer = aws_lb.ticketapp_alb.arn_suffix
   }
-
   alarm_actions = [aws_sns_topic.alerts.arn]
 }
 
-# --- RDS: high CPU (slow queries under booking load) ---
+resource "aws_cloudwatch_metric_alarm" "ec2_high_cpu_alert" {
+  alarm_name          = "${var.project_name}-ec2-high-cpu-alert"
+  alarm_description   = "EC2 CPU > 80%"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 80
+  dimensions          = { AutoScalingGroupName = aws_autoscaling_group.backend_asg.name }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
+}
+
 resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   alarm_name          = "${var.project_name}-rds-high-cpu"
-  alarm_description   = "RDS CPU above 80% — possible slow queries or connection storm"
+  alarm_description   = "RDS CPU > 80%"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
   metric_name         = "CPUUtilization"
@@ -89,59 +92,45 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   period              = 60
   statistic           = "Average"
   threshold           = 80
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.ticket_db.identifier
-  }
-
-  alarm_actions = [aws_sns_topic.alerts.arn]
-  ok_actions    = [aws_sns_topic.alerts.arn]
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
-# --- RDS: low free storage (base64 LONGTEXT images fill disk fast) ---
 resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   alarm_name          = "${var.project_name}-rds-low-storage"
-  alarm_description   = "RDS free storage below 2GB — expand storage or move images to S3"
+  alarm_description   = "RDS free storage < 2 GB"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 1
   metric_name         = "FreeStorageSpace"
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Average"
-  threshold           = 2000000000 # 2 GB in bytes
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.ticket_db.identifier
-  }
-
-  alarm_actions = [aws_sns_topic.alerts.arn]
+  threshold           = 2000000000
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
 }
 
-# --- RDS: too many DB connections (Sequelize pool exhausted) ---
 resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   alarm_name          = "${var.project_name}-rds-high-connections"
-  alarm_description   = "RDS connection count is high — Sequelize pool may be exhausted"
+  alarm_description   = "RDS connections high"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "DatabaseConnections"
   namespace           = "AWS/RDS"
   period              = 60
   statistic           = "Average"
-  threshold           = 40 # db.t3.micro max_connections ~66
-
-  dimensions = {
-    DBInstanceIdentifier = aws_db_instance.ticket_db.identifier
-  }
-
-  alarm_actions = [aws_sns_topic.alerts.arn]
-  ok_actions    = [aws_sns_topic.alerts.arn]
+  threshold           = 40
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
-# --- Error log metric filter + alarm (payment failures logged by app) ---
+# --- Log Metric Filters ---
 resource "aws_cloudwatch_log_metric_filter" "payment_errors" {
   name           = "${var.project_name}-payment-errors"
   log_group_name = aws_cloudwatch_log_group.error_logs.name
-  pattern        = "{ $.message = \"Payment verification flow failed\" }"
+  pattern        = "Payment verification"
 
   metric_transformation {
     name      = "PaymentVerificationErrors"
@@ -152,7 +141,7 @@ resource "aws_cloudwatch_log_metric_filter" "payment_errors" {
 
 resource "aws_cloudwatch_metric_alarm" "payment_error_alarm" {
   alarm_name          = "${var.project_name}-payment-errors"
-  alarm_description   = "Payment verification failures detected in application logs"
+  alarm_description   = "Payment verification failures"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "PaymentVerificationErrors"
@@ -161,15 +150,13 @@ resource "aws_cloudwatch_metric_alarm" "payment_error_alarm" {
   statistic           = "Sum"
   threshold           = 3
   treat_missing_data  = "notBreaching"
-
-  alarm_actions = [aws_sns_topic.alerts.arn]
+  alarm_actions       = [aws_sns_topic.alerts.arn]
 }
 
-# --- Booking confirmation metric filter (revenue tracking) ---
 resource "aws_cloudwatch_log_metric_filter" "bookings_confirmed" {
   name           = "${var.project_name}-bookings-confirmed"
   log_group_name = aws_cloudwatch_log_group.app_logs.name
-  pattern        = "{ $.message = \"Booking confirmed\" }"
+  pattern        = "Booking confirmed"
 
   metric_transformation {
     name      = "BookingsConfirmed"
@@ -178,10 +165,19 @@ resource "aws_cloudwatch_log_metric_filter" "bookings_confirmed" {
   }
 }
 
-# ============================================================
-# CloudWatch Dashboard
-# ============================================================
+resource "aws_cloudwatch_log_metric_filter" "cancellations" {
+  name           = "${var.project_name}-cancellations"
+  log_group_name = aws_cloudwatch_log_group.app_logs.name
+  pattern        = "Cancellation"
 
+  metric_transformation {
+    name      = "CancellationRequests"
+    namespace = "${var.project_name}/App"
+    value     = "1"
+  }
+}
+
+# --- CloudWatch Dashboard ---
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "${var.project_name}-dashboard"
 
@@ -192,12 +188,12 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title  = "ALB — Request Count & 5xx Errors"
-          region = var.aws_region
+          title   = "ALB — Requests & 5xx Errors"
+          region  = var.aws_region
           metrics = [
-            ["AWS/ApplicationELB", "RequestCount",               "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
-            ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count",  "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
-            ["AWS/ApplicationELB", "TargetResponseTime",         "LoadBalancer", aws_lb.ticket_alb.arn_suffix]
+            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
+            ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
+            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.ticket_alb.arn_suffix]
           ]
           period = 60
           stat   = "Sum"
@@ -209,8 +205,8 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title  = "ALB — Healthy Host Count"
-          region = var.aws_region
+          title   = "ALB — Healthy Host Count"
+          region  = var.aws_region
           metrics = [
             ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", aws_lb_target_group.backend_tg.arn_suffix, "LoadBalancer", aws_lb.ticket_alb.arn_suffix]
           ]
@@ -224,10 +220,25 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title  = "RDS — CPU & DB Connections"
-          region = var.aws_region
+          title   = "EC2 ASG — CPU Utilization"
+          region  = var.aws_region
           metrics = [
-            ["AWS/RDS", "CPUUtilization",      "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier],
+            ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", aws_autoscaling_group.backend_asg.name]
+          ]
+          period = 60
+          stat   = "Average"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        width  = 12
+        height = 6
+        properties = {
+          title   = "RDS — CPU & DB Connections"
+          region  = var.aws_region
+          metrics = [
+            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier],
             ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier]
           ]
           period = 60
@@ -240,8 +251,8 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title  = "RDS — Free Storage Space"
-          region = var.aws_region
+          title   = "RDS — Free Storage Space"
+          region  = var.aws_region
           metrics = [
             ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier]
           ]
@@ -255,11 +266,12 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title  = "App — Bookings Confirmed vs Payment Errors"
-          region = var.aws_region
+          title   = "App — Bookings vs Payment Errors vs Cancellations"
+          region  = var.aws_region
           metrics = [
             ["${var.project_name}/App", "BookingsConfirmed"],
-            ["${var.project_name}/App", "PaymentVerificationErrors"]
+            ["${var.project_name}/App", "PaymentVerificationErrors"],
+            ["${var.project_name}/App", "CancellationRequests"]
           ]
           period = 300
           stat   = "Sum"
@@ -272,7 +284,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         height = 6
         properties = {
           title = "Recent Application Errors (last 3 hours)"
-          query = "SOURCE '/ticket-app/errors' | fields @timestamp, message, userId, eventId, error | sort @timestamp desc | limit 50"
+          query = "SOURCE '/ticketapp/errors' | fields @timestamp, @message | sort @timestamp desc | limit 50"
           view  = "table"
         }
       }
