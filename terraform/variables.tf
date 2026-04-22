@@ -6,7 +6,7 @@ variable "github_repo" {
 }
 
 variable "aws_account_id" {
-  default = "680318115068"
+  default = "453551850734"
 }
 
 variable "aws_region" {
