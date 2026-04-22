@@ -165,3 +165,29 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
     ]
   })
 }
+
+resource "aws_iam_role" "github_ecr_push_role" {
+  name = "GitHubActions-ECR-Push-Role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+      }
+    }]
+  })
+}
+
+# Attach the necessary ECR permissions to this new role
+resource "aws_iam_role_policy_attachment" "push_ecr_full" {
+  role       = aws_iam_role.github_ecr_push_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+}

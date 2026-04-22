@@ -45,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   period              = 60
   statistic           = "Sum"
   threshold           = 10
-  dimensions          = { LoadBalancer = aws_lb.ticketapp_alb.arn_suffix }
+  dimensions          = { LoadBalancer = aws_lb.ticket_alb.arn_suffix }
   alarm_actions       = [aws_sns_topic.alerts.arn]
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
@@ -62,7 +62,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_no_healthy_hosts" {
   threshold           = 1
   dimensions = {
     TargetGroup  = aws_lb_target_group.backend_tg.arn_suffix
-    LoadBalancer = aws_lb.ticketapp_alb.arn_suffix
+    LoadBalancer = aws_lb.ticket_alb.arn_suffix
   }
   alarm_actions = [aws_sns_topic.alerts.arn]
 }
@@ -92,7 +92,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   period              = 60
   statistic           = "Average"
   threshold           = 80
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
@@ -107,7 +107,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   period              = 300
   statistic           = "Average"
   threshold           = 2000000000
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
 }
 
@@ -121,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   period              = 60
   statistic           = "Average"
   threshold           = 40
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticketapp_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
