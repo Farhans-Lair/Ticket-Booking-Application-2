@@ -31,7 +31,7 @@
   # ---------------------------
   resource "aws_lb_target_group" "backend_tg" {
     name        = "${var.project_name}-backend-tg"
-    port        = 8080
+    port        = 3000
     protocol    = "HTTP"
     vpc_id      = aws_vpc.ticket_vpc.id
     target_type = "instance"   # EC2 instance registration (used by ASG)
