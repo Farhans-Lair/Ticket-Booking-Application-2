@@ -58,7 +58,7 @@ jobs:
         run: |
           for i in {1..30}; do
             mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
-            sleep 2
+            sleep 2 
           done
 
       - name: Install dependencies

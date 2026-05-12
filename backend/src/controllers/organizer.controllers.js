@@ -1,3 +1,12 @@
+/**
+ * organizer.controllers.js
+ *
+ * Updated for Feature 4 (Moderation): organizer-created events now start as
+ * status='pending' and are only visible publicly after admin approval.
+ * Feature 5 (Payouts): organizer can view their own payout history via
+ * GET /organizer/payouts (handled in admin.controllers.js, mounted in routes).
+ */
+
 const organizerService = require("../services/organizer.services");
 const eventService     = require("../services/event.services");
 const logger           = require("../config/logger");
@@ -6,10 +15,6 @@ const logger           = require("../config/logger");
 // ORGANIZER — PROFILE
 // ─────────────────────────────────────────────────────────────
 
-/**
- * GET /organizer/profile
- * Returns the logged-in organizer's business profile.
- */
 const getProfile = async (req, res, next) => {
   try {
     const profile = await organizerService.getProfile(req.user.id);
@@ -21,10 +26,6 @@ const getProfile = async (req, res, next) => {
   }
 };
 
-/**
- * PUT /organizer/profile
- * Organizer updates their own business details.
- */
 const updateProfile = async (req, res, next) => {
   try {
     const profile = await organizerService.updateProfile(req.user.id, req.body);
@@ -40,10 +41,6 @@ const updateProfile = async (req, res, next) => {
 // ORGANIZER — EVENTS
 // ─────────────────────────────────────────────────────────────
 
-/**
- * GET /organizer/events
- * Lists only events belonging to this organizer.
- */
 const getMyEvents = async (req, res, next) => {
   try {
     const events = await organizerService.getOrganizerEvents(req.user.id);
@@ -57,7 +54,8 @@ const getMyEvents = async (req, res, next) => {
 
 /**
  * POST /organizer/events
- * Creates an event owned by this organizer.
+ * Feature 4: organizer-submitted events start as status='pending'.
+ * They only appear publicly after an admin approves them.
  */
 const createEvent = async (req, res, next) => {
   try {
@@ -87,98 +85,81 @@ const createEvent = async (req, res, next) => {
       price,
       total_tickets,
       available_tickets: total_tickets,
-      category:   category || "Other",
-      images:     Array.isArray(images) && images.length > 0 ? images : null,
-      organizer_id: req.user.id,   // ← scoped to this organizer
+      category:          category || "Other",
+      images:            Array.isArray(images) && images.length > 0 ? images : null,
+      organizer_id:      req.user.id,
+      status:            "pending",    // Feature 4: requires admin approval before going live
+      is_featured:       false,
     });
 
-    logger.info("Organizer created event", { organizerId: req.user.id, eventId: event.id });
-    res.status(201).json(event);
+    logger.info("Organizer submitted event for moderation", { organizerId: req.user.id, eventId: event.id });
+    res.status(201).json({
+      ...event.toJSON(),
+      _notice: "Your event has been submitted and is pending admin approval before it goes live.",
+    });
   } catch (err) {
     logger.error("Organizer event creation failed", { organizerId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * PUT /organizer/events/:id
- * Updates an event — ownership is enforced inside the service.
- */
 const updateEvent = async (req, res, next) => {
   try {
-    const eventId = req.params.id;
-    const updated = await eventService.updateEvent(eventId, req.body, req.user.id);
+    const {
+      title, description, location, event_date,
+      price, total_tickets, category, images,
+    } = req.body;
 
-    if (!updated) {
+    const updatedEvent = await eventService.updateEvent(
+      req.params.id,
+      { title, description, location, event_date, price, total_tickets, category, images },
+      req.user.id   // scoped to this organizer
+    );
+
+    if (!updatedEvent) {
       return res.status(404).json({ error: "Event not found or you do not own this event." });
     }
 
-    logger.info("Organizer updated event", { organizerId: req.user.id, eventId });
-    res.json(updated);
+    logger.info("Organizer updated event", { organizerId: req.user.id, eventId: req.params.id });
+    res.json(updatedEvent);
   } catch (err) {
-    logger.error("Organizer event update failed", { organizerId: req.user?.id, eventId: req.params?.id, error: err.message });
+    logger.error("Organizer event update failed", { organizerId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * DELETE /organizer/events/:id
- * Deletes an event — ownership is enforced inside the service.
- */
 const deleteEvent = async (req, res, next) => {
   try {
-    const eventId = req.params.id;
-    const deleted = await eventService.deleteEvent(eventId, req.user.id);
-
-    if (!deleted) {
-      return res.status(404).json({ error: "Event not found or you do not own this event." });
-    }
-
-    logger.info("Organizer deleted event", { organizerId: req.user.id, eventId });
+    const deleted = await eventService.deleteEvent(req.params.id, req.user.id);
+    if (!deleted) return res.status(404).json({ error: "Event not found or you do not own this event." });
+    logger.info("Organizer deleted event", { organizerId: req.user.id, eventId: req.params.id });
     res.json({ message: "Event deleted successfully." });
   } catch (err) {
-    logger.error("Organizer event deletion failed", { organizerId: req.user?.id, eventId: req.params?.id, error: err.message });
+    logger.error("Organizer event deletion failed", { organizerId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ORGANIZER — REVENUE & STATS
-// ─────────────────────────────────────────────────────────────
-
-/**
- * GET /organizer/revenue
- * Revenue breakdown across all organizer's events.
- */
 const getRevenue = async (req, res, next) => {
   try {
-    const events = await organizerService.getOrganizerRevenue(req.user.id);
-    logger.info("Organizer revenue fetched", { organizerId: req.user.id, eventCount: events.length });
-    res.json(events);
+    const revenue = await organizerService.getRevenue(req.user.id);
+    res.json(revenue);
   } catch (err) {
-    logger.error("Organizer revenue fetch failed", { organizerId: req.user?.id, error: err.message });
+    logger.error("Failed to fetch organizer revenue", { organizerId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * GET /organizer/stats
- * Summary stats for the organizer dashboard overview cards.
- */
 const getStats = async (req, res, next) => {
   try {
-    const stats = await organizerService.getOrganizerStats(req.user.id);
+    const stats = await organizerService.getStats(req.user.id);
     res.json(stats);
   } catch (err) {
-    logger.error("Organizer stats fetch failed", { organizerId: req.user?.id, error: err.message });
+    logger.error("Failed to fetch organizer stats", { organizerId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * GET /organizer/events/:id/attendees
- * Attendee (ticket-buyer) list for one of the organizer's events.
- */
 const getEventAttendees = async (req, res, next) => {
   try {
     const result = await organizerService.getEventAttendees(req.params.id, req.user.id);
@@ -194,13 +175,9 @@ const getEventAttendees = async (req, res, next) => {
 // ADMIN — ORGANIZER APPLICATION MANAGEMENT
 // ─────────────────────────────────────────────────────────────
 
-/**
- * GET /api/admin/organizers?status=pending
- * Lists all organizer applications, optionally filtered by status.
- */
 const listOrganizers = async (req, res, next) => {
   try {
-    const { status } = req.query; // pending | approved | rejected | undefined (all)
+    const { status } = req.query;
     const organizers = await organizerService.getAllOrganizers(status);
     logger.info("Admin fetched organizer list", { adminId: req.user?.id, status: status || "all", count: organizers.length });
     res.json(organizers);
@@ -210,10 +187,6 @@ const listOrganizers = async (req, res, next) => {
   }
 };
 
-/**
- * PUT /api/admin/organizers/:id/approve
- * Approves the organizer application with the given profile ID.
- */
 const approveOrganizer = async (req, res, next) => {
   try {
     const profile = await organizerService.approveOrganizer(req.params.id);
@@ -221,15 +194,11 @@ const approveOrganizer = async (req, res, next) => {
     logger.info("Organizer approved", { adminId: req.user?.id, profileId: req.params.id });
     res.json({ message: "Organizer approved successfully.", profile });
   } catch (err) {
-    logger.error("Organizer approval failed", { adminId: req.user?.id, profileId: req.params?.id, error: err.message });
+    logger.error("Organizer approval failed", { adminId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * PUT /api/admin/organizers/:id/reject
- * Rejects the application with an optional reason in req.body.reason.
- */
 const rejectOrganizer = async (req, res, next) => {
   try {
     const { reason } = req.body;
@@ -238,15 +207,11 @@ const rejectOrganizer = async (req, res, next) => {
     logger.info("Organizer rejected", { adminId: req.user?.id, profileId: req.params.id, reason });
     res.json({ message: "Organizer rejected.", profile });
   } catch (err) {
-    logger.error("Organizer rejection failed", { adminId: req.user?.id, profileId: req.params?.id, error: err.message });
+    logger.error("Organizer rejection failed", { adminId: req.user?.id, error: err.message });
     next(err);
   }
 };
 
-/**
- * DELETE /organizer/admin/organizers/:id
- * Permanently removes the organizer account (user + profile + their events' organizer_id NULLed).
- */
 const deleteOrganizer = async (req, res, next) => {
   try {
     const result = await organizerService.deleteOrganizer(req.params.id);
@@ -254,7 +219,7 @@ const deleteOrganizer = async (req, res, next) => {
     logger.info("Organizer deleted", { adminId: req.user?.id, profileId: req.params.id });
     res.json({ message: "Organizer account deleted successfully." });
   } catch (err) {
-    logger.error("Organizer deletion failed", { adminId: req.user?.id, profileId: req.params?.id, error: err.message });
+    logger.error("Organizer deletion failed", { adminId: req.user?.id, error: err.message });
     next(err);
   }
 };

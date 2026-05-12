@@ -1,10 +1,10 @@
-const User             = require("./User");
-const Event            = require("./Event");
-const Booking          = require("./Booking");
-const Seat             = require("./Seat");
-const OrganizerProfile = require("./OrganizerProfile");
-const CancellationPolicy  = require("./CancellationPolicy");
-
+const User               = require("./User");
+const Event              = require("./Event");
+const Booking            = require("./Booking");
+const Seat               = require("./Seat");
+const OrganizerProfile   = require("./OrganizerProfile");
+const CancellationPolicy = require("./CancellationPolicy");
+const Payout             = require("./Payout");           // Feature 5
 
 // ── Core booking relationships ──────────────────────────────
 Event.hasMany(Booking,   { foreignKey: "event_id" });
@@ -17,20 +17,30 @@ Event.hasMany(Seat,      { foreignKey: "event_id" });
 Seat.belongsTo(Event,    { foreignKey: "event_id" });
 
 // ── Organizer relationships ──────────────────────────────────
-// Each organizer user has one business profile
-User.hasOne(OrganizerProfile,            { foreignKey: "user_id" });
-OrganizerProfile.belongsTo(User,         { foreignKey: "user_id" });
+User.hasOne(OrganizerProfile,    { foreignKey: "user_id" });
+OrganizerProfile.belongsTo(User, { foreignKey: "user_id" });
 
-// Each event can optionally belong to an organizer user
-User.hasMany(Event,      { foreignKey: "organizer_id", as: "OrganizerEvents" });
-Event.belongsTo(User,    { foreignKey: "organizer_id", as: "Organizer" });
+User.hasMany(Event,  { foreignKey: "organizer_id", as: "OrganizerEvents" });
+Event.belongsTo(User, { foreignKey: "organizer_id", as: "Organizer" });
 
 // ── Cancellation Policy relationships ───────────────────────
-// Each event has at most one cancellation policy
-Event.hasOne(CancellationPolicy,            { foreignKey: "event_id", as: "CancellationPolicy" });
-CancellationPolicy.belongsTo(Event,         { foreignKey: "event_id" });
-CancellationPolicy.belongsTo(User,          { foreignKey: "organizer_id", as: "Organizer" });
+Event.hasOne(CancellationPolicy,        { foreignKey: "event_id", as: "CancellationPolicy" });
+CancellationPolicy.belongsTo(Event,     { foreignKey: "event_id" });
+CancellationPolicy.belongsTo(User,      { foreignKey: "organizer_id", as: "Organizer" });
 
+// ── Feature 4: Moderation — admin who moderated an event ────
+User.hasMany(Event, { foreignKey: "moderated_by", as: "ModeratedEvents" });
+Event.belongsTo(User, { foreignKey: "moderated_by", as: "Moderator" });
+
+// ── Feature 5: Payout relationships ─────────────────────────
+User.hasMany(Payout,    { foreignKey: "organizer_id", as: "ReceivedPayouts" });
+Payout.belongsTo(User,  { foreignKey: "organizer_id", as: "Organizer" });
+
+Event.hasMany(Payout,   { foreignKey: "event_id", as: "Payouts" });
+Payout.belongsTo(Event, { foreignKey: "event_id" });
+
+User.hasMany(Payout,    { foreignKey: "initiated_by", as: "InitiatedPayouts" });
+Payout.belongsTo(User,  { foreignKey: "initiated_by", as: "InitiatedBy" });
 
 module.exports = {
   User,
@@ -39,4 +49,5 @@ module.exports = {
   Seat,
   OrganizerProfile,
   CancellationPolicy,
+  Payout,
 };

@@ -21,16 +21,29 @@ const User = sequelize.define("User", {
     allowNull: false,
   },
   role: {
-      type: DataTypes.STRING(20),
-      allowNull: false,
-      defaultValue: "user",
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: "user",
+  },
+  // ── Feature 1: User Profile ──────────────────────────────────
+  phone: {
+    type: DataTypes.STRING(20),
+    defaultValue: null,
+  },
+  avatar_url: {
+    type: DataTypes.STRING(512),
+    defaultValue: null,
+  },
+  bio: {
+    type: DataTypes.TEXT,
+    defaultValue: null,
   },
 },
- {
+{
   tableName: "users",
   timestamps: true,
   createdAt: "created_at",
-  updatedAt: false,
+  updatedAt: "updated_at",
 });
 
 module.exports = User;

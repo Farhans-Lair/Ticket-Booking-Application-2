@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — TicketVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #f5c842; --bg-deep: #0a0a14; --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.1); --text: #f0eee8;
+      --text-muted: rgba(240,238,232,0.55); --accent: #7c6af7; --red: #f74a6a;
+      --green: #22c55e; --card: #13131f;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 48px; background: rgba(10,10,20,0.95); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--gold); text-decoration: none; }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color .2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a.active { color: var(--gold); }
+    .btn-logout { background: none; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all .2s; }
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    /* LAYOUT */
+    .page { max-width: 1000px; margin: 48px auto; padding: 0 24px; }
+    .page-header { margin-bottom: 36px; }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; }
+    .page-header p { color: var(--text-muted); margin-top: 6px; }
+
+    .profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: 28px; }
+
+    /* SIDEBAR */
+    .sidebar-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 32px 24px; text-align: center; }
+    .avatar-wrap { position: relative; display: inline-block; margin-bottom: 20px; }
+    .avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: #fff; overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-edit { position: absolute; bottom: 2px; right: 2px; background: var(--accent); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+    .sidebar-name { font-size: 1.15rem; font-weight: 600; margin-bottom: 4px; }
+    .sidebar-email { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px; word-break: break-all; }
+    .role-badge { display: inline-block; background: rgba(124,106,247,0.15); border: 1px solid var(--accent); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 24px; }
+    .stat-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .stat-box { flex: 1; background: var(--glass); border-radius: 10px; padding: 12px 8px; text-align: center; }
+    .stat-box .num { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+    .stat-box .lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+    .member-since { color: var(--text-muted); font-size: 0.8rem; margin-top: 16px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--glass); border-radius: 12px; padding: 4px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: none; color: var(--text-muted); font-size: 0.88rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all .2s; }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+
+    /* PANEL */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 20px; color: var(--gold); }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+    .form-group input, .form-group textarea { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text); font-size: 0.9rem; font-family: inherit; transition: border-color .2s; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px 28px; border-radius: 10px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.5; cursor: default; }
+    .success-msg { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--green); padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; margin-top: 14px; display: none; }
+    .error-msg   { background: rgba(247,74,106,0.12); border: 1px solid rgba(247,74,106,0.3); color: var(--red); padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; margin-top: 14px; display: none; }
+
+    /* BOOKING HISTORY */
+    .booking-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--glass-border); }
+    .booking-item:last-child { border-bottom: none; }
+    .booking-thumb { width: 64px; height: 64px; border-radius: 10px; background: linear-gradient(135deg, #1a1a3e, #2a2a5e); flex-shrink: 0; object-fit: cover; }
+    .booking-info { flex: 1; }
+    .booking-title { font-weight: 600; margin-bottom: 4px; font-size: 0.95rem; }
+    .booking-meta  { color: var(--text-muted); font-size: 0.82rem; }
+    .booking-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-top: 6px; }
+    .badge-active    { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-cancelled { background: rgba(247,74,106,0.15); color: var(--red); }
+    .badge-pending   { background: rgba(245,200,66,0.15); color: var(--gold); }
+    .booking-amount { font-weight: 700; color: var(--gold); font-size: 0.9rem; align-self: center; }
+
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .loading { text-align: center; padding: 32px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .profile-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">TicketVerse</a>
+  <div class="nav-links">
+    <a href="/events-page">Events</a>
+    <a href="/my-bookings">My Bookings</a>
+    <a href="/profile" class="active">Profile</a>
+    <button class="btn-logout" id="logoutBtn">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your account, preferences and booking history.</p>
+  </div>
+
+  <div class="profile-grid">
+
+    <!-- SIDEBAR -->
+    <div>
+      <div class="sidebar-card">
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatarDisplay"><span id="avatarInitial">?</span></div>
+        </div>
+        <div class="sidebar-name" id="sidebarName">—</div>
+        <div class="sidebar-email" id="sidebarEmail">—</div>
+        <div class="role-badge" id="sidebarRole">user</div>
+
+        <div class="stat-row">
+          <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
+          <div class="stat-box"><div class="num" id="statActive">0</div><div class="lbl">Active</div></div>
+          <div class="stat-box"><div class="num" id="statCancelled">0</div><div class="lbl">Cancelled</div></div>
+        </div>
+        <div class="member-since" id="memberSince"></div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="info">Account Info</button>
+        <button class="tab-btn" data-tab="password">Change Password</button>
+        <button class="tab-btn" data-tab="bookings">Booking History</button>
+      </div>
+
+      <!-- ACCOUNT INFO -->
+      <div class="panel active" id="panel-info">
+        <div class="card">
+          <h2>Personal Details</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="fieldName" placeholder="Your name" />
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" id="fieldPhone" placeholder="+91 00000 00000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email (cannot be changed)</label>
+            <input type="email" id="fieldEmail" disabled />
+          </div>
+          <div class="form-group">
+            <label>Bio</label>
+            <textarea id="fieldBio" placeholder="Tell us a little about yourself…"></textarea>
+          </div>
+          <button class="btn-primary" id="saveProfileBtn">Save Changes</button>
+          <div class="success-msg" id="profileSuccess">✓ Profile updated successfully.</div>
+          <div class="error-msg"   id="profileError"></div>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="panel" id="panel-password">
+        <div class="card">
+          <h2>Change Password</h2>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" id="currentPass" placeholder="Enter current password" />
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="newPass" placeholder="At least 8 characters" />
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmPass" placeholder="Repeat new password" />
+          </div>
+          <button class="btn-primary" id="changePassBtn">Update Password</button>
+          <div class="success-msg" id="passSuccess">✓ Password updated successfully.</div>
+          <div class="error-msg"   id="passError"></div>
+        </div>
+      </div>
+
+      <!-- BOOKING HISTORY -->
+      <div class="panel" id="panel-bookings">
+        <div class="card">
+          <h2>Booking History</h2>
+          <div id="bookingsList"><div class="loading">Loading bookings…</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  // ── Auth guard ────────────────────────────────────────────
+  const token = sessionStorage.getItem("token");
+  if (!token) { location.href = "/"; }
+
+  function authHeaders() {
+    return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+  }
+
+  // ── Tabs ─────────────────────────────────────────────────
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(`panel-${btn.dataset.tab}`).classList.add("active");
+      if (btn.dataset.tab === "bookings") loadBookings();
+    });
+  });
+
+  // ── Load profile ─────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const r    = await fetch("/user/profile", { headers: authHeaders() });
+      const data = await r.json();
+      if (!r.ok) { location.href = "/"; return; }
+
+      document.getElementById("sidebarName").textContent  = data.name;
+      document.getElementById("sidebarEmail").textContent = data.email;
+      document.getElementById("sidebarRole").textContent  = data.role;
+      document.getElementById("avatarInitial").textContent = data.name?.[0]?.toUpperCase() || "?";
+
+      document.getElementById("statTotal").textContent     = data.booking_summary?.total     || 0;
+      document.getElementById("statActive").textContent    = data.booking_summary?.active    || 0;
+      document.getElementById("statCancelled").textContent = data.booking_summary?.cancelled || 0;
+
+      if (data.created_at) {
+        document.getElementById("memberSince").textContent =
+          "Member since " + new Date(data.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long" });
+      }
+
+      // Pre-fill form
+      document.getElementById("fieldName").value  = data.name  || "";
+      document.getElementById("fieldEmail").value = data.email || "";
+      document.getElementById("fieldPhone").value = data.phone || "";
+      document.getElementById("fieldBio").value   = data.bio   || "";
+    } catch (e) { console.error(e); }
+  }
+
+  // ── Save profile ─────────────────────────────────────────
+  document.getElementById("saveProfileBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("saveProfileBtn");
+    btn.disabled = true; btn.textContent = "Saving…";
+    document.getElementById("profileSuccess").style.display = "none";
+    document.getElementById("profileError").style.display   = "none";
+
+    try {
+      const r = await fetch("/user/profile", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name:  document.getElementById("fieldName").value.trim(),
+          phone: document.getElementById("fieldPhone").value.trim(),
+          bio:   document.getElementById("fieldBio").value.trim(),
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Update failed.");
+
+      document.getElementById("profileSuccess").style.display = "block";
+      document.getElementById("sidebarName").textContent = data.name;
+      document.getElementById("avatarInitial").textContent = data.name?.[0]?.toUpperCase() || "?";
+    } catch (e) {
+      document.getElementById("profileError").textContent = e.message;
+      document.getElementById("profileError").style.display = "block";
+    } finally {
+      btn.disabled = false; btn.textContent = "Save Changes";
+    }
+  });
+
+  // ── Change password ───────────────────────────────────────
+  document.getElementById("changePassBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("changePassBtn");
+    document.getElementById("passSuccess").style.display = "none";
+    document.getElementById("passError").style.display   = "none";
+
+    const np = document.getElementById("newPass").value;
+    const cp = document.getElementById("confirmPass").value;
+    if (np !== cp) {
+      document.getElementById("passError").textContent = "New passwords do not match.";
+      document.getElementById("passError").style.display = "block";
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = "Updating…";
+    try {
+      const r = await fetch("/user/profile/password", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          current_password: document.getElementById("currentPass").value,
+          new_password:     np,
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Failed to update password.");
+      document.getElementById("passSuccess").style.display = "block";
+      document.getElementById("currentPass").value = "";
+      document.getElementById("newPass").value     = "";
+      document.getElementById("confirmPass").value = "";
+    } catch (e) {
+      document.getElementById("passError").textContent = e.message;
+      document.getElementById("passError").style.display = "block";
+    } finally {
+      btn.disabled = false; btn.textContent = "Update Password";
+    }
+  });
+
+  // ── Booking history ───────────────────────────────────────
+  let bookingsLoaded = false;
+  async function loadBookings() {
+    if (bookingsLoaded) return;
+    bookingsLoaded = true;
+    const container = document.getElementById("bookingsList");
+    try {
+      const r    = await fetch("/user/profile/bookings", { headers: authHeaders() });
+      const data = await r.json();
+      if (!data.length) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">🎫</div><p>No bookings yet. Browse events to get started.</p></div>`;
+        return;
+      }
+      container.innerHTML = data.map(b => {
+        const ev     = b.Event || {};
+        const status = b.cancellation_status === "cancelled" ? "badge-cancelled" :
+                       b.payment_status === "pending"        ? "badge-pending"   : "badge-active";
+        const label  = b.cancellation_status === "cancelled" ? "Cancelled" :
+                       b.payment_status === "pending"        ? "Pending"   : "Active";
+        const date   = ev.event_date
+          ? new Date(ev.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+          : "—";
+        return `
+          <div class="booking-item">
+            <div class="booking-thumb" style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🎟️</div>
+            <div class="booking-info">
+              <div class="booking-title">${ev.title || "Event"}</div>
+              <div class="booking-meta">${date} · ${ev.location || "TBA"} · ${b.tickets_booked} ticket(s)</div>
+              <span class="booking-badge ${status}">${label}</span>
+            </div>
+            <div class="booking-amount">₹${parseFloat(b.total_paid || 0).toFixed(2)}</div>
+          </div>`;
+      }).join("");
+    } catch (e) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load bookings.</p></div>`;
+    }
+  }
+
+  // ── Logout ───────────────────────────────────────────────
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await fetch("/auth/logout", { method: "POST", headers: authHeaders() });
+    sessionStorage.clear();
+    location.href = "/";
+  });
+
+  loadProfile();
+</script>
+</body>
+</html>

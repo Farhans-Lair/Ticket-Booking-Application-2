@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Payouts — TicketVerse Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #f5c842; --bg: #0a0a14; --card: #13131f;
+      --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.1);
+      --text: #f0eee8; --muted: rgba(240,238,232,0.5);
+      --accent: #7c6af7; --green: #22c55e; --red: #f74a6a; --orange: #f59e0b;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 40px; background: rgba(10,10,20,0.97); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 50; }
+    .nav-logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.3rem; text-decoration: none; }
+    .nav-links { display: flex; gap: 22px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.88rem; }
+    .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+    .btn-logout { background: none; border: 1px solid var(--glass-border); color: var(--muted); padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.83rem; }
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    .page { max-width: 960px; margin: 40px auto; padding: 0 24px; }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 6px; }
+    .page-header p  { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+    /* SUMMARY CARDS */
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 36px; }
+    .summary-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; padding: 22px 20px; }
+    .summary-card .lbl { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+    .summary-card .val { font-size: 1.7rem; font-weight: 700; }
+    .summary-card.received .val { color: var(--green); }
+    .summary-card.pending  .val { color: var(--orange); }
+    .summary-card.total    .val { color: var(--gold); }
+
+    /* PAYOUT LIST */
+    .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--gold); }
+    .payout-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+    .payout-meta { font-size: 0.82rem; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .payout-meta span::before { content: "· "; }
+    .payout-meta span:first-child::before { content: ""; }
+    .payout-title { font-weight: 600; font-size: 0.97rem; }
+    .amount-block { text-align: right; }
+    .amount-gross { font-size: 0.78rem; color: var(--muted); }
+    .amount-net   { font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; margin-top: 6px; }
+    .s-pending    { background: rgba(245,158,11,0.15); color: var(--orange); }
+    .s-processing { background: rgba(124,106,247,0.15); color: var(--accent); }
+    .s-paid       { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .s-failed     { background: rgba(247,74,106,0.15); color: var(--red); }
+
+    .loading { text-align: center; padding: 48px; color: var(--muted); }
+    .empty   { text-align: center; padding: 48px; color: var(--muted); }
+    .empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* INFO BOX */
+    .info-box { background: rgba(124,106,247,0.08); border: 1px solid rgba(124,106,247,0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
+    .info-box strong { color: var(--text); }
+
+    @media (max-width: 640px) {
+      nav { padding: 14px 18px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .payout-card { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/organizer-dashboard">TicketVerse</a>
+  <div class="nav-links">
+    <a href="/organizer-dashboard">Dashboard</a>
+    <a href="/organizer-events">Events</a>
+    <a href="/organizer-revenue">Revenue</a>
+    <a href="/organizer-payouts" class="active">Payouts</a>
+    <button class="btn-logout" id="logoutBtn">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>My Payouts</h1>
+    <p>Track settlements from TicketVerse for your events.</p>
+  </div>
+
+  <div class="info-box">
+    <strong>How payouts work:</strong> After your event concludes, the platform settles ticket revenue minus a <strong>10% platform fee</strong>.
+    Payouts are initiated by the TicketVerse admin team and transferred via bank transfer, UPI, or Razorpay.
+    You'll see the status update here as the transfer progresses.
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card total">
+      <div class="lbl">Total Payouts</div>
+      <div class="val" id="sumTotal">—</div>
+    </div>
+    <div class="summary-card received">
+      <div class="lbl">Amount Received (₹)</div>
+      <div class="val" id="sumReceived">—</div>
+    </div>
+    <div class="summary-card pending">
+      <div class="lbl">Amount Pending (₹)</div>
+      <div class="val" id="sumPending">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Payout History</div>
+  <div id="payoutsList"><div class="loading">Loading payouts…</div></div>
+</div>
+
+<script>
+  const token = sessionStorage.getItem("token");
+  if (!token) { location.href = "/"; }
+  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+  async function loadPayouts() {
+    try {
+      const r    = await fetch("/organizer/payouts", { headers });
+      if (!r.ok) { location.href = "/"; return; }
+      const data = await r.json();
+
+      const summary  = data.summary || {};
+      const payouts  = data.payouts || [];
+
+      document.getElementById("sumTotal").textContent    = summary.count    || 0;
+      document.getElementById("sumReceived").textContent = "₹" + (parseFloat(summary.received || 0)).toFixed(2);
+      document.getElementById("sumPending").textContent  = "₹" + (parseFloat(summary.pending  || 0)).toFixed(2);
+
+      if (!payouts.length) {
+        document.getElementById("payoutsList").innerHTML = `
+          <div class="empty">
+            <div class="icon">💳</div>
+            <p>No payouts yet. They will appear here once an admin initiates a settlement for your events.</p>
+          </div>`;
+        return;
+      }
+
+      document.getElementById("payoutsList").innerHTML = payouts.map(p => {
+        const eventLabel = p.Event ? p.Event.title : "All Events";
+        const date       = new Date(p.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        const paidDate   = p.paid_at ? new Date(p.paid_at).toLocaleDateString("en-IN") : null;
+        const method     = (p.payment_method || "").replace("_", " ");
+        return `
+          <div class="payout-card">
+            <div>
+              <div class="payout-title">${eventLabel}</div>
+              <div class="payout-meta">
+                <span>Payout #${p.id}</span>
+                <span>${date}</span>
+                ${method ? `<span>${method}</span>` : ""}
+                ${p.reference_id ? `<span>Ref: ${p.reference_id}</span>` : ""}
+                ${paidDate ? `<span>Paid on ${paidDate}</span>` : ""}
+              </div>
+              <span class="status-badge s-${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
+              ${p.notes ? `<div style="font-size:.8rem;color:var(--muted);margin-top:6px;">${p.notes}</div>` : ""}
+            </div>
+            <div class="amount-block">
+              <div class="amount-gross">Gross ₹${parseFloat(p.amount).toFixed(2)}</div>
+              <div class="amount-gross">Fee  −₹${parseFloat(p.platform_fee).toFixed(2)}</div>
+              <div class="amount-net">₹${parseFloat(p.net_amount).toFixed(2)}</div>
+            </div>
+          </div>`;
+      }).join("");
+    } catch (e) {
+      document.getElementById("payoutsList").innerHTML = '<div class="empty">Failed to load payouts.</div>';
+    }
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await fetch("/auth/logout", { method: "POST", headers });
+    sessionStorage.clear();
+    location.href = "/";
+  });
+
+  loadPayouts();
+</script>
+</body>
+</html>
