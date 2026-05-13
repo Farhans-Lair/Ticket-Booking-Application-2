@@ -30,7 +30,7 @@ variable "public_subnet_2_cidr" {
 }
 
 variable "db_name" {
-  default = "ticket_db"
+  default = "ticket_booking_db"
 }
 
 variable "db_username" {
