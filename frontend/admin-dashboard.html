@@ -6,88 +6,122 @@
   <title>TicketVerse — Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     :root {
-      --gold:#f5c842; --gold-dark:#d4a520;
-      --bg:#0a0a14; --card:rgba(255,255,255,0.04);
-      --border:rgba(255,255,255,0.09); --text:#f0eee8;
-      --muted:rgba(240,238,232,0.5); --accent:#7c6af7;
-      --green:#42e695; --red:#f74a6a;
+      --gold:#f5c842; --gold-dark:#d4a520; --bg:#0a0a14;
+      --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.09);
+      --text:#f0eee8; --muted:rgba(240,238,232,0.5);
+      --accent:#7c6af7; --green:#42e695; --red:#f74a6a; --orange:#f59e0b;
     }
     html,body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
     #bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
-    .app { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:36px 28px 80px; }
+    .app { position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:36px 28px 80px; }
 
-    /* ── TOPBAR ── */
+    /* TOPBAR */
     .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:44px; padding-bottom:20px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:12px; }
     .logo-wrap { display:flex; align-items:center; gap:10px; }
     .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
     .admin-badge { padding:3px 10px; border-radius:20px; background:rgba(124,106,247,0.15); border:1px solid rgba(124,106,247,0.3); color:var(--accent); font-size:0.72rem; font-weight:700; letter-spacing:0.08em; }
     .nav-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn-ghost { padding:9px 20px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.85rem; cursor:pointer; transition:all 0.2s; backdrop-filter:blur(8px); }
+    .btn-ghost { padding:9px 20px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
     .btn-ghost:hover { background:rgba(255,255,255,0.09); color:var(--text); }
     .btn-ghost.danger:hover { border-color:var(--red); color:var(--red); }
+    .btn-ghost.active { background:rgba(124,106,247,0.15); border-color:var(--accent); color:var(--accent); }
 
-    /* ── SECTION HEADER ── */
-    .section-header { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+    /* SECTION WRAPPER */
+    .section-wrap { margin-bottom:56px; }
+    .section-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
     .section-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; }
     .pill { padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; }
     .pill-accent { background:rgba(124,106,247,0.12); color:var(--accent); border:1px solid rgba(124,106,247,0.25); }
     .pill-gold   { background:rgba(245,200,66,0.12);  color:var(--gold);   border:1px solid rgba(245,200,66,0.25); }
+    .pill-green  { background:rgba(66,230,149,0.12);  color:var(--green);  border:1px solid rgba(66,230,149,0.25); }
 
-    /* ── STAT CHIPS ROW ── */
-    .stats-strip { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:32px; }
-    .stat-chip { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 20px; min-width:140px; }
-    .stat-chip .label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-    .stat-chip .value { font-size:1.7rem; font-weight:800; margin-top:4px; }
+    /* STAT CHIPS */
+    .stats-strip { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
+    .stat-chip { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 18px; min-width:120px; }
+    .stat-chip .label { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .stat-chip .value { font-size:1.5rem; font-weight:800; margin-top:4px; }
     .stat-chip .value.gold   { color:var(--gold); }
     .stat-chip .value.green  { color:var(--green); }
     .stat-chip .value.accent { color:var(--accent); }
     .stat-chip .value.red    { color:var(--red); }
+    .stat-chip .value.orange { color:var(--orange); }
 
-    /* ── FILTER TABS ── */
-    .filter-tabs { display:flex; gap:8px; margin-bottom:22px; flex-wrap:wrap; }
+    /* FILTER TABS */
+    .filter-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
     .filter-tab { padding:7px 18px; border-radius:9px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:0.85rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
     .filter-tab:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
     .filter-tab.active { background:var(--gold); border-color:var(--gold); color:#0a0a14; font-weight:700; }
 
-    /* ── ORGANIZER CARD ── */
-    .org-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 24px; margin-bottom:14px; backdrop-filter:blur(12px); animation:card-in 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-    @keyframes card-in { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
-    .org-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    /* ORGANIZER CARD */
+    .org-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 24px; margin-bottom:12px; backdrop-filter:blur(12px); animation:card-in 0.3s ease both; }
+    @keyframes card-in { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+    .org-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
     .org-name  { font-size:1.05rem; font-weight:700; }
     .org-email { font-size:0.84rem; color:var(--muted); margin-top:3px; }
     .badge { display:inline-block; padding:3px 12px; border-radius:999px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
     .badge.pending  { background:rgba(245,200,66,0.12); color:var(--gold);  border:1px solid rgba(245,200,66,0.25); }
     .badge.approved { background:rgba(66,230,149,0.1);  color:var(--green); border:1px solid rgba(66,230,149,0.25); }
     .badge.rejected { background:rgba(247,74,106,0.1);  color:var(--red);   border:1px solid rgba(247,74,106,0.25); }
-
-    .org-details { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:18px; }
+    .org-details { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:16px; }
     .detail-item label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; display:block; }
     .detail-item span  { font-size:0.9rem; margin-top:3px; display:block; }
 
-    /* ── CARD ACTIONS ── */
+    /* EVENT CARD */
+    .ev-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:start; animation:card-in 0.3s ease both; }
+    .ev-card.status-pending  { border-left:4px solid var(--orange); }
+    .ev-card.status-approved { border-left:4px solid var(--green); }
+    .ev-card.status-rejected { border-left:4px solid var(--red); }
+    .ev-title { font-size:1rem; font-weight:600; margin-bottom:5px; }
+    .ev-meta  { font-size:0.8rem; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+    .ev-meta span::before { content:"· "; }
+    .ev-meta span:first-child::before { content:""; }
+    .status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .sb-pending  { background:rgba(245,158,11,0.15); color:var(--orange); }
+    .sb-approved { background:rgba(66,230,149,0.12); color:var(--green); }
+    .sb-rejected { background:rgba(247,74,106,0.12); color:var(--red); }
+    .ev-actions { display:flex; flex-direction:column; gap:6px; min-width:120px; }
+
+    /* FEATURED GRID */
+    .featured-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+    .feat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; animation:card-in 0.3s ease both; }
+    .feat-card.is-featured { border-color:rgba(245,200,66,0.4); }
+    .feat-title { font-weight:600; font-size:0.95rem; margin-bottom:6px; }
+    .feat-meta  { font-size:0.78rem; color:var(--muted); margin-bottom:10px; }
+    .feat-footer { display:flex; align-items:center; justify-content:space-between; }
+
+    /* BUTTONS */
     .card-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; flex-direction:column; }
     .action-row { display:flex; gap:8px; flex-wrap:wrap; }
-    .btn-approve { padding:7px 18px; border-radius:8px; background:rgba(66,230,149,0.1); border:1px solid rgba(66,230,149,0.25); color:var(--green); font-family:'DM Sans',sans-serif; font-size:0.83rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
-    .btn-approve:hover  { background:rgba(66,230,149,0.2); }
-    .btn-approve:disabled { opacity:0.5; cursor:not-allowed; }
-    .btn-reject  { padding:7px 18px; border-radius:8px; background:rgba(245,200,66,0.08); border:1px solid rgba(245,200,66,0.22); color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.83rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
-    .btn-reject:hover   { background:rgba(245,200,66,0.16); }
-    .btn-delete  { padding:7px 18px; border-radius:8px; background:rgba(247,74,106,0.1); border:1px solid rgba(247,74,106,0.22); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.83rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
-    .btn-delete:hover   { background:rgba(247,74,106,0.22); }
+    .btn-approve { padding:7px 16px; border-radius:8px; background:rgba(66,230,149,0.1); border:1px solid rgba(66,230,149,0.25); color:var(--green); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-approve:hover { background:rgba(66,230,149,0.2); }
+    .btn-reject { padding:7px 16px; border-radius:8px; background:rgba(245,200,66,0.08); border:1px solid rgba(245,200,66,0.22); color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-reject:hover { background:rgba(245,200,66,0.16); }
+    .btn-delete { padding:7px 16px; border-radius:8px; background:rgba(247,74,106,0.1); border:1px solid rgba(247,74,106,0.22); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-delete:hover { background:rgba(247,74,106,0.22); }
+    .btn-feature { padding:7px 16px; border-radius:8px; background:rgba(245,200,66,0.08); border:1px solid rgba(245,200,66,0.25); color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-feature.on { background:var(--gold); color:#0a0a14; }
+    .btn-feature:hover { background:rgba(245,200,66,0.2); }
+    .btn-feature.on:hover { opacity:0.88; }
 
-    .reject-box { display:none; margin-top:10px; gap:8px; align-items:center; flex-wrap:wrap; }
+    .reject-box { display:none; margin-top:8px; gap:8px; align-items:center; flex-wrap:wrap; }
     .reject-box.show { display:flex; }
-    .reject-input { flex:1; min-width:200px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:7px 12px; border-radius:8px; font-size:0.85rem; font-family:'DM Sans',sans-serif; outline:none; }
+    .reject-input { flex:1; min-width:180px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:7px 12px; border-radius:8px; font-size:0.85rem; font-family:'DM Sans',sans-serif; outline:none; }
     .reject-input:focus { border-color:var(--gold); }
-    .btn-confirm-reject { padding:7px 16px; border-radius:8px; background:var(--red); border:none; color:#fff; font-size:0.83rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
+    .btn-confirm-reject { padding:7px 14px; border-radius:8px; background:var(--red); border:none; color:#fff; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
-    /* ── EMPTY / LOADING ── */
-    .empty { text-align:center; padding:60px 20px; color:var(--muted); }
-    .empty .icon { font-size:3rem; margin-bottom:12px; }
+    /* MODAL */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:#13131f; border:1px solid var(--border); border-radius:16px; padding:28px; width:100%; max-width:460px; }
+    .modal h3 { font-size:1.1rem; margin-bottom:14px; }
+    .modal textarea { width:100%; padding:10px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem; min-height:90px; resize:vertical; }
+    .modal-actions { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
+    .btn-cancel-modal { background:var(--card); border:1px solid var(--border); color:var(--text); padding:9px 20px; border-radius:8px; cursor:pointer; font-size:0.85rem; }
 
-    /* ── TOAST ── */
+    .empty { text-align:center; padding:48px 20px; color:var(--muted); }
+    .empty .icon { font-size:2.5rem; margin-bottom:10px; }
     .toast { position:fixed; bottom:2rem; right:2rem; padding:12px 20px; border-radius:12px; font-size:0.9rem; z-index:999; opacity:0; transform:translateY(8px); transition:all 0.3s; pointer-events:none; background:#1c1c30; border:1px solid var(--border); }
     .toast.show { opacity:1; transform:translateY(0); }
     .toast.success { border-color:var(--green); color:var(--green); }
@@ -105,40 +139,97 @@
       <span class="admin-badge">ADMIN</span>
     </div>
     <div class="nav-actions">
-      <button class="btn-ghost" onclick="window.location.href='/admin/revenue'">📊 Revenue</button>
+      <button class="btn-ghost" onclick="location.href='/admin/revenue'">📊 Revenue</button>
+      <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
       <button class="btn-ghost danger" id="logoutBtn">Logout</button>
     </div>
   </div>
 
-  <!-- STAT STRIP -->
-  <div class="stats-strip" id="statsStrip">
-    <div class="stat-chip"><div class="label">Total</div><div class="value accent" id="statTotal">—</div></div>
-    <div class="stat-chip"><div class="label">Pending</div><div class="value gold"   id="statPending">—</div></div>
-    <div class="stat-chip"><div class="label">Approved</div><div class="value green"  id="statApproved">—</div></div>
-    <div class="stat-chip"><div class="label">Rejected</div><div class="value red"    id="statRejected">—</div></div>
+  <!-- ═══════════════════════════════════════════
+       A. ORGANIZER APPROVAL
+  ═══════════════════════════════════════════ -->
+  <div class="section-wrap" id="sectionOrganizers">
+    <div class="section-header">
+      <h2>A. Organizer Approval</h2>
+      <span class="pill pill-accent">MANAGE</span>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-chip"><div class="label">Total</div><div class="value accent" id="orgStatTotal">—</div></div>
+      <div class="stat-chip"><div class="label">Pending</div><div class="value gold"   id="orgStatPending">—</div></div>
+      <div class="stat-chip"><div class="label">Approved</div><div class="value green"  id="orgStatApproved">—</div></div>
+      <div class="stat-chip"><div class="label">Rejected</div><div class="value red"    id="orgStatRejected">—</div></div>
+    </div>
+
+    <div class="filter-tabs" id="orgFilterTabs">
+      <button class="filter-tab active" data-status="">All</button>
+      <button class="filter-tab" data-status="pending">Pending</button>
+      <button class="filter-tab" data-status="approved">Approved</button>
+      <button class="filter-tab" data-status="rejected">Rejected</button>
+    </div>
+
+    <div id="orgList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
   </div>
 
-  <!-- SECTION HEADER + FILTER -->
-  <div class="section-header">
-    <h2>Organizer Applications</h2>
-    <span class="pill pill-accent">MANAGE</span>
+  <!-- ═══════════════════════════════════════════
+       B. EVENT APPROVAL
+  ═══════════════════════════════════════════ -->
+  <div class="section-wrap" id="sectionEvents">
+    <div class="section-header">
+      <h2>B. Event Approval</h2>
+      <span class="pill pill-gold">MODERATION</span>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-chip"><div class="label">Total</div><div class="value accent" id="evStatTotal">—</div></div>
+      <div class="stat-chip"><div class="label">Pending</div><div class="value orange" id="evStatPending">—</div></div>
+      <div class="stat-chip"><div class="label">Approved</div><div class="value green"  id="evStatApproved">—</div></div>
+      <div class="stat-chip"><div class="label">Rejected</div><div class="value red"    id="evStatRejected">—</div></div>
+    </div>
+
+    <div class="filter-tabs" id="evFilterTabs">
+      <button class="filter-tab active" data-status="all">All</button>
+      <button class="filter-tab" data-status="pending">Pending</button>
+      <button class="filter-tab" data-status="approved">Approved</button>
+      <button class="filter-tab" data-status="rejected">Rejected</button>
+    </div>
+
+    <div id="evList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
   </div>
 
-  <div class="filter-tabs">
-    <button class="filter-tab active" data-status="">All</button>
-    <button class="filter-tab" data-status="pending">Pending</button>
-    <button class="filter-tab" data-status="approved">Approved</button>
-    <button class="filter-tab" data-status="rejected">Rejected</button>
+  <!-- ═══════════════════════════════════════════
+       C. FEATURED EVENTS
+  ═══════════════════════════════════════════ -->
+  <div class="section-wrap" id="sectionFeatured">
+    <div class="section-header">
+      <h2>C. Featured Events</h2>
+      <span class="pill pill-green">SHOWCASE</span>
+    </div>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:18px;">
+      Toggle events as "Featured" to display them in the homepage carousel. Only approved events can be featured.
+    </p>
+    <div class="featured-grid" id="featuredGrid">
+      <div class="empty" style="grid-column:1/-1"><div class="icon">⏳</div><p>Loading…</p></div>
+    </div>
   </div>
+</div>
 
-  <div id="orgList">
-    <div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>
+<!-- Reject event modal -->
+<div class="modal-backdrop" id="rejectEventModal">
+  <div class="modal">
+    <h3>Reject Event</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:12px;">Provide a reason so the organizer can improve and resubmit.</p>
+    <textarea id="rejectEventNote" placeholder="Reason for rejection…"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelRejectEv">Cancel</button>
+      <button class="btn-delete" id="confirmRejectEv" style="padding:9px 20px;">Reject</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Canvas background -->
+<!-- Canvas BG -->
 <script>
 const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
 let W,H;
@@ -160,162 +251,265 @@ draw();
 <script src="/js/api.js"></script>
 <script src="/js/auth-channel.js"></script>
 <script src="/js/admin-auth.js"></script>
-
 <script>
-  // Auth guard
-  window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
+window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
 
-  const token   = sessionStorage.getItem("token");
-  const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
-  let currentStatus = "";
-  let allOrganizers = [];
+const token   = sessionStorage.getItem("token");
+const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
 
-  // ── Logout ──────────────────────────────────────────────────────────────────
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    const userId = sessionStorage.getItem("userId");
-    if (window._authChannel && userId) window._authChannel.postMessage({ type: "LOGOUT", userId });
-    fetch("/auth/logout", { method: "POST", credentials: "include" })
-      .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function toast(msg, type = "success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.className = `toast ${type} show`;
+  setTimeout(() => el.className = "toast", 3000);
+}
+
+// ══════════════════════════════════════════
+//  A. ORGANIZER APPROVAL
+// ══════════════════════════════════════════
+let orgCurrentStatus = "";
+let allOrganizers    = [];
+
+async function loadOrganizers(status = "") {
+  orgCurrentStatus = status;
+  document.getElementById("orgList").innerHTML = '<div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  try {
+    const url = status ? `/organizer/admin/organizers?status=${status}` : "/organizer/admin/organizers";
+    const res = await fetch(url, { headers });
+    if (res.status === 401) { window.location.replace("/"); return; }
+    allOrganizers = await res.json();
+    updateOrgStats();
+    renderOrgs(allOrganizers);
+  } catch {
+    document.getElementById("orgList").innerHTML = '<div class="empty"><p style="color:var(--red)">Failed to load.</p></div>';
+  }
+}
+
+function updateOrgStats() {
+  fetch("/organizer/admin/organizers", { headers }).then(r => r.json()).then(all => {
+    document.getElementById("orgStatTotal").textContent    = all.length;
+    document.getElementById("orgStatPending").textContent  = all.filter(o => o.status === "pending").length;
+    document.getElementById("orgStatApproved").textContent = all.filter(o => o.status === "approved").length;
+    document.getElementById("orgStatRejected").textContent = all.filter(o => o.status === "rejected").length;
+  }).catch(() => {});
+}
+
+function renderOrgs(list) {
+  if (!list.length) {
+    document.getElementById("orgList").innerHTML = '<div class="empty"><div class="icon">👥</div><p>No organizers found.</p></div>';
+    return;
+  }
+  document.getElementById("orgList").innerHTML = list.map((org, idx) => {
+    const isPending  = org.status === "pending";
+    const isApproved = org.status === "approved";
+    return `
+      <div class="org-card" id="orgCard-${org.id}" style="animation-delay:${idx*0.04}s">
+        <div class="org-card-top">
+          <div>
+            <div class="org-name">${escHtml(org.User?.name || "—")}</div>
+            <div class="org-email">${escHtml(org.User?.email || "—")}</div>
+          </div>
+          <span class="badge ${org.status}">${org.status}</span>
+        </div>
+        <div class="org-details">
+          <div class="detail-item"><label>Business Name</label><span>${escHtml(org.business_name || "—")}</span></div>
+          <div class="detail-item"><label>Phone</label><span>${escHtml(org.contact_phone || "—")}</span></div>
+          <div class="detail-item"><label>GST</label><span>${escHtml(org.gst_number || "—")}</span></div>
+          <div class="detail-item"><label>Applied</label><span>${new Date(org.created_at).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</span></div>
+          ${org.rejection_reason ? `<div class="detail-item"><label>Rejection Reason</label><span style="color:var(--red)">${escHtml(org.rejection_reason)}</span></div>` : ""}
+        </div>
+        <div class="card-actions">
+          <div class="action-row">
+            ${(isPending || !isApproved) ? `<button class="btn-approve" onclick="approveOrg(${org.id},this)">✓ Approve</button>` : ""}
+            ${(isPending || isApproved)  ? `<button class="btn-reject"  onclick="toggleOrgReject(${org.id})">✗ ${isApproved?"Revoke":"Reject"}</button>` : ""}
+            <button class="btn-delete" onclick="deleteOrg(${org.id},'${escHtml(org.User?.name||"")}')">🗑 Delete</button>
+          </div>
+          <div class="reject-box" id="rejectBox-${org.id}">
+            <input class="reject-input" id="rejectReason-${org.id}" placeholder="Reason (optional)" />
+            <button class="btn-confirm-reject" onclick="confirmOrgReject(${org.id})">Confirm</button>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function approveOrg(id, btn) {
+  btn.disabled = true; btn.textContent = "…";
+  const res = await fetch(`/organizer/admin/organizers/${id}/approve`, { method:"PUT", headers });
+  if (res.ok) { toast("Organizer approved ✓", "success"); loadOrganizers(orgCurrentStatus); }
+  else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
+}
+function toggleOrgReject(id) { document.getElementById(`rejectBox-${id}`).classList.toggle("show"); }
+async function confirmOrgReject(id) {
+  const reason = document.getElementById(`rejectReason-${id}`).value.trim() || null;
+  const res = await fetch(`/organizer/admin/organizers/${id}/reject`, { method:"PUT", headers, body:JSON.stringify({reason}) });
+  if (res.ok) { toast("Organizer rejected.", "success"); loadOrganizers(orgCurrentStatus); }
+  else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+}
+async function deleteOrg(id, name) {
+  if (!confirm(`Permanently delete "${name}"?`)) return;
+  const res = await fetch(`/organizer/admin/organizers/${id}`, { method:"DELETE", headers });
+  if (res.ok) { toast("Organizer deleted.", "success"); loadOrganizers(orgCurrentStatus); }
+  else { const d = await res.json(); toast(d.error||"Delete failed.", "error"); }
+}
+document.querySelectorAll("#orgFilterTabs .filter-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#orgFilterTabs .filter-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    loadOrganizers(tab.dataset.status);
   });
+});
 
-  // ── Load organizers ──────────────────────────────────────────────────────────
-  async function loadOrganizers(status = "") {
-    currentStatus = status;
-    document.getElementById("orgList").innerHTML = '<div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>';
-    try {
-      const url  = status ? `/organizer/admin/organizers?status=${status}` : "/organizer/admin/organizers";
-      const res  = await fetch(url, { headers });
-      if (res.status === 401) { window.location.replace("/"); return; }
-      allOrganizers = await res.json();
-      updateStats();
-      render(allOrganizers);
-    } catch {
-      document.getElementById("orgList").innerHTML = '<div class="empty"><p style="color:var(--red)">Failed to load data.</p></div>';
-    }
+// ══════════════════════════════════════════
+//  B. EVENT APPROVAL
+// ══════════════════════════════════════════
+let allEvents = [];
+let evFilter  = "all";
+let pendingRejectEvId = null;
+
+async function loadEvents() {
+  document.getElementById("evList").innerHTML = '<div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  try {
+    // FIX: correct route path (mounted under /admin)
+    const res = await fetch("/admin/moderation/events", { headers });
+    if (!res.ok) throw new Error();
+    allEvents = await res.json();
+    updateEvStats();
+    renderEvents();
+  } catch {
+    document.getElementById("evList").innerHTML = '<div class="empty"><p style="color:var(--red)">Failed to load events.</p></div>';
   }
+}
 
-  function updateStats() {
-    // Always fetch all for accurate stats regardless of filter
-    fetch("/organizer/admin/organizers", { headers })
-      .then(r => r.json())
-      .then(all => {
-        document.getElementById("statTotal").textContent    = all.length;
-        document.getElementById("statPending").textContent  = all.filter(o => o.status === "pending").length;
-        document.getElementById("statApproved").textContent = all.filter(o => o.status === "approved").length;
-        document.getElementById("statRejected").textContent = all.filter(o => o.status === "rejected").length;
-      }).catch(() => {});
+function updateEvStats() {
+  document.getElementById("evStatTotal").textContent    = allEvents.length;
+  document.getElementById("evStatPending").textContent  = allEvents.filter(e => e.status === "pending").length;
+  document.getElementById("evStatApproved").textContent = allEvents.filter(e => e.status === "approved").length;
+  document.getElementById("evStatRejected").textContent = allEvents.filter(e => e.status === "rejected").length;
+}
+
+function renderEvents() {
+  const list = evFilter === "all" ? allEvents : allEvents.filter(e => e.status === evFilter);
+  if (!list.length) {
+    document.getElementById("evList").innerHTML = '<div class="empty"><div class="icon">📅</div><p>No events in this category.</p></div>';
+    return;
   }
-
-  function render(list) {
-    const container = document.getElementById("orgList");
-    if (!list.length) {
-      container.innerHTML = '<div class="empty"><div class="icon">👥</div><p>No organizers found.</p></div>';
-      return;
-    }
-    container.innerHTML = list.map((org, idx) => {
-      const isPending  = org.status === "pending";
-      const isApproved = org.status === "approved";
-
-      const approveBtn = (isPending || !isApproved)
-        ? `<button class="btn-approve" onclick="approve(${org.id}, this)">✓ Approve</button>` : "";
-      const rejectBtn  = (isPending || isApproved)
-        ? `<button class="btn-reject" onclick="toggleRejectBox(${org.id})">✗ ${isApproved ? "Revoke" : "Reject"}</button>` : "";
-      const deleteBtn  = `<button class="btn-delete" onclick="deleteOrganizer(${org.id}, '${escHtml(org.User?.name || "")}')">🗑 Delete</button>`;
-
-      return `
-        <div class="org-card" id="orgCard-${org.id}" style="animation-delay:${idx*0.04}s">
-          <div class="org-card-top">
-            <div>
-              <div class="org-name">${escHtml(org.User?.name || "—")}</div>
-              <div class="org-email">${escHtml(org.User?.email || "—")}</div>
-            </div>
-            <span class="badge ${org.status}">${org.status}</span>
+  document.getElementById("evList").innerHTML = list.map(ev => {
+    const date = new Date(ev.event_date).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+    const isPending = ev.status === "pending";
+    return `
+      <div class="ev-card status-${ev.status}">
+        <div>
+          <div class="ev-title">${escHtml(ev.title)}</div>
+          <div class="ev-meta">
+            <span>${date}</span>
+            <span>${escHtml(ev.location||"TBA")}</span>
+            <span>${ev.category||"Other"}</span>
+            <span>₹${ev.price} · ${ev.total_tickets} tickets</span>
           </div>
+          <span class="status-badge sb-${ev.status}">${ev.status.charAt(0).toUpperCase()+ev.status.slice(1)}</span>
+          ${ev.moderation_note ? `<div style="font-size:.78rem;color:var(--muted);margin-top:6px;">Note: ${escHtml(ev.moderation_note)}</div>` : ""}
+          <div style="font-size:.78rem;color:var(--muted);margin-top:4px;">${ev.organizer_id ? `Organizer ID: ${ev.organizer_id}` : "Platform event"}</div>
+        </div>
+        <div class="ev-actions">
+          ${isPending ? `<button class="btn-approve" onclick="approveEv(${ev.id},this)">✓ Approve</button>` : ""}
+          ${isPending ? `<button class="btn-reject"  onclick="openRejectEv(${ev.id})">✗ Reject</button>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+}
 
-          <div class="org-details">
-            <div class="detail-item"><label>Business Name</label><span>${escHtml(org.business_name || "—")}</span></div>
-            <div class="detail-item"><label>Phone</label><span>${escHtml(org.contact_phone || "—")}</span></div>
-            <div class="detail-item"><label>GST</label><span>${escHtml(org.gst_number || "—")}</span></div>
-            <div class="detail-item"><label>Applied</label><span>${new Date(org.created_at).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</span></div>
-            ${org.address ? `<div class="detail-item"><label>Address</label><span>${escHtml(org.address)}</span></div>` : ""}
-            ${org.rejection_reason ? `<div class="detail-item"><label>Rejection Reason</label><span style="color:var(--red)">${escHtml(org.rejection_reason)}</span></div>` : ""}
-          </div>
-
-          <div class="card-actions">
-            <div class="action-row">
-              ${approveBtn}
-              ${rejectBtn}
-              ${deleteBtn}
-            </div>
-            <div class="reject-box" id="rejectBox-${org.id}">
-              <input class="reject-input" id="rejectReason-${org.id}" placeholder="Reason (optional)" />
-              <button class="btn-confirm-reject" onclick="confirmReject(${org.id})">Confirm</button>
-            </div>
-          </div>
-        </div>`;
-    }).join("");
-  }
-
-  // ── Approve ──────────────────────────────────────────────────────────────────
-  async function approve(id, btn) {
-    btn.disabled = true; btn.textContent = "Approving…";
-    try {
-      const res = await fetch(`/organizer/admin/organizers/${id}/approve`, { method: "PUT", headers });
-      if (res.ok) { toast("Organizer approved ✓", "success"); loadOrganizers(currentStatus); }
-      else        { const d = await res.json(); toast(d.error || "Failed.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
-    } catch { toast("Network error.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
-  }
-
-  // ── Reject ───────────────────────────────────────────────────────────────────
-  function toggleRejectBox(id) {
-    const box = document.getElementById(`rejectBox-${id}`);
-    box.classList.toggle("show");
-  }
-
-  async function confirmReject(id) {
-    const reason = document.getElementById(`rejectReason-${id}`).value.trim() || null;
-    try {
-      const res = await fetch(`/organizer/admin/organizers/${id}/reject`, {
-        method: "PUT", headers, body: JSON.stringify({ reason }),
-      });
-      if (res.ok) { toast("Organizer rejected.", "success"); loadOrganizers(currentStatus); }
-      else        { const d = await res.json(); toast(d.error || "Failed.", "error"); }
-    } catch { toast("Network error.", "error"); }
-  }
-
-  // ── Delete ───────────────────────────────────────────────────────────────────
-  async function deleteOrganizer(id, name) {
-    if (!confirm(`Permanently delete organizer "${name}" and their account?\n\nThis cannot be undone.`)) return;
-    try {
-      const res = await fetch(`/organizer/admin/organizers/${id}`, { method: "DELETE", headers });
-      if (res.ok) { toast("Organizer deleted.", "success"); loadOrganizers(currentStatus); }
-      else        { const d = await res.json(); toast(d.error || "Delete failed.", "error"); }
-    } catch { toast("Network error.", "error"); }
-  }
-
-  // ── Filter tabs ──────────────────────────────────────────────────────────────
-  document.querySelectorAll(".filter-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      loadOrganizers(tab.dataset.status);
-    });
+document.querySelectorAll("#evFilterTabs .filter-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#evFilterTabs .filter-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    evFilter = tab.dataset.status;
+    renderEvents();
   });
+});
 
-  // ── Toast ────────────────────────────────────────────────────────────────────
-  function toast(msg, type = "success") {
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.className   = `toast ${type} show`;
-    setTimeout(() => { el.className = "toast"; }, 3000);
+async function approveEv(id, btn) {
+  btn.disabled = true; btn.textContent = "…";
+  const res = await fetch(`/admin/moderation/events/${id}/approve`, { method:"PUT", headers, body:JSON.stringify({}) });
+  if (res.ok) {
+    toast("Event approved ✓", "success");
+    const idx = allEvents.findIndex(e => e.id === id);
+    if (idx !== -1) allEvents[idx].status = "approved";
+    updateEvStats(); renderEvents(); renderFeatured();
+  } else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled=false; btn.textContent="✓ Approve"; }
+}
+
+function openRejectEv(id) {
+  pendingRejectEvId = id;
+  document.getElementById("rejectEventNote").value = "";
+  document.getElementById("rejectEventModal").classList.add("open");
+}
+document.getElementById("cancelRejectEv").addEventListener("click", () =>
+  document.getElementById("rejectEventModal").classList.remove("open")
+);
+document.getElementById("confirmRejectEv").addEventListener("click", async () => {
+  const note = document.getElementById("rejectEventNote").value.trim();
+  if (!note) { alert("Rejection reason is required."); return; }
+  const res = await fetch(`/admin/moderation/events/${pendingRejectEvId}/reject`, { method:"PUT", headers, body:JSON.stringify({note}) });
+  if (res.ok) {
+    toast("Event rejected.", "success");
+    const idx = allEvents.findIndex(e => e.id === pendingRejectEvId);
+    if (idx !== -1) { allEvents[idx].status = "rejected"; allEvents[idx].moderation_note = note; }
+    document.getElementById("rejectEventModal").classList.remove("open");
+    updateEvStats(); renderEvents();
+  } else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+});
+
+// ══════════════════════════════════════════
+//  C. FEATURED EVENTS
+// ══════════════════════════════════════════
+function renderFeatured() {
+  const approved = allEvents.filter(e => e.status === "approved");
+  if (!approved.length) {
+    document.getElementById("featuredGrid").innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="icon">📅</div><p>No approved events yet.</p></div>';
+    return;
   }
+  document.getElementById("featuredGrid").innerHTML = approved.map(ev => {
+    const date = new Date(ev.event_date).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+    return `
+      <div class="feat-card ${ev.is_featured?"is-featured":""}" id="fc-${ev.id}">
+        <div class="feat-title">${escHtml(ev.title)}</div>
+        <div class="feat-meta">${date} · ${escHtml(ev.location||"TBA")} · ${ev.category}</div>
+        <div class="feat-footer">
+          <span class="status-badge ${ev.is_featured?"sb-approved":"sb-pending"}">${ev.is_featured?"★ Featured":"Not Featured"}</span>
+          <button class="btn-feature ${ev.is_featured?"on":""}" onclick="toggleFeatured(${ev.id},${!ev.is_featured},this)">
+            ${ev.is_featured?"Remove":"★ Feature"}
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+}
 
-  function escHtml(str) {
-    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
+async function toggleFeatured(id, makeFeature, btn) {
+  btn.disabled = true;
+  const res = await fetch(`/admin/events/${id}/feature`, { method:"PUT", headers, body:JSON.stringify({is_featured:makeFeature}) });
+  if (res.ok) {
+    const idx = allEvents.findIndex(e => e.id === id);
+    if (idx !== -1) allEvents[idx].is_featured = makeFeature;
+    toast(makeFeature ? "Event featured ★" : "Removed from featured", "success");
+    renderFeatured();
+  } else { toast("Failed to update.", "error"); }
+  btn.disabled = false;
+}
 
-  // ── Boot ─────────────────────────────────────────────────────────────────────
-  loadOrganizers();
+// ── Logout ──────────────────────────────────────────────────
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  const userId = sessionStorage.getItem("userId");
+  if (window._authChannel && userId) window._authChannel.postMessage({ type:"LOGOUT", userId });
+  fetch("/auth/logout", { method:"POST", credentials:"include" })
+    .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
+});
+
+// ── Boot ────────────────────────────────────────────────────
+loadOrganizers();
+loadEvents().then(() => renderFeatured());
 </script>
 </body>
 </html>

@@ -23,17 +23,45 @@
     .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
 
     .page { max-width:1100px; margin:0 auto; padding:2.5rem 1.5rem; }
-    .page-header { margin-bottom:2rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
     .page-header h1 { font-size:1.7rem; font-weight:700; }
 
     /* SUMMARY CARDS */
-    .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1.2rem; margin-bottom:2.5rem; }
+    .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1.2rem; margin-bottom:2rem; }
     .sum-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.3rem 1.5rem; }
     .sum-label { font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
     .sum-value { font-size:1.8rem; font-weight:800; margin-top:.4rem; }
     .sum-value.green  { color:var(--success); }
     .sum-value.purple { color:var(--primary); }
     .sum-value.orange { color:var(--warning); }
+
+    /* ── PAYOUT REQUEST SECTION ── */
+    .payout-request-section {
+      background:var(--card); border:1px solid var(--border); border-radius:16px;
+      padding:1.6rem; margin-bottom:2rem;
+    }
+    .payout-request-section h2 { font-size:1.1rem; font-weight:700; margin-bottom:.5rem; }
+    .payout-request-section p  { color:var(--muted); font-size:.88rem; margin-bottom:1.2rem; line-height:1.6; }
+    .settlement-row { display:flex; justify-content:space-between; font-size:.88rem; margin-bottom:.5rem; }
+    .settlement-row strong { color:var(--success); font-size:1rem; }
+    .payout-form-row { display:grid; grid-template-columns:1fr 1fr auto; gap:.8rem; align-items:end; margin-top:1rem; flex-wrap:wrap; }
+    .payout-form-row .field { display:flex; flex-direction:column; gap:.3rem; }
+    .payout-form-row label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+    .payout-form-row select, .payout-form-row textarea {
+      background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text);
+      padding:.55rem .9rem; border-radius:8px; font-size:.88rem; outline:none;
+    }
+    .payout-form-row select:focus, .payout-form-row textarea:focus { border-color:var(--primary); }
+    .btn-request-payout {
+      background:var(--primary); color:#fff; border:none; padding:.65rem 1.6rem;
+      border-radius:9px; font-size:.92rem; font-weight:700; cursor:pointer; white-space:nowrap;
+      transition:opacity .2s; align-self:flex-end;
+    }
+    .btn-request-payout:hover { opacity:.88; }
+    .btn-request-payout:disabled { opacity:.45; cursor:not-allowed; }
+    .payout-alert { margin-top:.8rem; padding:.6rem 1rem; border-radius:8px; font-size:.85rem; display:none; }
+    .payout-alert.success { background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3); color:var(--success); display:block; }
+    .payout-alert.error   { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3);  color:var(--danger);  display:block; }
 
     /* EVENT REVENUE CARDS */
     .event-card { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:1.2rem; overflow:hidden; }
@@ -45,7 +73,6 @@
     .event-tickets { font-size:.82rem; color:var(--muted); margin-top:.2rem; }
     .chevron { color:var(--muted); font-size:.9rem; transition:transform .2s; }
     .chevron.open { transform:rotate(180deg); }
-
     .bookings-table-wrap { display:none; border-top:1px solid var(--border); padding:1rem 1.5rem 1.5rem; }
     .bookings-table-wrap.open { display:block; }
     table { width:100%; border-collapse:collapse; }
@@ -55,6 +82,10 @@
 
     .empty-state { text-align:center; padding:4rem 1rem; color:var(--muted); }
     .empty-state .icon { font-size:3.5rem; margin-bottom:1rem; }
+
+    @media (max-width: 640px) {
+      .payout-form-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -65,7 +96,8 @@
     <a href="/organizer-dashboard">Dashboard</a>
     <a href="/organizer-events">My Events</a>
     <a href="/organizer-revenue" class="active">Revenue</a>
-    <a href="/organizer-cancellation-policy">Cancellation Policies</a>
+    <a href="/organizer-payouts">Payouts</a>
+    <a href="/organizer-cancellation-policy">Cancellation</a>
     <button class="btn-logout" id="logoutBtn">Logout</button>
   </div>
 </nav>
@@ -77,22 +109,54 @@
 
   <!-- Summary totals -->
   <div class="summary-grid">
-    <div class="sum-card">
-      <div class="sum-label">Events with Sales</div>
-      <div class="sum-value purple" id="sumEvents">—</div>
+    <div class="sum-card"><div class="sum-label">Events with Sales</div><div class="sum-value purple" id="sumEvents">—</div></div>
+    <div class="sum-card"><div class="sum-label">Total Bookings</div><div class="sum-value orange" id="sumBookings">—</div></div>
+    <div class="sum-card"><div class="sum-label">Tickets Sold</div><div class="sum-value orange" id="sumTickets">—</div></div>
+    <div class="sum-card"><div class="sum-label">Gross Revenue</div><div class="sum-value green" id="sumRevenue">—</div></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       FIX Issue 1: PAYOUT REQUEST SECTION
+  ═══════════════════════════════════════════════ -->
+  <div class="payout-request-section">
+    <h2>💳 Request Payout</h2>
+    <p>
+      Request settlement for your earned revenue. The platform deducts a <strong>10% platform fee</strong> from gross ticket revenue.
+      Admin will review and process the transfer within 2–5 business days.
+    </p>
+
+    <!-- Settlement preview loaded from API -->
+    <div id="settlementPreview" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div class="settlement-row"><span>Gross Ticket Revenue</span><span id="spGross">Loading…</span></div>
+      <div class="settlement-row"><span>Platform Fee (10%)</span><span id="spFee" style="color:var(--warning)">—</span></div>
+      <div class="settlement-row" style="font-weight:700;border-top:1px solid var(--border);margin-top:.5rem;padding-top:.5rem;">
+        <span>Net Payout to You</span><strong id="spNet">—</strong>
+      </div>
     </div>
-    <div class="sum-card">
-      <div class="sum-label">Total Bookings</div>
-      <div class="sum-value orange" id="sumBookings">—</div>
+
+    <!-- Select event (optional) + payment method -->
+    <div class="payout-form-row">
+      <div class="field">
+        <label>Event (optional)</label>
+        <select id="payoutEventId">
+          <option value="">All events</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Payment Method</label>
+        <select id="payoutMethod">
+          <option value="bank_transfer">Bank Transfer</option>
+          <option value="upi">UPI</option>
+          <option value="razorpay">Razorpay</option>
+        </select>
+      </div>
+      <button class="btn-request-payout" id="requestPayoutBtn" disabled>Request Payout →</button>
     </div>
-    <div class="sum-card">
-      <div class="sum-label">Tickets Sold</div>
-      <div class="sum-value orange" id="sumTickets">—</div>
+    <div class="field" style="margin-top:.8rem;">
+      <label>Note for admin (optional)</label>
+      <textarea id="payoutNote" placeholder="Any specific instructions or account details…" rows="2" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:.55rem .9rem;border-radius:8px;font-size:.88rem;outline:none;resize:vertical;"></textarea>
     </div>
-    <div class="sum-card">
-      <div class="sum-label">Gross Revenue</div>
-      <div class="sum-value green" id="sumRevenue">—</div>
-    </div>
+    <div class="payout-alert" id="payoutAlert"></div>
   </div>
 
   <!-- Per-event breakdown -->
@@ -107,7 +171,9 @@
   if (!token || role !== "organizer") window.location.href = "/";
 
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+  let myEvents = [];
 
+  // ── Load revenue data ─────────────────────────────────────────────────────
   async function loadRevenue() {
     try {
       const res    = await fetch("/organizer/revenue", { headers });
@@ -116,17 +182,24 @@
 
       if (!events.length) {
         document.getElementById("revenueList").innerHTML = `
-          <div class="empty-state">
-            <div class="icon">💰</div>
-            <p>No paid bookings yet. Revenue will appear here once tickets are sold.</p>
-          </div>`;
+          <div class="empty-state"><div class="icon">💰</div><p>No paid bookings yet. Revenue will appear here once tickets are sold.</p></div>`;
         ["sumEvents","sumBookings","sumTickets","sumRevenue"].forEach(id =>
           document.getElementById(id).textContent = id === "sumRevenue" ? "₹0" : "0"
         );
         return;
       }
 
-      // Summary totals — use effective (post-cancellation) revenue
+      // Populate event dropdown for payout request
+      myEvents = events;
+      const sel = document.getElementById("payoutEventId");
+      events.forEach(ev => {
+        const opt = document.createElement("option");
+        opt.value = ev.id;
+        opt.textContent = ev.title;
+        sel.appendChild(opt);
+      });
+
+      // Summary totals
       let totalRevenue = 0, totalBookings = 0, totalTickets = 0;
       events.forEach(ev => {
         const et = ev.eventTotals || {};
@@ -134,65 +207,45 @@
         totalBookings += (ev.Bookings || []).length;
         totalTickets  += et.tickets_sold    || 0;
       });
-
       document.getElementById("sumEvents").textContent   = events.length;
       document.getElementById("sumBookings").textContent = totalBookings;
       document.getElementById("sumTickets").textContent  = totalTickets;
-      document.getElementById("sumRevenue").textContent  = `₹${totalRevenue.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+      document.getElementById("sumRevenue").textContent  = `₹${totalRevenue.toLocaleString("en-IN",{maximumFractionDigits:2})}`;
 
       // Per-event cards
       document.getElementById("revenueList").innerHTML = events.map((ev, i) => {
-        const bookings = ev.Bookings   || [];
+        const bookings = ev.Bookings    || [];
         const et       = ev.eventTotals || {};
-        const evDate   = new Date(ev.event_date).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
-        const netRev   = (et.effective_total || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+        const evDate   = new Date(ev.event_date).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+        const netRev   = (et.effective_total||0).toLocaleString("en-IN",{maximumFractionDigits:2});
         const hasCancellations = bookings.some(b => b.is_cancelled);
-
         return `
           <div class="event-card">
             <div class="event-card-header" onclick="toggleBookings(${i})">
               <div>
                 <div class="event-title">${escHtml(ev.title)}</div>
-                <div class="event-meta">${evDate}${ev.location ? " · " + escHtml(ev.location) : ""} · ${ev.category}</div>
+                <div class="event-meta">${evDate}${ev.location?" · "+escHtml(ev.location):""} · ${ev.category}</div>
               </div>
               <div style="display:flex;align-items:center;gap:1.5rem;">
                 <div class="event-totals">
                   <div class="event-revenue">₹${netRev}</div>
-                  <div class="event-tickets">${et.tickets_sold||0} ticket(s) · ${bookings.length} booking(s)${hasCancellations ? " · <span style=\'color:var(--danger);\'>some cancelled</span>" : ""}</div>
+                  <div class="event-tickets">${et.tickets_sold||0} ticket(s) · ${bookings.length} booking(s)${hasCancellations?" · <span style='color:var(--danger);'>some cancelled</span>":""}</div>
                 </div>
                 <span class="chevron" id="chevron-${i}">▼</span>
               </div>
             </div>
             <div class="bookings-table-wrap" id="bookings-${i}">
-              <!-- Fee summary strip -->
               <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:.9rem 1.5rem;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);font-size:.8rem;">
                 <span style="color:var(--muted);">Ticket Rev: <strong style="color:var(--text)">₹${(et.effective_ticket||0).toFixed(2)}</strong></span>
                 <span style="color:var(--muted);">Conv. Fee: <strong style="color:var(--warning)">₹${(et.effective_conv||0).toFixed(2)}</strong></span>
-                <span style="color:var(--muted);">GST: <strong style="color:var(--text)">₹${(et.effective_gst||0).toFixed(2)}</strong></span>
-                <span style="color:var(--muted);">Canc. Fees: <strong style="color:var(--danger)">₹${(et.effective_cancellation||0).toFixed(2)}</strong></span>
+                <span style="color:var(--muted);">GST: <strong>₹${(et.effective_gst||0).toFixed(2)}</strong></span>
                 <span style="color:var(--muted);">Net: <strong style="color:var(--success)">₹${(et.effective_total||0).toFixed(2)}</strong></span>
               </div>
               <table>
-                <thead>
-                  <tr>
-                    <th>Booking #</th>
-                    <th>Tickets</th>
-                    <th>Ticket Rev.</th>
-                    <th>Conv. Fee</th>
-                    <th>GST</th>
-                    <th>Canc. Fee+GST</th>
-                    <th>Net</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Booking #</th><th>Tickets</th><th>Ticket Rev.</th><th>Conv. Fee</th><th>GST</th><th>Net</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>
                   ${bookings.map(b => {
-                    const cancCharge  = b.is_cancelled ? ((b.cancellation_fee||0)+(b.cancellation_fee_gst||0)) : 0;
-                    const statusText  = b.cancellation_status === "refunded"       ? "Refunded"
-                                      : b.cancellation_status === "refund_pending" ? "Refund Pending"
-                                      : b.cancellation_status === "cancelled"      ? "Cancelled"
-                                      : "Active";
+                    const statusText  = b.cancellation_status === "refunded" ? "Refunded" : b.cancellation_status === "cancelled" ? "Cancelled" : "Active";
                     const statusColor = b.is_cancelled ? "var(--danger)" : "var(--success)";
                     return `<tr>
                       <td>#${b.id}</td>
@@ -200,9 +253,6 @@
                       <td>₹${(b.effective_ticket||0).toFixed(2)}</td>
                       <td style="color:var(--warning)">₹${(b.effective_conv||0).toFixed(2)}</td>
                       <td>₹${(b.effective_gst||0).toFixed(2)}</td>
-                      <td style="color:${b.is_cancelled ? "var(--danger)" : "var(--muted)"}">
-                        ${b.is_cancelled ? "-₹"+cancCharge.toFixed(2) : "—"}
-                      </td>
                       <td style="font-weight:700;color:var(--success)">₹${(b.effective_total||0).toFixed(2)}</td>
                       <td><span style="padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700;background:${b.is_cancelled?"rgba(239,68,68,0.1)":"rgba(34,197,94,0.1)"};color:${statusColor};">${statusText}</span></td>
                       <td style="color:var(--muted)">${new Date(b.booking_date).toLocaleDateString("en-IN")}</td>
@@ -213,19 +263,82 @@
             </div>
           </div>`;
       }).join("");
-
     } catch (err) {
-      console.error(err);
       document.getElementById("revenueList").innerHTML = "<p style='color:#fca5a5;text-align:center;padding:2rem;'>Failed to load revenue data.</p>";
     }
   }
 
+  // ── Load settlement preview ───────────────────────────────────────────────
+  async function loadSettlement(eventId = "") {
+    document.getElementById("spGross").textContent = "…";
+    document.getElementById("spFee").textContent   = "…";
+    document.getElementById("spNet").textContent   = "…";
+    document.getElementById("requestPayoutBtn").disabled = true;
+    try {
+      const r    = await fetch("/organizer/revenue", { headers });
+      const evs  = await r.json();
+      if (!evs.length) return;
+
+      // Calculate settlement from revenue data
+      let gross = 0;
+      evs.forEach(ev => {
+        if (!eventId || String(ev.id) === String(eventId)) {
+          gross += (ev.eventTotals?.effective_ticket || 0);
+        }
+      });
+
+      const fee = parseFloat((gross * 0.10).toFixed(2));
+      const net = parseFloat((gross - fee).toFixed(2));
+
+      document.getElementById("spGross").textContent = `₹${gross.toFixed(2)}`;
+      document.getElementById("spFee").textContent   = `₹${fee.toFixed(2)}`;
+      document.getElementById("spNet").textContent   = `₹${net.toFixed(2)}`;
+      document.getElementById("requestPayoutBtn").disabled = net <= 0;
+    } catch {
+      document.getElementById("spGross").textContent = "—";
+    }
+  }
+
+  // Re-calc when event changes
+  document.getElementById("payoutEventId").addEventListener("change", function() {
+    loadSettlement(this.value);
+  });
+
+  // ── Request payout ────────────────────────────────────────────────────────
+  document.getElementById("requestPayoutBtn").addEventListener("click", async () => {
+    const btn       = document.getElementById("requestPayoutBtn");
+    const alertEl   = document.getElementById("payoutAlert");
+    alertEl.className = "payout-alert";
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    try {
+      const body = {
+        event_id:       document.getElementById("payoutEventId").value || null,
+        payment_method: document.getElementById("payoutMethod").value,
+        request_note:   document.getElementById("payoutNote").value.trim() || null,
+      };
+      const r = await fetch("/organizer/payouts/request", {
+        method: "POST", headers, body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Request failed.");
+
+      alertEl.textContent = `✓ Payout request submitted! Net amount: ₹${parseFloat(data.payout.net_amount).toFixed(2)}. Admin will process it soon.`;
+      alertEl.className   = "payout-alert success";
+      btn.textContent     = "Request Submitted ✓";
+    } catch (e) {
+      alertEl.textContent = "✗ " + e.message;
+      alertEl.className   = "payout-alert error";
+      btn.disabled = false; btn.textContent = "Request Payout →";
+    }
+  });
+
   function toggleBookings(i) {
-    const wrap    = document.getElementById(`bookings-${i}`);
-    const chevron = document.getElementById(`chevron-${i}`);
-    const isOpen  = wrap.classList.contains("open");
-    wrap.classList.toggle("open", !isOpen);
-    chevron.classList.toggle("open", !isOpen);
+    const wrap = document.getElementById(`bookings-${i}`);
+    const chev = document.getElementById(`chevron-${i}`);
+    const open = wrap.classList.contains("open");
+    wrap.classList.toggle("open", !open);
+    chev.classList.toggle("open", !open);
   }
 
   function escHtml(str) {
@@ -233,12 +346,12 @@
   }
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await fetch("/auth/logout", { method: "POST", headers });
+    await fetch("/auth/logout", { method:"POST", headers });
     sessionStorage.clear();
     window.location.href = "/";
   });
 
-  loadRevenue();
+  loadRevenue().then(() => loadSettlement());
 </script>
 </body>
 </html>

@@ -1,107 +1,88 @@
-const sequelize = require("../config/database");
+const sequelize   = require("../config/database");
 const { Event, Booking } = require("../models");
-const seatService = require("./seat.services"); // ✅ was imported but never used — now actually used
+const seatService = require("./seat.services");
 
-
-
-// Constants extracted — easy to update in one place
-const CONVENIENCE_FEE_RATE = 0.10; // 10% of ticket amount
-const GST_RATE             = 0.09; // 9% of convenience fee
+const CONVENIENCE_FEE_RATE = 0.10;
+const GST_RATE             = 0.09;
 
 /*
 ====================================================
  PHASE 1 — CALCULATE BOOKING AMOUNT
- Called before payment. Does NOT write to DB.
- Returns price breakdown + event info for Razorpay order.
+ FIX Issue 4: uses tier_price when event.price === 0
 ====================================================
 */
-
-const calculateBookingAmount = async (eventId, tickets_booked) => {
+const calculateBookingAmount = async (eventId, tickets_booked, selected_seats = []) => {
   const event = await Event.findByPk(eventId);
+  if (!event) throw new Error("Event not found");
+  if (event.available_tickets < tickets_booked) throw new Error("Not enough tickets available");
 
-  if (!event) {
-    throw new Error("Event not found");
+  let ticketAmount;
+
+  // Tier-based pricing: event.price === 0, price is per-seat
+  if (event.price === 0 && selected_seats.length > 0) {
+    const { total } = await seatService.calculateTierPrice(eventId, selected_seats);
+    ticketAmount = total;
+  } else {
+    ticketAmount = event.price * tickets_booked;
   }
 
-  if (event.available_tickets < tickets_booked) {
-    throw new Error("Not enough tickets available");
-  }
-
-  const ticketAmount   = event.price * tickets_booked;
   const convenienceFee = ticketAmount * CONVENIENCE_FEE_RATE;
   const gstAmount      = convenienceFee * GST_RATE;
   const totalPaid      = ticketAmount + convenienceFee + gstAmount;
 
-  return {
-    event,
-    ticketAmount,
-    convenienceFee,
-    gstAmount,
-    totalPaid,
-  };
+  return { event, ticketAmount, convenienceFee, gstAmount, totalPaid };
 };
-
 
 /*
 ====================================================
  PHASE 2 — CONFIRM BOOKING AFTER PAYMENT SUCCESS
- Called after Razorpay signature verification.
- Deducts tickets + writes booking to DB atomically.
+ FIX Issue 4: also handles tier price calculation
 ====================================================
 */
-
 const confirmBooking = async (
-  userId,
-  eventId,
-  tickets_booked,
-  razorpay_order_id,
-  razorpay_payment_id,
-  selected_seats = []
+  userId, eventId, tickets_booked,
+  razorpay_order_id, razorpay_payment_id, selected_seats = []
 ) => {
   return await sequelize.transaction(async (t) => {
-
-    const event = await Event.findByPk(eventId, {
-      transaction: t,
-      lock: t.LOCK.UPDATE,
-    });
-
+    const event = await Event.findByPk(eventId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!event) throw new Error("Event not found");
-    if (event.available_tickets < tickets_booked)
-      throw new Error("Not enough tickets available");
+    if (event.available_tickets < tickets_booked) throw new Error("Not enough tickets available");
 
-        // ✅ Lock & mark selected seats as booked atomically
-    // Throws if any seat was already booked by another user
+    // Lock & book selected seats
+    let bookedSeats = [];
     if (selected_seats.length > 0) {
-      await seatService.bookSeats(eventId, selected_seats, t);
+      bookedSeats = await seatService.bookSeats(eventId, selected_seats, t);
     }
 
-    // Deduct tickets
+    // Deduct available tickets
     event.available_tickets -= tickets_booked;
     await event.save({ transaction: t });
 
-    // Revenue calculation (mirrors Phase 1)
-    const ticketAmount   = event.price * tickets_booked;
+    // Price — tier-based if event.price === 0
+    let ticketAmount;
+    if (event.price === 0 && bookedSeats.length > 0) {
+      ticketAmount = bookedSeats.reduce((sum, s) => sum + parseFloat(s.tier_price), 0);
+    } else {
+      ticketAmount = event.price * tickets_booked;
+    }
+
     const convenienceFee = ticketAmount * CONVENIENCE_FEE_RATE;
     const gstAmount      = convenienceFee * GST_RATE;
     const totalPaid      = ticketAmount + convenienceFee + gstAmount;
 
-    // Create booking with payment info
-    const booking = await Booking.create(
-      {
-        user_id:             userId,
-        event_id:            eventId,
-        tickets_booked,
-        ticket_amount:       ticketAmount,
-        convenience_fee:     convenienceFee,
-        gst_amount:          gstAmount,
-        total_paid:          totalPaid,
-        selected_seats:      JSON.stringify(selected_seats),
-        razorpay_order_id,
-        razorpay_payment_id,
-        payment_status:      "paid",
-      },
-      { transaction: t }
-    );
+    const booking = await Booking.create({
+      user_id:             userId,
+      event_id:            eventId,
+      tickets_booked,
+      ticket_amount:       ticketAmount,
+      convenience_fee:     convenienceFee,
+      gst_amount:          gstAmount,
+      total_paid:          totalPaid,
+      selected_seats:      JSON.stringify(selected_seats),
+      razorpay_order_id,
+      razorpay_payment_id,
+      payment_status:      "paid",
+    }, { transaction: t });
 
     return booking;
   });
@@ -112,29 +93,19 @@ const confirmBooking = async (
  USER BOOKINGS VIEW
 ====================================================
 */
-
 const getUserBookings = async (userId) => {
-  return await Booking.findAll({
+  return Booking.findAll({
     where: { user_id: userId },
-    include: [{
-      model: Event,
-      attributes: ["title", "event_date", "price","images"]
-    }],
-    order: [["booking_date", "DESC"]]
+    include: [{ model: Event, attributes: ["title", "event_date", "price", "images"] }],
+    order: [["booking_date", "DESC"]],
   });
 };
 
-// Fetch a single booking — ensures it belongs to the requesting user
 const getBookingById = async (bookingId, userId) => {
-  return await Booking.findOne({
+  return Booking.findOne({
     where: { id: bookingId, user_id: userId },
     include: [{ model: Event, attributes: ["title", "event_date", "price", "location"] }],
   });
 };
 
-module.exports = {
-  calculateBookingAmount,
-  confirmBooking,
-  getUserBookings,
-  getBookingById
-};
+module.exports = { calculateBookingAmount, confirmBooking, getUserBookings, getBookingById };
