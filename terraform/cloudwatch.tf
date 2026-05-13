@@ -92,7 +92,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   period              = 60
   statistic           = "Average"
   threshold           = 80
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_booking_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
@@ -107,7 +107,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   period              = 300
   statistic           = "Average"
   threshold           = 2000000000
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_booking_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
 }
 
@@ -121,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   period              = 60
   statistic           = "Average"
   threshold           = 40
-  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_db.identifier }
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_booking_db.identifier }
   alarm_actions       = [aws_sns_topic.alerts.arn]
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
@@ -238,8 +238,8 @@ resource "aws_cloudwatch_dashboard" "main" {
           title   = "RDS — CPU & DB Connections"
           region  = var.aws_region
           metrics = [
-            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier],
-            ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier]
+            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier],
+            ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier]
           ]
           period = 60
           stat   = "Average"
@@ -254,7 +254,7 @@ resource "aws_cloudwatch_dashboard" "main" {
           title   = "RDS — Free Storage Space"
           region  = var.aws_region
           metrics = [
-            ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", aws_db_instance.ticket_db.identifier]
+            ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier]
           ]
           period = 300
           stat   = "Average"

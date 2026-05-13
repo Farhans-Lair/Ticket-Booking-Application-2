@@ -1,5 +1,5 @@
 output "rds_endpoint" {
-  value = aws_db_instance.ticket_db.endpoint
+  value = aws_db_instance.ticket_booking_db.endpoint
 }
 
 output "alb_dns_name" {

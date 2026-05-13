@@ -1,7 +1,7 @@
 # ---------------------------
 # RDS Subnet Group
 # ---------------------------
-resource "aws_db_subnet_group" "ticket_db_subnet_group" {
+resource "aws_db_subnet_group" "ticket_booking_db_subnet_group" {
   name = "${var.project_name}-db-subnet-group"
 
   subnet_ids = [
@@ -17,7 +17,7 @@ resource "aws_db_subnet_group" "ticket_db_subnet_group" {
 # ---------------------------
 # RDS MySQL Instance
 # ---------------------------
-resource "aws_db_instance" "ticket_db" {
+resource "aws_db_instance" "ticket_booking_db" {
   identifier = "${var.project_name}-mysql-db"
 
   engine         = "mysql"
@@ -32,7 +32,7 @@ resource "aws_db_instance" "ticket_db" {
   username = var.db_username
   password = var.db_password
 
-  db_subnet_group_name   = aws_db_subnet_group.ticket_db_subnet_group.name
+  db_subnet_group_name   = aws_db_subnet_group.ticket_booking_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
   publicly_accessible = false

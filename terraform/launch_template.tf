@@ -3,7 +3,7 @@ data "template_file" "user_data" {
 
   vars = {
     ACCOUNT_ID  = data.aws_caller_identity.current.account_id
-    DB_HOST     = aws_db_instance.ticket_db.address
+    DB_HOST     = aws_db_instance.ticket_booking_db.address
     DB_NAME     = var.db_name
     DB_USER     = var.db_username
     DB_PASSWORD = var.db_password

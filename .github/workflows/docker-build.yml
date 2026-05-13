@@ -20,7 +20,7 @@ jobs:
 
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_NAME: ticket_db
+      DB_NAME: ticket_booking_db
       DB_USER: ticket_user
       DB_PASSWORD: ticket_password
       NODE_ENV: test
@@ -32,7 +32,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: ticket_db
+          MYSQL_DATABASE: ticket_booking_db
           MYSQL_USER: ticket_user
           MYSQL_PASSWORD: ticket_password
         ports:
