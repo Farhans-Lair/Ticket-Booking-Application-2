@@ -88,6 +88,8 @@
     .btn-book { padding: 8px 18px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
     .btn-book:hover { opacity: 0.85; }
     .btn-book:disabled { background: var(--glass); color: var(--text-muted); cursor: default; }
+    .qty-input { width: 56px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--glass); color: var(--text); font-size: 0.82rem; text-align: center; margin-right: 6px; }
+    .book-action { display: flex; align-items: center; }
 
     .loading { text-align: center; padding: 48px; color: var(--text-muted); }
     .empty   { text-align: center; padding: 48px; color: var(--text-muted); }
@@ -279,11 +281,18 @@
                 <div class="ev-price">${ev.price > 0 ? "₹" + ev.price : "Free"}</div>
                 <div class="ev-tickets">${ev.available_tickets} left · ${pct}% sold</div>
               </div>
-              <button class="btn-book"
-                ${ev.available_tickets === 0 ? "disabled" : ""}
-                onclick="goToBooking(${ev.id})">
-                ${ev.available_tickets === 0 ? "Sold Out" : "Book Now"}
-              </button>
+              <div class="book-action">
+                ${ev.available_tickets === 0 ? "" : `
+                  <input type="number" class="qty-input"
+                    id="qty-${ev.id}"
+                    min="1" max="${ev.available_tickets}"
+                    value="1" title="Number of tickets" />`}
+                <button class="btn-book"
+                  ${ev.available_tickets === 0 ? "disabled" : ""}
+                  onclick="goToBooking(${ev.id})">
+                  ${ev.available_tickets === 0 ? "Sold Out" : "Book Now"}
+                </button>
+              </div>
             </div>
           </div>
         </div>`;
@@ -305,7 +314,21 @@
 
   // ── Navigation ────────────────────────────────────────────
   function goToBooking(eventId) {
-    sessionStorage.setItem("selectedEventId", eventId);
+    const input = document.getElementById("qty-" + eventId);
+    const tickets_booked = input ? parseInt(input.value, 10) : 1;
+
+    if (!tickets_booked || tickets_booked <= 0) {
+      alert("Please enter a valid number of tickets.");
+      return;
+    }
+
+    // seat-selection.js reads "seat_selection_meta" — store both event id
+    // and ticket count so the seat grid knows how many seats to enforce.
+    sessionStorage.setItem("seat_selection_meta", JSON.stringify({
+      event_id:       eventId,
+      tickets_booked: tickets_booked,
+    }));
+
     location.href = "/seat-selection";
   }
 
