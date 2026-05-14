@@ -14,26 +14,38 @@ jobs:
       contents: read
 
     env:
-      AWS_REGION: ap-south-1
+      AWS_REGION:     ap-south-1
       AWS_ACCOUNT_ID: 453551850734
       ECR_REPOSITORY: ticket-backend
 
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_NAME: ticket_booking_db
-      DB_USER: ticket_user
+      # ── Database ────────────────────────────────────────────
+      # FIX: DB_NAME updated from ticket_db → ticket_booking_db
+      DB_HOST:     127.0.0.1
+      DB_PORT:     3306
+      DB_NAME:     ticket_booking_db
+      DB_USER:     ticket_user
       DB_PASSWORD: ticket_password
-      NODE_ENV: test
-      RAZORPAY_KEY_ID: rzp_test_placeholder_for_ci      # 👈 add this
+
+      # ── App ─────────────────────────────────────────────────
+      NODE_ENV:    test
+      JWT_SECRET:  ci_test_jwt_secret_not_used_in_prod
+
+      # ── Razorpay (stubs for CI — not actually called) ───────
+      RAZORPAY_KEY_ID:     rzp_test_placeholder_for_ci
       RAZORPAY_KEY_SECRET: placeholder_secret_for_ci
+
+      # ── Email (stubs for CI) ─────────────────────────────────
+      EMAIL_USER: ci@example.com
+      EMAIL_PASS: ci_placeholder
 
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
+          # FIX: MYSQL_DATABASE updated from ticket_db → ticket_booking_db
           MYSQL_DATABASE: ticket_booking_db
-          MYSQL_USER: ticket_user
+          MYSQL_USER:     ticket_user
           MYSQL_PASSWORD: ticket_password
         ports:
           - 3306:3306
@@ -44,7 +56,6 @@ jobs:
           --health-retries=5
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -54,12 +65,20 @@ jobs:
       - name: Install MySQL Client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
-      - name: Wait for MySQL
+      - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
             mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
-            sleep 2 
+            echo "Waiting for MySQL... ($i/30)"
+            sleep 2
           done
+
+      # ── FIX: Initialise the database schema before running tests ──
+      - name: Load database schema
+        run: |
+          mysql -h 127.0.0.1 -u root -prootpassword ticket_booking_db \
+            < db/master_schema.sql
+          echo "✅ Schema loaded successfully"
 
       - name: Install dependencies
         working-directory: backend
@@ -68,6 +87,10 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: npm test
+
+      # ─────────────────────────────────────────────────────────
+      # The steps below only run when tests pass
+      # ─────────────────────────────────────────────────────────
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -91,7 +114,6 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Build from project root so Dockerfile can access frontend/
       - name: Build and Push Docker Image
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
@@ -103,12 +125,10 @@ jobs:
 
           docker push $IMAGE_URI
 
-      # Deploy to EC2 via SSM — instance ID fetched dynamically, no secret needed
       - name: Deploy to EC2 via SSM
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
 
-          # Fetch instance ID dynamically using the Name tag
           INSTANCE_ID=$(aws ec2 describe-instances \
             --region $AWS_REGION \
             --filters "Name=tag:Name,Values=ticket*" "Name=instance-state-name,Values=running" \
