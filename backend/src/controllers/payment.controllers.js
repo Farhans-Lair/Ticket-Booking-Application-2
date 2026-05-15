@@ -39,8 +39,10 @@ const createOrder = async (req, res, next) => {
 
     logger.info("Razorpay order creation started", { userId, event_id, tickets_booked, selected_seats });
 
+    // Pass selected_seats so tier-based events (event.price === 0) can
+    // sum per-seat tier prices instead of computing 0 × tickets_booked.
     const { event, ticketAmount, convenienceFee, gstAmount, totalPaid } =
-      await bookingService.calculateBookingAmount(event_id, tickets_booked);
+      await bookingService.calculateBookingAmount(event_id, tickets_booked, selected_seats);
 
     const receipt = `rcpt_u${userId}_e${event_id}_${Date.now()}`;
     const order   = await paymentService.createOrder(totalPaid, "INR", receipt);

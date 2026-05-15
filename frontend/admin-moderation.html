@@ -156,7 +156,7 @@
   async function loadEvents() {
     document.getElementById("eventsList").innerHTML = '<div class="loading">Loading events…</div>';
     try {
-      const r    = await fetch("/api/admin/moderation/events/all", { headers });
+      const r    = await fetch("/admin/moderation/events", { headers });
       allEvents  = await r.json();
       updateStats();
       renderEvents();
@@ -231,7 +231,7 @@
   // ── Approve ───────────────────────────────────────────────
   async function approveEvent(id) {
     try {
-      const r = await fetch(`/api/admin/moderation/events/${id}/approve`, { method: "PUT", headers });
+      const r = await fetch(`/admin/moderation/events/${id}/approve`, { method: "PUT", headers });
       if (!r.ok) throw new Error();
       const idx = allEvents.findIndex(e => e.id === id);
       if (idx !== -1) allEvents[idx].status = "approved";
@@ -254,7 +254,7 @@
     const note = document.getElementById("rejectNote").value.trim();
     if (!note) { alert("Please provide a rejection reason."); return; }
     try {
-      const r = await fetch(`/api/admin/moderation/events/${pendingRejectId}/reject`, {
+      const r = await fetch(`/admin/moderation/events/${pendingRejectId}/reject`, {
         method: "PUT", headers, body: JSON.stringify({ note }),
       });
       if (!r.ok) throw new Error();
@@ -268,7 +268,7 @@
   // ── Toggle Feature ────────────────────────────────────────
   async function toggleFeature(id, makeFeature, btn) {
     try {
-      const r = await fetch(`/api/admin/events/${id}/feature`, {
+      const r = await fetch(`/admin/events/${id}/feature`, {
         method: "PUT", headers,
         body: JSON.stringify({ is_featured: makeFeature }),
       });
