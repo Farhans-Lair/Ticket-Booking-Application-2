@@ -142,7 +142,7 @@ const deleteEvent = async (req, res, next) => {
 
 const getRevenue = async (req, res, next) => {
   try {
-    const revenue = await organizerService.getRevenue(req.user.id);
+    const revenue = await organizerService.getOrganizerRevenue(req.user.id);
     res.json(revenue);
   } catch (err) {
     logger.error("Failed to fetch organizer revenue", { organizerId: req.user?.id, error: err.message });
@@ -152,7 +152,7 @@ const getRevenue = async (req, res, next) => {
 
 const getStats = async (req, res, next) => {
   try {
-    const stats = await organizerService.getStats(req.user.id);
+    const stats = await organizerService.getOrganizerStats(req.user.id);
     res.json(stats);
   } catch (err) {
     logger.error("Failed to fetch organizer stats", { organizerId: req.user?.id, error: err.message });

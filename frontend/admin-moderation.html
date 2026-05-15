@@ -208,8 +208,8 @@
             </div>
           </div>
           <div class="action-col">
-            ${isPending ? `<button class="btn btn-approve" onclick="approveEvent(${ev.id})">Approve</button>` : ""}
-            ${isPending ? `<button class="btn btn-reject"  onclick="openReject(${ev.id})">Reject</button>` : ""}
+            ${isPending  ? `<button class="btn btn-approve" onclick="approveEvent(${ev.id})">Approve</button>` : ""}
+            ${(isPending || ev.status === "approved") ? `<button class="btn btn-reject" onclick="openReject(${ev.id})">Reject</button>` : ""}
             <button class="btn btn-feature ${isFeatured ? "featured" : ""}" onclick="toggleFeature(${ev.id}, ${!isFeatured}, this)">
               ${isFeatured ? "★ Featured" : "☆ Feature"}
             </button>
