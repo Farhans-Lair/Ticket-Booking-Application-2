@@ -109,11 +109,13 @@ const createPayout = async (req, res, next) => {
 // PUT /api/admin/payouts/:id/status — update status (approve = 'processing' or 'paid')
 const updatePayoutStatus = async (req, res, next) => {
   try {
-    const { status, reference_id } = req.body;
+    const { status, reference_id, rejection_reason } = req.body;
     const allowed = ["processing", "paid", "failed"];
     if (!allowed.includes(status))
       return res.status(400).json({ error: `status must be one of: ${allowed.join(", ")}` });
-    const payout = await payoutService.updatePayoutStatus(req.params.id, status, reference_id, req.user.id);
+    if (status === "failed" && !rejection_reason)
+      return res.status(400).json({ error: "A rejection reason is required when rejecting a payout." });
+    const payout = await payoutService.updatePayoutStatus(req.params.id, status, reference_id, req.user.id, rejection_reason);
     if (!payout) return res.status(404).json({ error: "Payout not found." });
     logger.info("Payout status updated", { adminId: req.user.id, payoutId: req.params.id, status });
     res.json(payout);

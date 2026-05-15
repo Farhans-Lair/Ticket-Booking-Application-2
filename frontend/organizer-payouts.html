@@ -155,7 +155,12 @@
                 ${paidDate ? `<span>Paid on ${paidDate}</span>` : ""}
               </div>
               <span class="status-badge s-${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
-              ${p.notes ? `<div style="font-size:.8rem;color:var(--muted);margin-top:6px;">${p.notes}</div>` : ""}
+              ${p.status === "failed" && p.notes
+                ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(247,74,106,0.08);border:1px solid rgba(247,74,106,0.25);border-radius:8px;font-size:.82rem;color:var(--red);">
+                    <strong>Rejection reason:</strong> ${p.notes}
+                   </div>`
+                : (p.notes ? `<div style="font-size:.8rem;color:var(--muted);margin-top:6px;">${p.notes}</div>` : "")
+              }
             </div>
             <div class="amount-block">
               <div class="amount-gross">Gross ₹${parseFloat(p.amount).toFixed(2)}</div>

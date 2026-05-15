@@ -21,12 +21,17 @@
     .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.88rem; transition: color .2s; }
     .nav-links a:hover, .nav-links a.active { color: var(--gold); }
 
-    .page { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+    .page { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
     .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; }
     .page-header p  { color: var(--muted); margin-top: 4px; font-size: 0.9rem; }
     .btn-primary { background: var(--accent); color: #fff; border: none; padding: 11px 24px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
     .btn-primary:hover { opacity: 0.88; }
+
+    /* TABS */
+    .tab-row { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); }
+    .tab-btn { padding: 10px 22px; background: none; border: none; border-bottom: 3px solid transparent; color: var(--muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; margin-bottom: -1px; }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
     /* STATS */
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
@@ -38,11 +43,16 @@
     .filter-row { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; align-items: center; }
     .filter-row select, .filter-row input { padding: 9px 14px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text); font-size: 0.87rem; font-family: inherit; }
 
+    /* SECTION LABEL */
+    .section-label { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-left: 6px; }
+    .lbl-request { background: rgba(124,106,247,0.15); color: var(--accent); }
+    .lbl-admin   { background: rgba(245,200,66,0.12);  color: var(--gold); }
+
     /* TABLE */
     .table-wrap { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; overflow: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
     th { padding: 14px 16px; text-align: left; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
-    td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
 
     .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.73rem; font-weight: 600; white-space: nowrap; }
@@ -52,11 +62,16 @@
     .s-failed     { background: rgba(247,74,106,0.15); color: var(--red); }
 
     .amount-col { font-weight: 700; color: var(--gold); }
-    .actions    { display: flex; gap: 6px; }
-    .btn-sm { padding: 5px 12px; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .actions    { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-sm { padding: 5px 12px; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-approve { background: rgba(34,197,94,0.2);   color: var(--green); }
+    .btn-reject  { background: rgba(247,74,106,0.2);  color: var(--red); }
     .btn-process { background: rgba(124,106,247,0.2); color: var(--accent); }
     .btn-paid    { background: rgba(34,197,94,0.2);   color: var(--green); }
     .btn-fail    { background: rgba(247,74,106,0.2);  color: var(--red); }
+
+    /* NOTE BOX */
+    .rejection-note { font-size: 0.78rem; color: var(--red); margin-top: 4px; font-style: italic; }
 
     /* MODAL */
     .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; }
@@ -72,9 +87,14 @@
     .settle-row:last-child { margin-bottom: 0; font-weight: 700; color: var(--gold); }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
     .btn-cancel { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 22px; border-radius: 8px; cursor: pointer; }
+    .btn-danger { background: var(--red); color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-danger:hover { opacity: 0.88; }
 
     .loading { text-align: center; padding: 48px; color: var(--muted); }
     .empty   { text-align: center; padding: 40px; color: var(--muted); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
     @media (max-width: 640px) {
       nav { padding: 14px 18px; }
@@ -99,51 +119,86 @@
   <div class="page-header">
     <div>
       <h1>Organizer Payouts</h1>
-      <p>Manage and track settlements to event organizers.</p>
+      <p>Review organizer payout requests and manage settlements.</p>
     </div>
     <button class="btn-primary" id="newPayoutBtn">+ Create Payout</button>
   </div>
 
   <div class="stats-row">
     <div class="stat-card"><div class="num" id="sTotalPayouts">—</div><div class="lbl">Total Payouts</div></div>
-    <div class="stat-card"><div class="num" id="sPending">—</div><div class="lbl">Pending</div></div>
-    <div class="stat-card"><div class="num" id="sPaid">—</div><div class="lbl">Paid Out</div></div>
+    <div class="stat-card"><div class="num" id="sPendingCount">—</div><div class="lbl">Pending Requests</div></div>
+    <div class="stat-card"><div class="num" id="sPaidCount">—</div><div class="lbl">Paid Out</div></div>
     <div class="stat-card"><div class="num" id="sTotalAmount">—</div><div class="lbl">Total Disbursed (₹)</div></div>
   </div>
 
-  <div class="filter-row">
-    <select id="filterStatus">
-      <option value="">All Statuses</option>
-      <option value="pending">Pending</option>
-      <option value="processing">Processing</option>
-      <option value="paid">Paid</option>
-      <option value="failed">Failed</option>
-    </select>
-    <input type="number" id="filterOrg" placeholder="Organizer ID (optional)" style="width:200px" />
-    <button class="btn-primary" id="applyFilter" style="padding:9px 18px;">Filter</button>
+  <!-- Tabs: Organizer Requests | All Payouts -->
+  <div class="tab-row">
+    <button class="tab-btn active" data-tab="requests">💳 Organizer Requests</button>
+    <button class="tab-btn" data-tab="all">📋 All Payouts</button>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th><th>Organizer</th><th>Event</th><th>Gross (₹)</th>
-          <th>Platform Fee (₹)</th><th>Net (₹)</th><th>Method</th>
-          <th>Status</th><th>Date</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="payoutsBody">
-        <tr><td colspan="10" class="loading">Loading payouts…</td></tr>
-      </tbody>
-    </table>
+  <!-- ── ORGANIZER REQUESTS TAB ── -->
+  <div class="tab-panel active" id="tab-requests">
+    <div class="filter-row">
+      <select id="reqFilterStatus">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="paid">Paid</option>
+        <option value="failed">Rejected</option>
+      </select>
+      <button class="btn-primary" id="applyReqFilter" style="padding:9px 18px;">Filter</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Organizer</th><th>Event</th><th>Gross (₹)</th>
+            <th>Fee (₹)</th><th>Net (₹)</th><th>Method</th>
+            <th>Note from Organizer</th><th>Status</th><th>Date</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="requestsBody">
+          <tr><td colspan="11" class="loading">Loading requests…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ALL PAYOUTS TAB ── -->
+  <div class="tab-panel" id="tab-all">
+    <div class="filter-row">
+      <select id="filterStatus">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="paid">Paid</option>
+        <option value="failed">Failed/Rejected</option>
+      </select>
+      <input type="number" id="filterOrg" placeholder="Organizer ID (optional)" style="width:200px" />
+      <button class="btn-primary" id="applyFilter" style="padding:9px 18px;">Filter</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Type</th><th>Organizer</th><th>Event</th><th>Gross (₹)</th>
+            <th>Fee (₹)</th><th>Net (₹)</th><th>Method</th>
+            <th>Status</th><th>Date</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="payoutsBody">
+          <tr><td colspan="11" class="loading">Loading payouts…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<!-- Create payout modal -->
+<!-- Create payout modal (admin-initiated) -->
 <div class="modal-backdrop" id="createModal">
   <div class="modal">
     <h3>Create New Payout</h3>
-
     <div class="form-group">
       <label>Organizer ID</label>
       <input type="number" id="poOrgId" placeholder="Enter organizer user ID" />
@@ -189,7 +244,7 @@
   </div>
 </div>
 
-<!-- Status update modal -->
+<!-- Status update modal (generic — for non-reject updates) -->
 <div class="modal-backdrop" id="statusModal">
   <div class="modal">
     <h3>Update Payout Status</h3>
@@ -197,9 +252,8 @@
     <div class="form-group">
       <label>New Status</label>
       <select id="newStatus">
-        <option value="processing">Processing</option>
-        <option value="paid">Paid</option>
-        <option value="failed">Failed</option>
+        <option value="processing">Processing — transfer initiated</option>
+        <option value="paid">Paid — organizer received funds</option>
       </select>
     </div>
     <div class="form-group">
@@ -213,62 +267,172 @@
   </div>
 </div>
 
+<!-- Reject modal — requires a reason -->
+<div class="modal-backdrop" id="rejectModal">
+  <div class="modal">
+    <h3>Reject Payout Request</h3>
+    <input type="hidden" id="rejectPayoutId" />
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:18px;">
+      The organizer will see this reason in their Payouts dashboard. Please be specific.
+    </p>
+    <div class="form-group">
+      <label>Rejection Reason <span style="color:var(--red)">*</span></label>
+      <textarea id="rejectReason" placeholder="e.g. Insufficient bank details provided, pending KYC verification…" rows="4"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="closeReject">Cancel</button>
+      <button class="btn-danger" id="submitReject">Reject Payout</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const token = sessionStorage.getItem("token");
   if (!token) { location.href = "/admin"; }
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
-  let payoutsData = [];
+  let allPayoutsData    = [];
+  let requestsData      = [];
+  let activeTab         = "requests";
 
-  // ── Load payouts ──────────────────────────────────────────
-  async function loadPayouts(organizerId = "", status = "") {
-    document.getElementById("payoutsBody").innerHTML = '<tr><td colspan="10" class="loading">Loading…</td></tr>';
+  // ── Tab switching ─────────────────────────────────────────
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      document.getElementById(`tab-${activeTab}`).classList.add("active");
+      if (activeTab === "all" && !allPayoutsData.length) loadAllPayouts();
+    });
+  });
+
+  // ── Load organizer REQUESTS (pending + all) ──────────────
+  async function loadRequests(status = "") {
+    document.getElementById("requestsBody").innerHTML =
+      '<tr><td colspan="11" class="loading">Loading requests…</td></tr>';
     try {
-      let url = `/api/admin/payouts?limit=50`;
-      if (status)      url += `&status=${status}`;
-      if (organizerId) url += `&organizerId=${organizerId}`;
-
+      // Organizer requests have requested_by set — filter by that on the same endpoint
+      let url = `/admin/payouts/data?limit=100`;
+      if (status) url += `&status=${status}`;
       const r    = await fetch(url, { headers });
       const data = await r.json();
-      payoutsData = data.payouts || [];
-      updateStats(payoutsData);
-      renderTable(payoutsData);
-    } catch (e) {
-      document.getElementById("payoutsBody").innerHTML = '<tr><td colspan="10" class="empty">Failed to load payouts.</td></tr>';
+      const all  = data.payouts || [];
+      // Show only organizer-requested payouts in this tab
+      requestsData = all.filter(p => p.requested_by != null);
+      updateStats(all);
+      renderRequests(requestsData);
+    } catch {
+      document.getElementById("requestsBody").innerHTML =
+        '<tr><td colspan="11" class="empty">Failed to load payout requests.</td></tr>';
+    }
+  }
+
+  // ── Load ALL payouts ──────────────────────────────────────
+  async function loadAllPayouts(organizerId = "", status = "") {
+    document.getElementById("payoutsBody").innerHTML =
+      '<tr><td colspan="11" class="loading">Loading…</td></tr>';
+    try {
+      let url = `/admin/payouts/data?limit=100`;
+      if (status)      url += `&status=${status}`;
+      if (organizerId) url += `&organizerId=${organizerId}`;
+      const r    = await fetch(url, { headers });
+      const data = await r.json();
+      allPayoutsData = data.payouts || [];
+      renderAllPayouts(allPayoutsData);
+    } catch {
+      document.getElementById("payoutsBody").innerHTML =
+        '<tr><td colspan="11" class="empty">Failed to load payouts.</td></tr>';
     }
   }
 
   function updateStats(payouts) {
-    const pending = payouts.filter(p => p.status === "pending").length;
-    const paid    = payouts.filter(p => p.status === "paid").length;
-    const totalAmt= payouts.filter(p => p.status === "paid").reduce((s, p) => s + parseFloat(p.net_amount || 0), 0);
-    document.getElementById("sTotalPayouts").textContent = payouts.length;
-    document.getElementById("sPending").textContent      = pending;
-    document.getElementById("sPaid").textContent         = paid;
-    document.getElementById("sTotalAmount").textContent  = "₹" + totalAmt.toFixed(2);
+    const pending  = payouts.filter(p => p.status === "pending").length;
+    const paid     = payouts.filter(p => p.status === "paid").length;
+    const totalAmt = payouts.filter(p => p.status === "paid")
+                            .reduce((s, p) => s + parseFloat(p.net_amount || 0), 0);
+    document.getElementById("sTotalPayouts").textContent  = payouts.length;
+    document.getElementById("sPendingCount").textContent  = pending;
+    document.getElementById("sPaidCount").textContent     = paid;
+    document.getElementById("sTotalAmount").textContent   = "₹" + totalAmt.toFixed(2);
   }
 
-  function renderTable(payouts) {
-    if (!payouts.length) {
-      document.getElementById("payoutsBody").innerHTML = '<tr><td colspan="10" class="empty">No payouts found.</td></tr>';
+  function orgName(p) {
+    return p.Organizer?.OrganizerProfile?.business_name || p.Organizer?.name || `#${p.organizer_id}`;
+  }
+  function eventTitle(p) {
+    return p.Event?.title ? p.Event.title.substring(0, 24) + (p.Event.title.length > 24 ? "…" : "") : "—";
+  }
+  function fmtDate(d) {
+    return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  // ── Render organizer requests ─────────────────────────────
+  function renderRequests(list) {
+    if (!list.length) {
+      document.getElementById("requestsBody").innerHTML =
+        '<tr><td colspan="11" class="empty">No organizer payout requests found.</td></tr>';
       return;
     }
-    document.getElementById("payoutsBody").innerHTML = payouts.map(p => {
-      const orgName  = p.Organizer?.OrganizerProfile?.business_name || p.Organizer?.name || `#${p.organizer_id}`;
-      const eventTitle = p.Event?.title ? `${p.Event.title.substring(0, 22)}…` : "—";
-      const date     = new Date(p.created_at).toLocaleDateString("en-IN");
-      const canUpdate = ["pending", "processing"].includes(p.status);
+    document.getElementById("requestsBody").innerHTML = list.map(p => {
+      const canAct = p.status === "pending";
+      const rejectionNote = (p.status === "failed" && p.notes)
+        ? `<div class="rejection-note">Rejected: ${esc(p.notes)}</div>` : "";
       return `
         <tr>
           <td>#${p.id}</td>
-          <td>${orgName}</td>
-          <td title="${p.Event?.title || ""}">${eventTitle}</td>
-          <td class="amount-col">₹${parseFloat(p.amount).toFixed(2)}</td>
+          <td>${esc(orgName(p))}</td>
+          <td title="${esc(p.Event?.title || "")}">${esc(eventTitle(p))}</td>
+          <td>₹${parseFloat(p.amount).toFixed(2)}</td>
           <td>₹${parseFloat(p.platform_fee).toFixed(2)}</td>
           <td class="amount-col">₹${parseFloat(p.net_amount).toFixed(2)}</td>
-          <td>${p.payment_method?.replace("_", " ") || "—"}</td>
+          <td>${(p.payment_method || "—").replace("_"," ")}</td>
+          <td style="font-size:.82rem;color:var(--muted);max-width:180px;word-break:break-word;">
+            ${p.request_note ? esc(p.request_note) : "—"}
+          </td>
+          <td>
+            <span class="status-badge s-${p.status}">${p.status}</span>
+            ${rejectionNote}
+          </td>
+          <td>${fmtDate(p.created_at)}</td>
+          <td class="actions">
+            ${canAct ? `
+              <button class="btn-sm btn-approve" onclick="approveRequest(${p.id})">Approve</button>
+              <button class="btn-sm btn-reject"  onclick="openRejectModal(${p.id})">Reject</button>
+            ` : "—"}
+          </td>
+        </tr>`;
+    }).join("");
+  }
+
+  // ── Render all payouts ────────────────────────────────────
+  function renderAllPayouts(list) {
+    if (!list.length) {
+      document.getElementById("payoutsBody").innerHTML =
+        '<tr><td colspan="11" class="empty">No payouts found.</td></tr>';
+      return;
+    }
+    document.getElementById("payoutsBody").innerHTML = list.map(p => {
+      const isRequest = p.requested_by != null;
+      const typeLabel = isRequest
+        ? '<span class="section-label lbl-request">Request</span>'
+        : '<span class="section-label lbl-admin">Admin</span>';
+      const canUpdate = ["pending","processing"].includes(p.status);
+      return `
+        <tr>
+          <td>#${p.id}</td>
+          <td>${typeLabel}</td>
+          <td>${esc(orgName(p))}</td>
+          <td title="${esc(p.Event?.title || "")}">${esc(eventTitle(p))}</td>
+          <td>₹${parseFloat(p.amount).toFixed(2)}</td>
+          <td>₹${parseFloat(p.platform_fee).toFixed(2)}</td>
+          <td class="amount-col">₹${parseFloat(p.net_amount).toFixed(2)}</td>
+          <td>${(p.payment_method || "—").replace("_"," ")}</td>
           <td><span class="status-badge s-${p.status}">${p.status}</span></td>
-          <td>${date}</td>
+          <td>${fmtDate(p.created_at)}</td>
           <td class="actions">
             ${canUpdate ? `<button class="btn-sm btn-process" onclick="openStatusModal(${p.id})">Update</button>` : "—"}
           </td>
@@ -276,84 +440,124 @@
     }).join("");
   }
 
-  // ── Filter ────────────────────────────────────────────────
-  document.getElementById("applyFilter").addEventListener("click", () => {
-    loadPayouts(
+  // ── Filters ───────────────────────────────────────────────
+  document.getElementById("applyReqFilter").addEventListener("click", () =>
+    loadRequests(document.getElementById("reqFilterStatus").value)
+  );
+  document.getElementById("applyFilter").addEventListener("click", () =>
+    loadAllPayouts(
       document.getElementById("filterOrg").value,
       document.getElementById("filterStatus").value
-    );
+    )
+  );
+
+  // ── Approve request ───────────────────────────────────────
+  async function approveRequest(id) {
+    if (!confirm("Approve this payout request? Status will be set to Processing.")) return;
+    try {
+      const r = await fetch(`/admin/payouts/${id}/status`, {
+        method: "PUT", headers,
+        body: JSON.stringify({ status: "processing", reference_id: null }),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
+      loadRequests(document.getElementById("reqFilterStatus").value);
+    } catch (e) { alert("Failed to approve: " + e.message); }
+  }
+
+  // ── Reject modal ──────────────────────────────────────────
+  function openRejectModal(id) {
+    document.getElementById("rejectPayoutId").value = id;
+    document.getElementById("rejectReason").value   = "";
+    document.getElementById("rejectModal").classList.add("open");
+  }
+  document.getElementById("closeReject").addEventListener("click", () =>
+    document.getElementById("rejectModal").classList.remove("open")
+  );
+  document.getElementById("submitReject").addEventListener("click", async () => {
+    const id     = document.getElementById("rejectPayoutId").value;
+    const reason = document.getElementById("rejectReason").value.trim();
+    if (!reason) { alert("Please enter a rejection reason."); return; }
+    try {
+      const r = await fetch(`/admin/payouts/${id}/status`, {
+        method: "PUT", headers,
+        body: JSON.stringify({ status: "failed", rejection_reason: reason }),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
+      document.getElementById("rejectModal").classList.remove("open");
+      loadRequests(document.getElementById("reqFilterStatus").value);
+    } catch (e) { alert("Failed to reject: " + e.message); }
   });
 
-  // ── Create payout modal ───────────────────────────────────
+  // ── Create payout modal (admin-initiated) ─────────────────
   document.getElementById("newPayoutBtn").addEventListener("click", () => {
     document.getElementById("settlementBox").style.display = "none";
     document.getElementById("createModal").classList.add("open");
   });
-  document.getElementById("closeCreate").addEventListener("click", () => {
-    document.getElementById("createModal").classList.remove("open");
-  });
-
+  document.getElementById("closeCreate").addEventListener("click", () =>
+    document.getElementById("createModal").classList.remove("open")
+  );
   document.getElementById("calcSettlement").addEventListener("click", async () => {
     const orgId   = document.getElementById("poOrgId").value;
     const eventId = document.getElementById("poEventId").value;
     if (!orgId) { alert("Please enter an organizer ID."); return; }
     try {
-      let url = `/api/admin/payouts/settlement/${orgId}`;
+      let url = `/admin/payouts/settlement/${orgId}`;
       if (eventId) url += `?eventId=${eventId}`;
       const r    = await fetch(url, { headers });
       const data = await r.json();
-      document.getElementById("sGross").textContent      = `₹${data.gross.toFixed(2)}`;
+      document.getElementById("sGross").textContent       = `₹${data.gross.toFixed(2)}`;
       document.getElementById("sPlatformFee").textContent = `₹${data.platform_fee.toFixed(2)}`;
-      document.getElementById("sNet").textContent        = `₹${data.net.toFixed(2)}`;
-      document.getElementById("sBookings").textContent   = data.bookings;
-      document.getElementById("poAmount").value          = data.net.toFixed(2);
+      document.getElementById("sNet").textContent         = `₹${data.net.toFixed(2)}`;
+      document.getElementById("sBookings").textContent    = data.bookings;
+      document.getElementById("poAmount").value           = data.net.toFixed(2);
       document.getElementById("settlementBox").style.display = "block";
     } catch { alert("Could not calculate settlement."); }
   });
-
   document.getElementById("submitPayout").addEventListener("click", async () => {
     const body = {
       organizer_id:   parseInt(document.getElementById("poOrgId").value),
       event_id:       document.getElementById("poEventId").value ? parseInt(document.getElementById("poEventId").value) : null,
       amount:         parseFloat(document.getElementById("poAmount").value),
       payment_method: document.getElementById("poMethod").value,
-      reference_id:   document.getElementById("poRef").value || null,
-      notes:          document.getElementById("poNotes").value || null,
+      reference_id:   document.getElementById("poRef").value   || null,
+      notes:          document.getElementById("poNotes").value  || null,
     };
     if (!body.organizer_id || !body.amount) { alert("Organizer ID and amount are required."); return; }
     try {
-      const r = await fetch("/api/admin/payouts", { method: "POST", headers, body: JSON.stringify(body) });
+      const r = await fetch("/admin/payouts/create", { method: "POST", headers, body: JSON.stringify(body) });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
       document.getElementById("createModal").classList.remove("open");
-      loadPayouts();
+      loadRequests();
+      if (activeTab === "all") loadAllPayouts();
     } catch (e) { alert("Failed to create payout: " + e.message); }
   });
 
-  // ── Status modal ──────────────────────────────────────────
+  // ── Status modal (approve → processing / mark paid) ───────
   function openStatusModal(id) {
     document.getElementById("statusPayoutId").value = id;
     document.getElementById("statusRef").value      = "";
     document.getElementById("statusModal").classList.add("open");
   }
-  document.getElementById("closeStatus").addEventListener("click", () => {
-    document.getElementById("statusModal").classList.remove("open");
-  });
-
+  document.getElementById("closeStatus").addEventListener("click", () =>
+    document.getElementById("statusModal").classList.remove("open")
+  );
   document.getElementById("submitStatus").addEventListener("click", async () => {
     const id     = document.getElementById("statusPayoutId").value;
     const status = document.getElementById("newStatus").value;
     const ref    = document.getElementById("statusRef").value || null;
     try {
-      const r = await fetch(`/api/admin/payouts/${id}/status`, {
+      const r = await fetch(`/admin/payouts/${id}/status`, {
         method: "PUT", headers, body: JSON.stringify({ status, reference_id: ref }),
       });
       if (!r.ok) throw new Error();
       document.getElementById("statusModal").classList.remove("open");
-      loadPayouts();
+      if (activeTab === "requests") loadRequests(document.getElementById("reqFilterStatus").value);
+      else loadAllPayouts();
     } catch { alert("Failed to update payout status."); }
   });
 
-  loadPayouts();
+  // Initial load
+  loadRequests();
 </script>
 </body>
 </html>

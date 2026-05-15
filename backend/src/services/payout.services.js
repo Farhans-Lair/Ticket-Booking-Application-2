@@ -85,13 +85,15 @@ const createPayout = async ({ organizer_id, event_id = null, amount, payment_met
 };
 
 // ── Admin: update payout status ──────────────────────────────────────────────
-const updatePayoutStatus = async (payoutId, status, reference_id = null, adminId) => {
+const updatePayoutStatus = async (payoutId, status, reference_id = null, adminId, rejection_reason = null) => {
   const payout = await Payout.findByPk(payoutId);
   if (!payout) return null;
 
   const updates = { status, initiated_by: adminId };
-  if (reference_id) updates.reference_id = reference_id;
-  if (status === "paid") updates.paid_at = new Date();
+  if (reference_id)    updates.reference_id = reference_id;
+  if (status === "paid")    updates.paid_at = new Date();
+  // Store admin rejection reason in notes so organizer can see why
+  if (status === "failed" && rejection_reason) updates.notes = rejection_reason;
 
   await payout.update(updates);
   return payout;
