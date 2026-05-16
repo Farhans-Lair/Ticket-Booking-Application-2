@@ -35,6 +35,9 @@ const HTTP_PORT  = process.env.HTTP_PORT  || 3001;
 const allowedOrigins = [
   `https://localhost:${HTTPS_PORT}`,
   `http://localhost:${HTTP_PORT}`,
+  `http://localhost:${HTTPS_PORT}`,   // plain HTTP on same port (npm start / local dev)
+  `http://localhost:3000`,            // explicit fallback for local npm start
+  `http://127.0.0.1:3000`,           // 127.0.0.1 variant
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
