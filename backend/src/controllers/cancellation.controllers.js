@@ -7,6 +7,7 @@ const {
 } = require("../services/email.services");
 const { uploadInvoiceToS3, fetchInvoiceFromS3 } = require("../services/s3.services");
 const logger = require("../config/logger");
+const { sendCancellationSMS } = require("../services/sms.services");
 const crypto = require("crypto");
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -87,6 +88,10 @@ const cancelBooking = async (req, res, next) => {
       logger.info("Cancellation invoice email sent", {
         userId, email: user?.email, bookingId,
       });
+      // ── SMS cancellation notification ───────────────────────────────────
+      sendCancellationSMS(user, result.booking, event, result.refund_amount).catch(e =>
+        logger.error("Cancellation SMS failed", { bookingId, error: e.message })
+      );
     } catch (emailErr) {
       logger.error("Cancellation invoice email failed (booking still cancelled)", {
         userId, bookingId, error: emailErr.message,

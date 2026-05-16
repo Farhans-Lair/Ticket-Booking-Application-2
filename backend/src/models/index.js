@@ -5,6 +5,7 @@ const Seat               = require("./Seat");
 const OrganizerProfile   = require("./OrganizerProfile");
 const CancellationPolicy = require("./CancellationPolicy");
 const Payout             = require("./Payout");           // Feature 5
+const EventCategory      = require("./EventCategory");    // Feature: Dynamic Categories
 
 // ── Core booking relationships ──────────────────────────────
 Event.hasMany(Booking,   { foreignKey: "event_id" });
@@ -50,4 +51,5 @@ module.exports = {
   OrganizerProfile,
   CancellationPolicy,
   Payout,
+  EventCategory,
 };

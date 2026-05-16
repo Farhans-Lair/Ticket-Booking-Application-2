@@ -139,37 +139,9 @@
       <span class="admin-badge">ADMIN</span>
     </div>
     <div class="nav-actions">
-      <button class="btn-ghost" onclick="location.href='/admin/organizers'">👥 Organizers</button>
-      <button class="btn-ghost" onclick="location.href='/admin/moderation'">🛡️ Moderation</button>
-      <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
       <button class="btn-ghost" onclick="location.href='/admin/revenue'">📊 Revenue</button>
+      <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
       <button class="btn-ghost danger" id="logoutBtn">Logout</button>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════
-       QUICK-ACCESS CARDS
-  ═══════════════════════════════════════════ -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:48px;">
-    <div onclick="location.href='/admin/organizers'" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:2rem;margin-bottom:10px;">👥</div>
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Organizers</div>
-      <div style="font-size:0.8rem;color:var(--muted);">Approve or reject organizer applications</div>
-    </div>
-    <div onclick="location.href='/admin/moderation'" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:2rem;margin-bottom:10px;">🛡️</div>
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Moderation</div>
-      <div style="font-size:0.8rem;color:var(--muted);">Review and approve or reject submitted events</div>
-    </div>
-    <div onclick="location.href='/admin/payouts'" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:2rem;margin-bottom:10px;">💳</div>
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Payouts</div>
-      <div style="font-size:0.8rem;color:var(--muted);">Manage organizer payout requests</div>
-    </div>
-    <div onclick="location.href='/admin/revenue'" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:2rem;margin-bottom:10px;">📊</div>
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Revenue</div>
-      <div style="font-size:0.8rem;color:var(--muted);">View platform revenue and booking analytics</div>
     </div>
   </div>
 

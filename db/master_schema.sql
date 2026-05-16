@@ -288,6 +288,36 @@ CREATE TABLE payouts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+
+-- ──────────────────────────────────────────────
+-- EVENT CATEGORIES
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS event_categories (
+  id          INT           NOT NULL AUTO_INCREMENT,
+  name        VARCHAR(100)  NOT NULL,
+  slug        VARCHAR(100)  NOT NULL,
+  icon_emoji  VARCHAR(10)   DEFAULT '🎟️',
+  image_url   TEXT          DEFAULT NULL,
+  is_active   TINYINT(1)    NOT NULL DEFAULT 1,
+  sort_order  INT           NOT NULL DEFAULT 0,
+  created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_category_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed default categories
+INSERT IGNORE INTO event_categories (name, slug, icon_emoji, sort_order) VALUES
+  ('Music',      'Music',      '🎵', 1),
+  ('Sports',     'Sports',     '🏆', 2),
+  ('Comedy',     'Comedy',     '😂', 3),
+  ('Theatre',    'Theatre',    '🎭', 4),
+  ('Conference', 'Conference', '🎤', 5),
+  ('Festival',   'Festival',   '🎪', 6),
+  ('Workshop',   'Workshop',   '🛠️', 7),
+  ('Other',      'Other',      '🎟️', 8);
+
 -- ──────────────────────────────────────────────
 -- VERIFY
 -- ──────────────────────────────────────────────

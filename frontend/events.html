@@ -88,8 +88,6 @@
     .btn-book { padding: 8px 18px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
     .btn-book:hover { opacity: 0.85; }
     .btn-book:disabled { background: var(--glass); color: var(--text-muted); cursor: default; }
-    .qty-input { width: 56px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--glass); color: var(--text); font-size: 0.82rem; text-align: center; margin-right: 6px; }
-    .book-action { display: flex; align-items: center; }
 
     .loading { text-align: center; padding: 48px; color: var(--text-muted); }
     .empty   { text-align: center; padding: 48px; color: var(--text-muted); }
@@ -146,13 +144,7 @@
     <div class="filter-bar">
       <input type="text" id="searchInput" placeholder="🔍  Search events…" />
       <button class="filter-btn active" data-cat="">All</button>
-      <button class="filter-btn" data-cat="Music">🎵 Music</button>
-      <button class="filter-btn" data-cat="Sports">🏆 Sports</button>
-      <button class="filter-btn" data-cat="Comedy">😂 Comedy</button>
-      <button class="filter-btn" data-cat="Theatre">🎭 Theatre</button>
-      <button class="filter-btn" data-cat="Conference">📋 Conference</button>
-      <button class="filter-btn" data-cat="Festival">🎪 Festival</button>
-      <button class="filter-btn" data-cat="Workshop">🔧 Workshop</button>
+      <!-- dynamic category buttons injected by loadCategoryFilters() -->
     </div>
 
     <div class="events-grid" id="eventsGrid">
@@ -281,18 +273,11 @@
                 <div class="ev-price">${ev.price > 0 ? "₹" + ev.price : "Free"}</div>
                 <div class="ev-tickets">${ev.available_tickets} left · ${pct}% sold</div>
               </div>
-              <div class="book-action">
-                ${ev.available_tickets === 0 ? "" : `
-                  <input type="number" class="qty-input"
-                    id="qty-${ev.id}"
-                    min="1" max="${ev.available_tickets}"
-                    value="1" title="Number of tickets" />`}
-                <button class="btn-book"
-                  ${ev.available_tickets === 0 ? "disabled" : ""}
-                  onclick="goToBooking(${ev.id})">
-                  ${ev.available_tickets === 0 ? "Sold Out" : "Book Now"}
-                </button>
-              </div>
+              <button class="btn-book"
+                ${ev.available_tickets === 0 ? "disabled" : ""}
+                onclick="goToBooking(${ev.id})">
+                ${ev.available_tickets === 0 ? "Sold Out" : "Book Now"}
+              </button>
             </div>
           </div>
         </div>`;
@@ -300,6 +285,33 @@
   }
 
   // ── Category filter ───────────────────────────────────────
+  // ── Load category filter buttons dynamically ────────────────────────────
+  async function loadCategoryFilters() {
+    const bar = document.querySelector(".filter-bar");
+    if (!bar) return;
+    try {
+      const r    = await fetch("/categories");
+      const cats = await r.json();
+      // Remove previously injected dynamic buttons (keep static "All" and search)
+      bar.querySelectorAll("[data-cat]:not([data-cat=''])").forEach(b => b.remove());
+      cats.forEach(c => {
+        const btn = document.createElement("button");
+        btn.className = "filter-btn";
+        btn.dataset.cat = c.slug;
+        btn.textContent = `${c.icon_emoji || "🎟️"} ${c.name}`;
+        // Update CATEGORY_ICONS map live
+        CATEGORY_ICONS[c.slug] = c.icon_emoji || "🎟️";
+        bar.appendChild(btn);
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeCategory = c.slug;
+          renderEvents();
+        });
+      });
+    } catch { /* keep defaults */ }
+  }
+
   document.querySelectorAll(".filter-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -314,21 +326,7 @@
 
   // ── Navigation ────────────────────────────────────────────
   function goToBooking(eventId) {
-    const input = document.getElementById("qty-" + eventId);
-    const tickets_booked = input ? parseInt(input.value, 10) : 1;
-
-    if (!tickets_booked || tickets_booked <= 0) {
-      alert("Please enter a valid number of tickets.");
-      return;
-    }
-
-    // seat-selection.js reads "seat_selection_meta" — store both event id
-    // and ticket count so the seat grid knows how many seats to enforce.
-    sessionStorage.setItem("seat_selection_meta", JSON.stringify({
-      event_id:       eventId,
-      tickets_booked: tickets_booked,
-    }));
-
+    sessionStorage.setItem("selectedEventId", eventId);
     location.href = "/seat-selection";
   }
 
@@ -342,6 +340,7 @@
   // ── Init ──────────────────────────────────────────────────
   loadFeatured();
   loadTrending();
+  loadCategoryFilters();
   loadEvents();
 </script>
 </body>

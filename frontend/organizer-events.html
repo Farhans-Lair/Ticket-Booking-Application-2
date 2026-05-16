@@ -165,12 +165,7 @@
         <div class="field"><label>Location</label><input type="text" id="ev_location" placeholder="City / venue" /></div>
         <div class="field">
           <label>Category</label>
-          <select id="ev_category">
-            <option value="Music">🎵 Music</option><option value="Sports">🏆 Sports</option>
-            <option value="Comedy">😂 Comedy</option><option value="Theatre">🎭 Theatre</option>
-            <option value="Conference">🎙️ Conference</option><option value="Festival">🎪 Festival</option>
-            <option value="Workshop">🔧 Workshop</option><option value="Other" selected>✨ Other</option>
-          </select>
+          <select id="ev_category"><option value="">Loading categories…</option></select>
         </div>
         <div class="field"><label>Event Date &amp; Time *</label><input type="datetime-local" id="ev_date" required /></div>
         <!-- FIX Issue 4: removed price field; price is set via seat tiers after creation -->
@@ -239,6 +234,21 @@
 <script>
 const token = sessionStorage.getItem("token");
 const role  = sessionStorage.getItem("role");
+
+  // ── Load dynamic categories from admin ────────────────────────────────────
+  async function loadCategoryOptions(selectedValue) {
+    const sel = document.getElementById("ev_category");
+    if (!sel) return;
+    try {
+      const r    = await fetch("/categories");
+      const cats = await r.json();
+      sel.innerHTML = cats.map(c =>
+        `<option value="${c.slug}" ${c.slug === (selectedValue || "Other") ? "selected" : ""}>${c.icon_emoji || "🎟️"} ${c.name}</option>`
+      ).join("");
+    } catch {
+      sel.innerHTML = `<option value="Other" selected>🎟️ Other</option>`;
+    }
+  }
 if (!token || role !== "organizer") window.location.href = "/";
 
 const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
@@ -362,7 +372,7 @@ function openEdit(id) {
   document.getElementById("ev_title").value           = ev.title       || "";
   document.getElementById("ev_description").value     = ev.description || "";
   document.getElementById("ev_location").value        = ev.location    || "";
-  document.getElementById("ev_category").value        = ev.category    || "Other";
+  loadCategoryOptions(ev.category || "Other");
   document.getElementById("ev_tickets").value         = ev.total_tickets ?? "";
   const d = new Date(ev.event_date), pad = n => String(n).padStart(2,"0");
   document.getElementById("ev_date").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -506,7 +516,8 @@ document.getElementById("saveTiersBtn").addEventListener("click", async () => {
     alertEl.textContent = `✓ Seat tiers saved! (${data.seats?.length || "—"} seats updated)`;
     alertEl.className   = "modal-alert success";
     btn.textContent     = "Saved ✓";
-    loadEvents();
+    loadCategoryOptions();
+  loadEvents();
     setTimeout(() => document.getElementById("tierModal").classList.remove("open"), 1500);
   } catch (e) {
     alertEl.textContent = e.message; alertEl.className = "modal-alert error";
@@ -579,7 +590,7 @@ function clearModal() {
   ["ev_title","ev_description","ev_location","ev_date","ev_tickets"].forEach(id => {
     document.getElementById(id).value = "";
   });
-  document.getElementById("ev_category").value       = "Other";
+  loadCategoryOptions("Other");
   document.getElementById("eventModalAlert").className = "modal-alert";
   document.getElementById("saveEventBtn").disabled   = false;
   document.getElementById("saveEventBtn").textContent = "Save Event";

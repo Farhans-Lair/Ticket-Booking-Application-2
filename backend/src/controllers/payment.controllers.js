@@ -9,6 +9,7 @@ const {
 } = require("../services/email.services");
 const { uploadTicketToS3, uploadInvoiceToS3 } = require("../services/s3.services");
 const logger = require("../config/logger");
+const { sendBookingConfirmationSMS } = require("../services/sms.services");
 
 
 /*
@@ -39,10 +40,8 @@ const createOrder = async (req, res, next) => {
 
     logger.info("Razorpay order creation started", { userId, event_id, tickets_booked, selected_seats });
 
-    // Pass selected_seats so tier-based events (event.price === 0) can
-    // sum per-seat tier prices instead of computing 0 × tickets_booked.
     const { event, ticketAmount, convenienceFee, gstAmount, totalPaid } =
-      await bookingService.calculateBookingAmount(event_id, tickets_booked, selected_seats);
+      await bookingService.calculateBookingAmount(event_id, tickets_booked);
 
     const receipt = `rcpt_u${userId}_e${event_id}_${Date.now()}`;
     const order   = await paymentService.createOrder(totalPaid, "INR", receipt);
@@ -190,6 +189,10 @@ const verifyPayment = async (req, res, next) => {
     try {
       logger.info("Sending booking invoice email", { userId, email: user?.email, bookingId: booking.id });
       await sendBookingInvoiceEmail(user, booking, event);
+      // ── SMS booking confirmation ─────────────────────────────────────────
+      sendBookingConfirmationSMS(user, booking, event).catch(e =>
+        logger.error("Booking SMS failed", { bookingId: booking.id, error: e.message })
+      );
       logger.info("Booking invoice email sent", { userId, email: user?.email, bookingId: booking.id });
     } catch (invEmailErr) {
       logger.error("Booking invoice email failed (booking still confirmed)", {

@@ -19,6 +19,7 @@ const seatRoutes        = require("./routes/seat.routes");
 const organizerRoutes   = require("./routes/organizer.routes");
 const cancellationRoutes = require("./routes/cancellation.routes");
 const userRoutes        = require("./routes/user.routes");        // Feature 1
+const catCtrl           = require("./controllers/category.controllers");
 const errorHandler      = require("./middleware/error.middleware");
 
 // Feature 3: Start reminder email scheduler
@@ -178,6 +179,9 @@ app.get("/organizer-payouts", (req, res) =>
 );
 
 // Admin pages
+// Public: list active categories (no auth) — consumed by organizer + user dashboards
+app.get("/categories", catCtrl.listCategories);
+
 app.use("/admin", adminRoutes);
 
 /* =====================================================

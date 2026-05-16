@@ -4,10 +4,12 @@ const path         = require("path");
 const authenticate   = require("../middleware/auth.middleware");
 const authorizeAdmin = require("../middleware/authorizeadmin");
 const adminCtrl    = require("../controllers/admin.controllers");
+const catCtrl      = require("../controllers/category.controllers");
 
 // ── HTML Pages ────────────────────────────────────────────────────────────────
 router.get("/",           (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-dashboard.html")));
 router.get("/revenue",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-revenue.html")));
+router.get("/categories", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-categories.html")));
 router.get("/organizers", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-organizers.html")));
 router.get("/moderation", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-moderation.html")));
 router.get("/payouts",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-payouts.html")));
@@ -27,5 +29,11 @@ router.get( "/payouts/data",                  authenticate, authorizeAdmin, admi
 router.get( "/payouts/settlement/:organizerId", authenticate, authorizeAdmin, adminCtrl.getSettlement);
 router.post("/payouts/create",                authenticate, authorizeAdmin, adminCtrl.createPayout);
 router.put( "/payouts/:id/status",            authenticate, authorizeAdmin, adminCtrl.updatePayoutStatus);
+
+// ── Event Categories (admin CRUD) ────────────────────────────────────────────
+router.get(   "/categories",     authenticate, authorizeAdmin, catCtrl.adminListCategories);
+router.post(  "/categories",     authenticate, authorizeAdmin, catCtrl.createCategory);
+router.put(   "/categories/:id", authenticate, authorizeAdmin, catCtrl.updateCategory);
+router.delete("/categories/:id", authenticate, authorizeAdmin, catCtrl.deleteCategory);
 
 module.exports = router;
