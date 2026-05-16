@@ -60,6 +60,22 @@
     .info-box { background: rgba(124,106,247,0.08); border: 1px solid rgba(124,106,247,0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
     .info-box strong { color: var(--text); }
 
+    /* BANK DETAILS */
+    .bank-section { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; padding: 24px; margin-bottom: 32px; }
+    .bank-section h2 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; color: var(--gold); }
+    .bank-section p  { font-size: 0.83rem; color: var(--muted); margin-bottom: 18px; }
+    .bank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .bank-grid .full { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
+    .field input, .field select { width: 100%; padding: 9px 13px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 9px; color: var(--text); font-size: 0.88rem; font-family: inherit; }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+    .btn-save-bank { background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 9px; font-weight: 600; font-size: 0.88rem; cursor: pointer; margin-top: 16px; }
+    .btn-save-bank:hover { opacity: 0.88; }
+    .bank-alert { margin-top: 10px; font-size: 0.83rem; min-height: 20px; }
+    .bank-alert.ok  { color: var(--green); }
+    .bank-alert.err { color: var(--red); }
+    @media (max-width: 560px) { .bank-grid { grid-template-columns: 1fr; } .bank-grid .full { grid-column: 1; } }
+
     @media (max-width: 640px) {
       nav { padding: 14px 18px; }
       .summary-grid { grid-template-columns: 1fr; }
@@ -84,6 +100,54 @@
   <div class="page-header">
     <h1>My Payouts</h1>
     <p>Track settlements from TicketVerse for your events.</p>
+  </div>
+
+  <!-- ── Bank / UPI Account Details ─────────────────────────── -->
+  <div class="bank-section">
+    <h2>🏦 Payment Account Details</h2>
+    <p>Save your bank or UPI details so admin can transfer your payout directly. This information is stored on your profile.</p>
+    <div class="bank-grid">
+      <div class="field">
+        <label>Account Holder Name</label>
+        <input type="text" id="bankName" placeholder="As per bank records" />
+      </div>
+      <div class="field">
+        <label>Payment Method</label>
+        <select id="bankMethod">
+          <option value="bank_transfer">Bank Transfer (NEFT / IMPS)</option>
+          <option value="upi">UPI</option>
+        </select>
+      </div>
+      <div class="field full" id="bankFields">
+        <!-- toggled by method selection -->
+      </div>
+      <div class="field full" id="upiField" style="display:none;">
+        <label>UPI ID</label>
+        <input type="text" id="bankUPI" placeholder="yourname@upi" />
+      </div>
+    </div>
+    <div id="bankTransferFields">
+      <div class="bank-grid" style="margin-top:0">
+        <div class="field">
+          <label>Bank Account Number</label>
+          <input type="text" id="bankAccNo" placeholder="e.g. 1234567890" />
+        </div>
+        <div class="field">
+          <label>IFSC Code</label>
+          <input type="text" id="bankIFSC" placeholder="e.g. SBIN0001234" style="text-transform:uppercase" />
+        </div>
+        <div class="field">
+          <label>Bank Name</label>
+          <input type="text" id="bankBankName" placeholder="e.g. State Bank of India" />
+        </div>
+        <div class="field">
+          <label>Branch Name (optional)</label>
+          <input type="text" id="bankBranch" placeholder="e.g. Mumbai Main Branch" />
+        </div>
+      </div>
+    </div>
+    <button class="btn-save-bank" id="saveBankBtn">💾 Save Payment Details</button>
+    <div class="bank-alert" id="bankAlert"></div>
   </div>
 
   <div class="info-box">
@@ -115,6 +179,85 @@
   const token = sessionStorage.getItem("token");
   if (!token) { location.href = "/"; }
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+  // ── Bank / UPI toggle ────────────────────────────────────────
+  const methodSel = document.getElementById("bankMethod");
+  const bankTrans = document.getElementById("bankTransferFields");
+  const upiField  = document.getElementById("upiField");
+
+  function toggleBankFields() {
+    const isBank = methodSel.value === "bank_transfer";
+    bankTrans.style.display = isBank ? "" : "none";
+    upiField.style.display  = isBank ? "none" : "";
+  }
+  methodSel.addEventListener("change", toggleBankFields);
+  toggleBankFields(); // initial state
+
+  // ── Load saved bank details from profile ──────────────────
+  async function loadBankDetails() {
+    try {
+      const r    = await fetch("/user/profile", { headers });
+      if (!r.ok) return;
+      const data = await r.json();
+      const bd   = data.bank_details || {};
+      if (bd.account_name)  document.getElementById("bankName").value     = bd.account_name;
+      if (bd.method)        { methodSel.value = bd.method; toggleBankFields(); }
+      if (bd.upi_id)        document.getElementById("bankUPI").value       = bd.upi_id;
+      if (bd.account_no)    document.getElementById("bankAccNo").value     = bd.account_no;
+      if (bd.ifsc)          document.getElementById("bankIFSC").value      = bd.ifsc;
+      if (bd.bank_name)     document.getElementById("bankBankName").value  = bd.bank_name;
+      if (bd.branch)        document.getElementById("bankBranch").value    = bd.branch;
+    } catch { /* silent */ }
+  }
+
+  // ── Save bank details to profile ─────────────────────────
+  document.getElementById("saveBankBtn").addEventListener("click", async () => {
+    const alert  = document.getElementById("bankAlert");
+    const method = methodSel.value;
+
+    const bank_details = {
+      account_name: document.getElementById("bankName").value.trim(),
+      method,
+      ...(method === "upi"
+        ? { upi_id: document.getElementById("bankUPI").value.trim() }
+        : {
+            account_no: document.getElementById("bankAccNo").value.trim(),
+            ifsc:       document.getElementById("bankIFSC").value.trim().toUpperCase(),
+            bank_name:  document.getElementById("bankBankName").value.trim(),
+            branch:     document.getElementById("bankBranch").value.trim(),
+          }),
+    };
+
+    if (!bank_details.account_name) {
+      alert.className = "bank-alert err";
+      alert.textContent = "Account holder name is required.";
+      return;
+    }
+    if (method === "upi" && !bank_details.upi_id) {
+      alert.className = "bank-alert err";
+      alert.textContent = "UPI ID is required.";
+      return;
+    }
+    if (method === "bank_transfer" && (!bank_details.account_no || !bank_details.ifsc)) {
+      alert.className = "bank-alert err";
+      alert.textContent = "Account number and IFSC are required for bank transfer.";
+      return;
+    }
+
+    try {
+      const r = await fetch("/user/profile", {
+        method: "PUT", headers,
+        body: JSON.stringify({ bank_details }),
+      });
+      if (!r.ok) throw new Error();
+      alert.className = "bank-alert ok";
+      alert.textContent = "✅ Payment details saved successfully.";
+      setTimeout(() => { alert.textContent = ""; }, 4000);
+    } catch {
+      alert.className = "bank-alert err";
+      alert.textContent = "Failed to save. Please try again.";
+    }
+  });
 
   async function loadPayouts() {
     try {
@@ -180,6 +323,7 @@
     location.href = "/";
   });
 
+  loadBankDetails();
   loadPayouts();
 </script>
 </body>

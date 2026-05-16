@@ -36,6 +36,7 @@ CREATE TABLE users (
   phone         VARCHAR(20)   DEFAULT NULL,
   avatar_url    VARCHAR(512)  DEFAULT NULL,
   bio           TEXT          DEFAULT NULL,
+  bank_details  JSON          DEFAULT NULL,   -- organizer payment account details
 
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

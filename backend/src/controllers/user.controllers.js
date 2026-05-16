@@ -8,7 +8,7 @@ const logger  = require("../config/logger");
 const getProfile = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ["id", "name", "email", "phone", "avatar_url", "bio", "role", "created_at"],
+      attributes: ["id", "name", "email", "phone", "avatar_url", "bio", "bank_details", "role", "created_at"],
     });
     if (!user) return res.status(404).json({ error: "User not found." });
 
@@ -31,16 +31,17 @@ const getProfile = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone, bio, avatar_url } = req.body;
+    const { name, phone, bio, avatar_url, bank_details } = req.body;
 
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found." });
 
     await user.update({
-      name:       name       ?? user.name,
-      phone:      phone      ?? user.phone,
-      bio:        bio        ?? user.bio,
-      avatar_url: avatar_url ?? user.avatar_url,
+      name:         name         ?? user.name,
+      phone:        phone        ?? user.phone,
+      bio:          bio          ?? user.bio,
+      avatar_url:   avatar_url   ?? user.avatar_url,
+      bank_details: bank_details ?? user.bank_details,
     });
 
     logger.info("User profile updated", { userId: req.user.id });

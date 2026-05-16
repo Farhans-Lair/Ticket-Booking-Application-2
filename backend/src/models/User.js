@@ -38,6 +38,10 @@ const User = sequelize.define("User", {
     type: DataTypes.TEXT,
     defaultValue: null,
   },
+  bank_details: {
+    type: DataTypes.JSON,
+    defaultValue: null,
+  },
 },
 {
   tableName: "users",
