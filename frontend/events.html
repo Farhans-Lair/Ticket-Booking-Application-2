@@ -326,7 +326,10 @@
 
   // ── Navigation ────────────────────────────────────────────
   function goToBooking(eventId) {
-    sessionStorage.setItem("selectedEventId", eventId);
+    sessionStorage.setItem("seat_selection_meta", JSON.stringify({
+  event_id:       eventId,
+  tickets_booked: tickets_booked,   // read from the qty input
+  }));
     location.href = "/seat-selection";
   }
 
