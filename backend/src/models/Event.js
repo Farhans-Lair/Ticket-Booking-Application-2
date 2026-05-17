@@ -41,10 +41,7 @@ const Event = sequelize.define("Event", {
     allowNull: false,
   },
   category: {
-    type: DataTypes.ENUM(
-      "Music", "Sports", "Comedy", "Theatre",
-      "Conference", "Festival", "Workshop", "Other"
-    ),
+    type: DataTypes.STRING(100),   // was ENUM — now VARCHAR to support dynamic admin-defined categories
     defaultValue: "Other",
   },
   is_featured: {

@@ -9,7 +9,7 @@ const catCtrl      = require("../controllers/category.controllers");
 // ── HTML Pages ────────────────────────────────────────────────────────────────
 router.get("/",           (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-dashboard.html")));
 router.get("/revenue",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-revenue.html")));
-router.get("/categories", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-categories.html")));
+router.get("/categories/manage", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-categories.html")));
 router.get("/organizers", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-organizers.html")));
 router.get("/moderation", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-moderation.html")));
 router.get("/payouts",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-payouts.html")));

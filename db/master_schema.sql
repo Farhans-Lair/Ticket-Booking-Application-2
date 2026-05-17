@@ -36,7 +36,6 @@ CREATE TABLE users (
   phone         VARCHAR(20)   DEFAULT NULL,
   avatar_url    VARCHAR(512)  DEFAULT NULL,
   bio           TEXT          DEFAULT NULL,
-  bank_details  JSON          DEFAULT NULL,   -- organizer payment account details
 
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -65,10 +64,7 @@ CREATE TABLE events (
   total_tickets      INT           NOT NULL,
   available_tickets  INT           NOT NULL,
 
-  category           ENUM(
-                       'Music','Sports','Comedy','Theatre',
-                       'Conference','Festival','Workshop','Other'
-                     )             NOT NULL DEFAULT 'Other',
+  category           VARCHAR(100) NOT NULL DEFAULT 'Other',  -- was ENUM; now VARCHAR to support dynamic categories
 
   -- Feature: Featured / Trending
   is_featured        TINYINT(1)    NOT NULL DEFAULT 0,
@@ -329,3 +325,11 @@ SELECT
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = DATABASE()
 ORDER BY TABLE_NAME;
+
+-- ──────────────────────────────────────────────
+-- LIVE MIGRATIONS (safe to run on existing DBs)
+-- Converts the category ENUM to VARCHAR so admin-
+-- defined custom categories can be stored.
+-- ──────────────────────────────────────────────
+ALTER TABLE events
+  MODIFY COLUMN category VARCHAR(100) NOT NULL DEFAULT 'Other';
