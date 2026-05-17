@@ -139,7 +139,8 @@ const getOrganizerPayoutSummary = async (organizerId) => {
     attributes: [
       [sequelize.fn("SUM", sequelize.col("net_amount")),                             "total_paid"],
       [sequelize.fn("SUM", sequelize.literal("CASE WHEN status='paid' THEN net_amount ELSE 0 END")), "received"],
-      [sequelize.fn("SUM", sequelize.literal("CASE WHEN status='pending' THEN net_amount ELSE 0 END")), "pending"],
+      // 'processing' = admin approved but not yet paid — show in pending so organizer can see it
+      [sequelize.fn("SUM", sequelize.literal("CASE WHEN status IN ('pending','processing') THEN net_amount ELSE 0 END")), "pending"],
       [sequelize.fn("COUNT", sequelize.col("id")),                                   "count"],
     ],
     raw: true,

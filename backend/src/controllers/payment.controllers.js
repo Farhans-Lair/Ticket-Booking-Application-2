@@ -41,7 +41,7 @@ const createOrder = async (req, res, next) => {
     logger.info("Razorpay order creation started", { userId, event_id, tickets_booked, selected_seats });
 
     const { event, ticketAmount, convenienceFee, gstAmount, totalPaid } =
-      await bookingService.calculateBookingAmount(event_id, tickets_booked, selected_seats);
+      await bookingService.calculateBookingAmount(event_id, tickets_booked);
 
     const receipt = `rcpt_u${userId}_e${event_id}_${Date.now()}`;
     const order   = await paymentService.createOrder(totalPaid, "INR", receipt);
@@ -185,19 +185,25 @@ const verifyPayment = async (req, res, next) => {
     }
 
     // ── Send booking invoice email ───────────────────────────────────────────
-    // Separate email with the A4 invoice PDF — triggered by the booking event.
     try {
       logger.info("Sending booking invoice email", { userId, email: user?.email, bookingId: booking.id });
       await sendBookingInvoiceEmail(user, booking, event);
-      // ── SMS booking confirmation ─────────────────────────────────────────
-      sendBookingConfirmationSMS(user, booking, event).catch(e =>
-        logger.error("Booking SMS failed", { bookingId: booking.id, error: e.message })
-      );
       logger.info("Booking invoice email sent", { userId, email: user?.email, bookingId: booking.id });
     } catch (invEmailErr) {
       logger.error("Booking invoice email failed (booking still confirmed)", {
         userId, bookingId: booking.id, error: invEmailErr.message,
       });
+    }
+
+    // ── SMS booking confirmation (independent of email — always fires) ───────
+    // Kept outside the email try/catch so an email failure never prevents SMS.
+    // Fire-and-forget: booking is already confirmed, SMS failure is non-fatal.
+    if (user?.phone) {
+      sendBookingConfirmationSMS(user, booking, event).catch(e =>
+        logger.error("Booking SMS failed", { bookingId: booking.id, error: e.message })
+      );
+    } else {
+      logger.warn("Booking SMS skipped — no phone on user profile", { userId });
     }
 
     res.status(201).json({
