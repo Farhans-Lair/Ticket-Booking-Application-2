@@ -34,7 +34,7 @@ variable "db_name" {
 }
 
 variable "db_username" {
-  default = "ticket_user"
+  default = "ticket_user_1"
 }
 
 variable "db_password" {

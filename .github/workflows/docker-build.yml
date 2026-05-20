@@ -23,7 +23,7 @@ jobs:
       DB_HOST:     127.0.0.1
       DB_PORT:     3306
       DB_NAME:     ticket_booking_db
-      DB_USER:     ticket_user
+      DB_USER:     ticket_user_1
       DB_PASSWORD: ticket_password
 
       # ── App ─────────────────────────────────────────────────
@@ -45,7 +45,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: rootpassword
           # FIX: MYSQL_DATABASE updated from ticket_db → ticket_booking_db
           MYSQL_DATABASE: ticket_booking_db
-          MYSQL_USER:     ticket_user
+          MYSQL_USER:     ticket_user_1
           MYSQL_PASSWORD: ticket_password
         ports:
           - 3306:3306
