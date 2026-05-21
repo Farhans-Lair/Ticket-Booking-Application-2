@@ -215,11 +215,28 @@ const cancelBooking = async (bookingId, userId) => {
 
     logger.info("Booking cancelled", { bookingId, userId, refundAmount: preview.refundAmount, appliedTierHours: preview.appliedTierHours });
 
-    return {
+    const result = {
       booking, refundAmount: preview.refundAmount, refundPercent: preview.refundPercent,
       cancellationFee: preview.cancellationFee, cancellationFeeGst: preview.cancellationFeeGst,
       isHighTier: preview.isHighTier, cancellationStatus: finalCancellationStatus, razorpay_refund_id,
     };
+
+    // Feature 7 + Feature 6: notify waitlist + wishlist subscribers after
+    // tickets are restored. Run after transaction commits (fire-and-forget).
+    const freedEventId = booking.event_id;
+    const freedSeats   = booking.tickets_booked;
+    setImmediate(async () => {
+      try {
+        const waitlistSvc = require("./waitlist.services");
+        await waitlistSvc.notifyNextWaiter(freedEventId, freedSeats);
+      } catch (e) { logger.error("Waitlist notify failed", { freedEventId, error: e.message }); }
+      try {
+        const wishlistSvc = require("./wishlist.services");
+        await wishlistSvc.notifyAvailabilitySubscribers(freedEventId);
+      } catch (e) { logger.error("Wishlist notify failed", { freedEventId, error: e.message }); }
+    });
+
+    return result;
   });
 };
 

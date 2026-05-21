@@ -15,7 +15,7 @@ const Seat = sequelize.define("Seat", {
     type: DataTypes.STRING(10),
     allowNull: false,
   },
-  // FIX Issue 4: seat tiers for tiered pricing
+  // Seat tier / category for tiered pricing
   seat_tier: {
     type: DataTypes.STRING(50),
     allowNull: false,
@@ -26,9 +26,22 @@ const Seat = sequelize.define("Seat", {
     allowNull: false,
     defaultValue: 0.00,
   },
+  // Feature 1 — Seat hold: available | booked | held
   status: {
-    type: DataTypes.ENUM("available", "booked"),
+    type: DataTypes.ENUM("available", "booked", "held"),
     defaultValue: "available",
+  },
+  // Feature 1 — timestamp until which this seat is held
+  held_until: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null,
+  },
+  // Feature 1 — user who holds this seat during checkout
+  held_by_user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: null,
   },
 }, {
   tableName: "seats",

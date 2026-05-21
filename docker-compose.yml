@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: ticket_booking_db
-      MYSQL_USER: ticket_user
+      MYSQL_USER: ticket_user_1
       MYSQL_PASSWORD: ticket_password
     volumes:
       - mysql_data:/var/lib/mysql
