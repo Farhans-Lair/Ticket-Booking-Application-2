@@ -1,5 +1,8 @@
 const { Seat } = require("../models");
 const { Op }   = require("sequelize");
+const sequelize = require("../config/database");
+
+const HOLD_MINUTES = 10;
 
 /*
 ====================================================
@@ -25,7 +28,6 @@ const getSeatTiers = async (eventId) => {
     attributes: ["id", "seat_number", "seat_tier", "tier_price", "status"],
   });
 
-  // Build tier summary map: { tierName: { price, total, available } }
   const tierMap = {};
   seats.forEach(s => {
     if (!tierMap[s.seat_tier]) {
@@ -41,34 +43,24 @@ const getSeatTiers = async (eventId) => {
 /*
 ====================================================
  ASSIGN SEAT TIERS TO EXISTING SEATS
- Called by organizer after event creation.
- tiers = [{ name, price, rows }]  e.g. [{ name:"VIP", price:1500, rows:["A","B"] }]
 ====================================================
 */
 const assignSeatTiers = async (eventId, organizerId, tiers) => {
-  // Verify event ownership if organizerId provided
   if (organizerId) {
     const { Event } = require("../models");
     const event = await Event.findOne({ where: { id: eventId, organizer_id: organizerId } });
     if (!event) throw new Error("Event not found or you do not own this event.");
   }
 
-  // Apply each tier rule
   for (const tier of tiers) {
     const { name, price, rows } = tier;
     if (!name || price == null || !rows || !rows.length) continue;
 
-    // Build seat_number LIKE patterns for each row, e.g. row "A" → A1, A2 ...
     const rowConditions = rows.map(r => ({ seat_number: { [Op.like]: `${r.toUpperCase()}%` } }));
 
     await Seat.update(
       { seat_tier: name, tier_price: parseFloat(price) },
-      {
-        where: {
-          event_id: eventId,
-          [Op.or]: rowConditions,
-        },
-      }
+      { where: { event_id: eventId, [Op.or]: rowConditions } }
     );
   }
 
@@ -77,7 +69,7 @@ const assignSeatTiers = async (eventId, organizerId, tiers) => {
 
 /*
 ====================================================
- VALIDATE & LOCK SELECTED SEATS (with tier prices)
+ VALIDATE & LOCK SELECTED SEATS
 ====================================================
 */
 const bookSeats = async (eventId, seatNumbers, transaction) => {
@@ -85,7 +77,7 @@ const bookSeats = async (eventId, seatNumbers, transaction) => {
     where: {
       event_id:    eventId,
       seat_number: seatNumbers,
-      status:      "available",
+      status:      { [Op.in]: ["available", "held"] },
     },
     transaction,
     lock: transaction.LOCK.UPDATE,
@@ -98,11 +90,8 @@ const bookSeats = async (eventId, seatNumbers, transaction) => {
   }
 
   await Seat.update(
-    { status: "booked" },
-    {
-      where: { event_id: eventId, seat_number: seatNumbers },
-      transaction,
-    }
+    { status: "booked", held_until: null, held_by_user_id: null },
+    { where: { event_id: eventId, seat_number: seatNumbers }, transaction }
   );
 
   return seats;
@@ -111,12 +100,15 @@ const bookSeats = async (eventId, seatNumbers, transaction) => {
 /*
 ====================================================
  CALCULATE TOTAL PRICE FROM SELECTED SEATS
- Used when event uses tier-based pricing (price === 0)
 ====================================================
 */
 const calculateTierPrice = async (eventId, seatNumbers) => {
   const seats = await Seat.findAll({
-    where: { event_id: eventId, seat_number: seatNumbers, status: "available" },
+    where: {
+      event_id:    eventId,
+      seat_number: seatNumbers,
+      status:      { [Op.in]: ["available", "held"] },
+    },
     attributes: ["seat_number", "seat_tier", "tier_price"],
   });
 
@@ -136,9 +128,67 @@ const calculateTierPrice = async (eventId, seatNumbers) => {
 const releaseSeats = async (eventId, seatNumbers, transaction) => {
   if (!seatNumbers || seatNumbers.length === 0) return;
   await Seat.update(
-    { status: "available" },
+    { status: "available", held_until: null, held_by_user_id: null },
     { where: { event_id: eventId, seat_number: seatNumbers }, transaction }
   );
+};
+
+/*
+====================================================
+ HOLD SEATS — Feature 1
+ Locks seats for HOLD_MINUTES for the given user.
+ Releases any existing hold by same user first.
+====================================================
+*/
+const holdSeats = async (eventId, seatNumbers, userId) => {
+  return sequelize.transaction(async (t) => {
+    // Release any existing hold this user has on this event
+    await Seat.update(
+      { status: "available", held_until: null, held_by_user_id: null },
+      {
+        where: { event_id: eventId, held_by_user_id: userId, status: "held" },
+        transaction: t,
+      }
+    );
+
+    // Lock rows for update — prevent race conditions
+    const available = await Seat.findAll({
+      where: { event_id: eventId, seat_number: seatNumbers, status: "available" },
+      lock:  t.LOCK.UPDATE,
+      transaction: t,
+    });
+
+    if (available.length !== seatNumbers.length) {
+      throw new Error(
+        "One or more seats are no longer available. Please select different seats."
+      );
+    }
+
+    const heldUntil = new Date(Date.now() + HOLD_MINUTES * 60 * 1000);
+
+    await Seat.update(
+      { status: "held", held_until: heldUntil, held_by_user_id: userId },
+      {
+        where: { event_id: eventId, seat_number: seatNumbers, status: "available" },
+        transaction: t,
+      }
+    );
+
+    return { heldUntil, seatNumbers };
+  });
+};
+
+/*
+====================================================
+ RELEASE EXPIRED HOLDS — called by cron every minute
+====================================================
+*/
+const releaseExpiredHolds = async () => {
+  const [count] = await Seat.update(
+    { status: "available", held_until: null, held_by_user_id: null },
+    { where: { status: "held", held_until: { [Op.lt]: new Date() } } }
+  );
+  return count;
 };
 
 module.exports = {
@@ -148,4 +198,6 @@ module.exports = {
   bookSeats,
   calculateTierPrice,
   releaseSeats,
+  holdSeats,
+  releaseExpiredHolds,
 };

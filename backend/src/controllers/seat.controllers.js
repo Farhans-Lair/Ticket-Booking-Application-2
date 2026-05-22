@@ -4,7 +4,6 @@ const logger      = require("../config/logger");
 /*
 ====================================================
  GET /seats/:eventId
- Returns all seats for an event with tier info.
 ====================================================
 */
 const getSeats = async (req, res, next) => {
@@ -23,8 +22,6 @@ const getSeats = async (req, res, next) => {
 /*
 ====================================================
  GET /seats/:eventId/tiers
- Returns tier summary + all seats grouped for UI.
- FIX Issue 4: new endpoint for seat-selection page
 ====================================================
 */
 const getSeatTiers = async (req, res, next) => {
@@ -41,9 +38,6 @@ const getSeatTiers = async (req, res, next) => {
 /*
 ====================================================
  PUT /seats/:eventId/tiers
- Assign seat tiers after event creation.
- Body: { tiers: [{ name, price, rows }] }
- FIX Issue 4: organizer can configure tiers post-creation
 ====================================================
 */
 const assignSeatTiers = async (req, res, next) => {
@@ -55,7 +49,6 @@ const assignSeatTiers = async (req, res, next) => {
       return res.status(400).json({ error: "tiers array is required." });
     }
 
-    // Pass organizerId for ownership check; admin has no organizerId check
     const organizerId = req.user.role === "admin" ? null : req.user.id;
     const seats = await seatService.assignSeatTiers(eventId, organizerId, tiers);
 
@@ -68,4 +61,37 @@ const assignSeatTiers = async (req, res, next) => {
   }
 };
 
-module.exports = { getSeats, getSeatTiers, assignSeatTiers };
+/*
+====================================================
+ POST /seats/:eventId/hold  — Feature 1
+ Body: { seatNumbers: ["A1", "A2"] }
+ Locks seats for 10 minutes for the authenticated user.
+====================================================
+*/
+const holdSeats = async (req, res, next) => {
+  try {
+    const { eventId }     = req.params;
+    const { seatNumbers } = req.body;
+    const userId          = req.user.id;
+
+    if (!Array.isArray(seatNumbers) || seatNumbers.length === 0) {
+      return res.status(400).json({ error: "seatNumbers array is required." });
+    }
+
+    const result = await seatService.holdSeats(eventId, seatNumbers, userId);
+
+    logger.info("Seats held", { eventId, userId, seats: seatNumbers });
+    res.json({
+      message:     "Seats held for 10 minutes.",
+      seatNumbers: result.seatNumbers,
+      heldUntil:   result.heldUntil,
+      heldForMins: 10,
+    });
+  } catch (err) {
+    logger.error("Seat hold failed", { eventId: req.params?.eventId, error: err.message });
+    err.statusCode = err.message.includes("no longer available") ? 409 : 400;
+    next(err);
+  }
+};
+
+module.exports = { getSeats, getSeatTiers, assignSeatTiers, holdSeats };
