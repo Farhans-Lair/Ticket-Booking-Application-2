@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Check-In Scanner — TicketVerse Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--gold:#f5c842;--bg:#0a0a14;--card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--text:#f0eee8;--muted:rgba(240,238,232,0.5);--accent:#7c6af7;--red:#f74a6a;--green:#42e695;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+    .logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--gold);margin-bottom:28px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:480px;backdrop-filter:blur(16px);box-shadow:0 24px 64px rgba(0,0,0,.4);}
+    h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:6px;}
+    .sub{color:var(--muted);font-size:0.85rem;margin-bottom:28px;}
+    .field label{display:block;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:7px;}
+    textarea{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:11px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:vertical;min-height:90px;outline:none;transition:border-color .2s;}
+    textarea:focus{border-color:var(--accent);}
+    textarea::placeholder{color:rgba(240,238,232,.3);}
+    .btn-scan{width:100%;padding:14px;margin-top:12px;background:linear-gradient(135deg,var(--gold),#d4a520);border:none;border-radius:12px;color:#0a0a14;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 20px rgba(245,200,66,.28);}
+    .btn-scan:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,200,66,.4);}
+    .btn-scan:disabled{background:rgba(255,255,255,.1);color:var(--muted);cursor:not-allowed;box-shadow:none;transform:none;}
+    .result{margin-top:20px;padding:18px 20px;border-radius:14px;font-size:0.9rem;display:none;}
+    .result.ok{background:rgba(66,230,149,.1);border:1px solid rgba(66,230,149,.25);color:var(--green);}
+    .result.err{background:rgba(247,74,106,.1);border:1px solid rgba(247,74,106,.25);color:var(--red);}
+    .result h3{font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+    .result .detail{font-size:0.82rem;color:var(--muted);margin-top:4px;}
+    .divider{height:1px;background:var(--border);margin:24px 0;}
+    .back{display:block;text-align:center;color:var(--muted);font-size:0.85rem;text-decoration:none;margin-top:16px;}
+    .back:hover{color:var(--text);}
+  </style>
+</head>
+<body>
+<div class="logo">TicketVerse Organizer</div>
+<div class="card">
+  <h2>🔲 QR Check-In Scanner</h2>
+  <p class="sub">Paste the JWT from a scanned QR code to check in a guest.</p>
+
+  <div class="field">
+    <label>QR Token (JWT)</label>
+    <textarea id="tokenInput" placeholder="Paste the scanned QR token here…"></textarea>
+  </div>
+  <button class="btn-scan" id="scanBtn" onclick="checkIn()">Verify &amp; Check In</button>
+
+  <div class="result" id="result"></div>
+
+  <div class="divider"></div>
+  <a class="back" href="/organizer-dashboard">← Back to Organizer Dashboard</a>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+const token = sessionStorage.getItem("token");
+if (!token) location.href = "/";
+
+async function checkIn() {
+  const qrToken = (document.getElementById("tokenInput").value || "").trim();
+  const resultEl = document.getElementById("result");
+  const btn      = document.getElementById("scanBtn");
+
+  if (!qrToken) { alert("Please paste a QR token."); return; }
+
+  btn.disabled = true;
+  resultEl.style.display = "none";
+
+  try {
+    const r = await fetch("/checkin", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+      body: JSON.stringify({ token: qrToken }),
+    });
+    const data = await r.json();
+
+    if (data.success) {
+      resultEl.className = "result ok";
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `
+        <h3>✅ Check-In Successful</h3>
+        <div class="detail">Booking #${data.booking_id} &nbsp;·&nbsp; ${data.tickets_booked} ticket(s)</div>
+        <div class="detail">Checked in at: ${new Date(data.checked_in_at).toLocaleTimeString("en-IN")}</div>
+        ${data.selected_seats && data.selected_seats !== "[]"
+          ? `<div class="detail">Seats: ${JSON.parse(data.selected_seats).join(", ")}</div>` : ""}`;
+    } else {
+      resultEl.className = "result err";
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `<h3>❌ Check-In Failed</h3><div class="detail">${data.reason}</div>`;
+    }
+  } catch (e) {
+    resultEl.className = "result err";
+    resultEl.style.display = "block";
+    resultEl.innerHTML = `<h3>❌ Error</h3><div class="detail">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById("tokenInput").value = "";
+  }
+}
+
+// Allow Ctrl+Enter to submit
+document.getElementById("tokenInput").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) checkIn();
+});
+</script>
+</body>
+</html>
