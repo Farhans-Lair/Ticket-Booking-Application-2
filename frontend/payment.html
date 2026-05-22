@@ -3,93 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Complete Payment</title>
-  <link rel="stylesheet" href="/css/styles.css" />
+  <title>Complete Payment — TicketVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    .payment-card {
-      max-width: 480px;
-      margin: 60px auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      padding: 32px;
-      font-family: sans-serif;
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --gold:#f5c842; --gold-dark:#d4a520; --bg:#0a0a14;
+      --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.09);
+      --text:#f0eee8; --muted:rgba(240,238,232,0.5);
+      --accent:#7c6af7; --red:#f74a6a; --green:#42e695;
     }
-    .payment-card h2 {
-      margin-top: 0;
-      color: #1e1e2e;
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+
+    .payment-wrap { width:100%; max-width:480px; }
+
+    .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); text-align:center; margin-bottom:28px; }
+
+    .card {
+      background:rgba(255,255,255,0.04); border:1px solid var(--border);
+      border-radius:20px; padding:32px; backdrop-filter:blur(16px);
+      box-shadow:0 24px 64px rgba(0,0,0,0.4);
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
+    .card h2 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:20px; }
+
+    /* summary table */
+    .summary-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+    .summary-table td { padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.92rem; color:var(--muted); }
+    .summary-table td:last-child { text-align:right; color:var(--text); }
+    .summary-table .event-name td { color:var(--text); font-weight:700; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:4px; }
+    .summary-table .total-row td { border-top:1px solid rgba(255,255,255,0.12); border-bottom:none; font-size:1rem; font-weight:700; padding-top:12px; color:var(--gold); }
+    .summary-table .discount-row td { color:var(--green); }
+
+    /* Feature 4: Coupon section */
+    .coupon-section { margin-bottom:20px; }
+    .coupon-section label { display:block; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; color:var(--muted); margin-bottom:8px; }
+    .coupon-row { display:flex; gap:8px; }
+    .coupon-input {
+      flex:1; background:rgba(255,255,255,0.06); border:1px solid var(--border);
+      border-radius:10px; padding:11px 14px; color:var(--text);
+      font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none;
+      text-transform:uppercase; letter-spacing:0.05em; transition:border-color 0.2s;
     }
-    table tr td {
-      padding: 8px 4px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 0.95rem;
+    .coupon-input:focus { border-color:var(--accent); }
+    .coupon-input::placeholder { text-transform:none; letter-spacing:normal; color:rgba(240,238,232,0.3); }
+    .btn-apply {
+      padding:11px 20px; background:rgba(124,106,247,0.15); border:1px solid rgba(124,106,247,0.4);
+      border-radius:10px; color:var(--accent); font-family:'DM Sans',sans-serif;
+      font-size:0.88rem; font-weight:600; cursor:pointer; white-space:nowrap;
+      transition:all 0.2s;
     }
-    table tr.total-row td {
-      border-top: 2px solid #e0e0e0;
-      border-bottom: none;
-      font-size: 1rem;
-      padding-top: 12px;
-    }
+    .btn-apply:hover { background:rgba(124,106,247,0.25); }
+    .btn-apply:disabled { opacity:0.5; cursor:not-allowed; }
+    .coupon-feedback { margin-top:8px; font-size:0.82rem; min-height:18px; }
+    .coupon-feedback.ok  { color:var(--green); }
+    .coupon-feedback.err { color:var(--red); }
+
+    /* pay button */
     #pay-btn {
-      width: 100%;
-      padding: 14px;
-      background: #4f46e5;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 16px;
-      transition: background 0.2s;
+      width:100%; padding:15px; margin-top:4px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      border:none; border-radius:13px;
+      color:#0a0a14; font-family:'DM Sans',sans-serif;
+      font-size:1rem; font-weight:700; cursor:pointer;
+      transition:transform 0.15s, box-shadow 0.2s;
+      box-shadow:0 4px 20px rgba(245,200,66,0.28);
     }
-    #pay-btn:hover:not(:disabled) { background: #4338ca; }
-    #pay-btn:disabled { background: #a5b4fc; cursor: not-allowed; }
-    #status-msg {
-      margin-top: 16px;
-      text-align: center;
-      font-size: 0.95rem;
-      min-height: 24px;
-    }
-    .back-link {
-      display: inline-block;
-      margin-top: 12px;
-      color: #4f46e5;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    .back-link:hover { text-decoration: underline; }
+    #pay-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 30px rgba(245,200,66,0.44); }
+    #pay-btn:disabled { background:rgba(255,255,255,0.1); color:var(--muted); cursor:not-allowed; box-shadow:none; }
+
+    #status-msg { margin-top:16px; text-align:center; font-size:0.92rem; min-height:24px; }
+
+    .back-link { display:block; text-align:center; margin-top:16px; color:var(--muted); font-size:0.85rem; text-decoration:none; transition:color 0.2s; }
+    .back-link:hover { color:var(--text); }
+
+    .seat-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .seat-tag  { padding:3px 10px; border-radius:7px; background:rgba(124,106,247,0.12); border:1px solid rgba(124,106,247,0.22); color:var(--accent); font-size:0.78rem; font-weight:600; }
   </style>
 </head>
 <body>
-  <div class="payment-card">
-    <h2>🎟️ Order Summary</h2>
+  <div class="payment-wrap">
+    <div class="logo">TicketVerse</div>
 
-    <!-- Populated by payment.js -->
-    <div id="summary"></div>
+    <div class="card">
+      <h2>🎟️ Order Summary</h2>
+      <div id="summary"></div>
 
-    <button id="pay-btn">Pay with Razorpay</button>
+      <!-- Feature 4: Coupon input -->
+      <div class="coupon-section">
+        <label>Have a coupon?</label>
+        <div class="coupon-row">
+          <input class="coupon-input" id="couponInput" type="text" placeholder="Enter coupon code" autocomplete="off" />
+          <button class="btn-apply" id="applyBtn" onclick="applyCoupon()">Apply</button>
+        </div>
+        <div class="coupon-feedback" id="couponFeedback"></div>
+      </div>
 
-    <div id="status-msg"></div>
-
-    <a class="back-link" href="/events-page">← Back to Events</a>
+      <button id="pay-btn">Pay with Razorpay</button>
+      <div id="status-msg"></div>
+      <a class="back-link" href="/events-page">← Back to Events</a>
+    </div>
   </div>
 
-  <!-- Razorpay SDK -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-  <!-- Shared API helper -->
   <script src="/js/api.js"></script>
-
-  <!-- Auth channel — reacts to cross-tab logout broadcast -->
   <script src="/js/auth-channel.js"></script>
-
-  <!-- Payment logic -->
   <script src="/js/payment.js"></script>
 </body>
 </html>

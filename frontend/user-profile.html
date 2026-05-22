@@ -87,6 +87,17 @@
     .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
     .loading { text-align: center; padding: 32px; color: var(--text-muted); }
 
+    /* Feature 6 & 7 list items */
+    .wl-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); flex-wrap:wrap; }
+    .wl-item:last-child { border-bottom:none; }
+    .wl-item-info .wl-title { font-weight:600; font-size:0.95rem; margin-bottom:3px; }
+    .wl-item-info .wl-meta  { font-size:0.78rem; color:var(--text-muted); }
+    .wl-item-actions { display:flex; gap:8px; align-items:center; }
+    .btn-sm { padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s; border:1px solid; }
+    .btn-sm.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .btn-sm.danger  { background:transparent; border-color:rgba(247,74,106,.4); color:var(--red); }
+    .btn-sm:hover { opacity:.85; }
+
     @media (max-width: 768px) {
       nav { padding: 14px 20px; }
       .profile-grid { grid-template-columns: 1fr; }
@@ -139,6 +150,8 @@
         <button class="tab-btn active" data-tab="info">Account Info</button>
         <button class="tab-btn" data-tab="password">Change Password</button>
         <button class="tab-btn" data-tab="bookings">Booking History</button>
+        <button class="tab-btn" data-tab="wishlist">❤️ Wishlist</button>
+        <button class="tab-btn" data-tab="waitlist">🔔 Waitlist</button>
       </div>
 
       <!-- ACCOUNT INFO -->
@@ -199,6 +212,22 @@
         </div>
       </div>
 
+      <!-- WISHLIST PANEL — Feature 6 -->
+      <div class="panel" id="panel-wishlist">
+        <div class="card">
+          <h2>❤️ Saved Events</h2>
+          <div id="wishlistItems"><div class="loading">Loading wishlist…</div></div>
+        </div>
+      </div>
+
+      <!-- WAITLIST PANEL — Feature 7 -->
+      <div class="panel" id="panel-waitlist">
+        <div class="card">
+          <h2>🔔 Waitlist Entries</h2>
+          <div id="waitlistItems"><div class="loading">Loading waitlist…</div></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -222,6 +251,8 @@
       btn.classList.add("active");
       document.getElementById(`panel-${btn.dataset.tab}`).classList.add("active");
       if (btn.dataset.tab === "bookings") loadBookings();
+      if (btn.dataset.tab === "wishlist") loadWishlist();
+      if (btn.dataset.tab === "waitlist") loadWaitlist();
     });
   });
 
@@ -367,6 +398,91 @@
     sessionStorage.clear();
     location.href = "/";
   });
+
+  // ── Feature 6: Wishlist ──────────────────────────────────
+  let _wishlistLoaded = false;
+  async function loadWishlist() {
+    if (_wishlistLoaded) return;
+    _wishlistLoaded = true;
+    const el = document.getElementById("wishlistItems");
+    try {
+      const r    = await fetch("/wishlist", { headers: authHeaders() });
+      const data = await r.json();
+      if (!data.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">🤍</div><p>No saved events yet. Tap the heart icon on any event to save it.</p></div>`;
+        return;
+      }
+      const ICONS = { Music:"🎵", Sports:"🏆", Comedy:"😂", Theatre:"🎭", Other:"🎟️" };
+      el.innerHTML = data.map(w => {
+        const ev = w.Event || {};
+        const dt = ev.event_date ? new Date(ev.event_date).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) : "TBA";
+        return `
+          <div class="wl-item" id="wi-${w.id}">
+            <div class="wl-item-info">
+              <div class="wl-title">${ICONS[ev.category] || "🎟️"} ${ev.title || "Event"}</div>
+              <div class="wl-meta">📅 ${dt} · 💰 ${ev.price > 0 ? "₹" + ev.price : "Free"}${ev.city ? " · 🏙️ " + ev.city : ""}</div>
+            </div>
+            <div class="wl-item-actions">
+              <button class="btn-sm primary" onclick="goBook(${w.event_id})">Book</button>
+              <button class="btn-sm danger"  onclick="removeWish(${w.event_id}, ${w.id})">✕ Remove</button>
+            </div>
+          </div>`;
+      }).join("");
+    } catch(e) { el.innerHTML = `<div class="loading">Could not load wishlist.</div>`; }
+  }
+  async function removeWish(eventId, itemId) {
+    try {
+      await fetch(`/wishlist/${eventId}`, { method:"DELETE", headers: authHeaders() });
+      document.getElementById(`wi-${itemId}`)?.remove();
+      if (!document.querySelector("#wishlistItems .wl-item")) _wishlistLoaded = false, loadWishlist();
+    } catch(e) { alert("Could not remove: " + e.message); }
+  }
+
+  // ── Feature 7: Waitlist ──────────────────────────────────
+  let _waitlistLoaded = false;
+  async function loadWaitlist() {
+    if (_waitlistLoaded) return;
+    _waitlistLoaded = true;
+    const el = document.getElementById("waitlistItems");
+    try {
+      const r    = await fetch("/waitlist", { headers: authHeaders() });
+      const data = await r.json();
+      if (!data.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">🔔</div><p>You are not on any waitlist. Join a waitlist from any sold-out event.</p></div>`;
+        return;
+      }
+      const STATUS_COLOR = { waiting:"var(--orange)", notified:"var(--accent)", converted:"var(--green)", expired:"var(--red)" };
+      el.innerHTML = data.map(w => {
+        const ev = w.Event || {};
+        const dt = ev.event_date ? new Date(ev.event_date).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) : "TBA";
+        const col = STATUS_COLOR[w.status] || "var(--muted)";
+        return `
+          <div class="wl-item" id="wt-${w.id}">
+            <div class="wl-item-info">
+              <div class="wl-title">🎟️ ${ev.title || "Event"}</div>
+              <div class="wl-meta">📅 ${dt} · Tickets wanted: ${w.tickets_wanted} · <span style="color:${col};font-weight:600;">${w.status}</span></div>
+            </div>
+            <div class="wl-item-actions">
+              ${w.status === "waiting" || w.status === "notified"
+                ? `<button class="btn-sm danger" onclick="leaveWait(${w.event_id}, ${w.id})">Leave Waitlist</button>` : ""}
+            </div>
+          </div>`;
+      }).join("");
+    } catch(e) { el.innerHTML = `<div class="loading">Could not load waitlist.</div>`; }
+  }
+  async function leaveWait(eventId, itemId) {
+    if (!confirm("Leave the waitlist for this event?")) return;
+    try {
+      await fetch(`/waitlist/${eventId}`, { method:"DELETE", headers: authHeaders() });
+      document.getElementById(`wt-${itemId}`)?.remove();
+      if (!document.querySelector("#waitlistItems .wl-item")) _waitlistLoaded = false, loadWaitlist();
+    } catch(e) { alert("Could not leave: " + e.message); }
+  }
+
+  function goBook(eventId) {
+    sessionStorage.setItem("seat_selection_meta", JSON.stringify({ event_id: eventId, tickets_booked: 1 }));
+    location.href = "/seat-selection";
+  }
 
   loadProfile();
 </script>

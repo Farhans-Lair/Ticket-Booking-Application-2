@@ -96,6 +96,31 @@
     .empty   { text-align: center; padding: 48px; color: var(--text-muted); }
     .hidden  { display: none; }
 
+    /* ── Feature 2: Advanced filter row ─────────────────────────────── */
+    .adv-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center; }
+    .adv-filters select, .adv-filters input[type=number], .adv-filters input[type=date] {
+      padding:8px 12px; background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:8px; color:var(--text); font-family:inherit; font-size:0.82rem;
+      outline:none; transition:border-color .2s;
+    }
+    .adv-filters select:focus, .adv-filters input:focus { border-color:var(--accent); }
+    .adv-filters select option { background:#13131f; }
+    .adv-filters .lbl { font-size:0.74rem; color:var(--text-muted); white-space:nowrap; }
+    .filter-group { display:flex; align-items:center; gap:5px; }
+
+    /* ── Feature 5: Star ratings ─────────────────────────────────────── */
+    .ev-rating { display:block; font-size:0.8rem; color:var(--gold); font-weight:600; margin-bottom:8px; }
+    .ev-rating-count { color:var(--text-muted); font-weight:400; font-size:0.75rem; }
+
+    /* ── Feature 6: Wishlist heart ───────────────────────────────────── */
+    .wish-btn { background:none; border:none; cursor:pointer; font-size:1.1rem; padding:2px; line-height:1; transition:transform .15s; }
+    .wish-btn:hover { transform:scale(1.2); }
+
+    /* ── Feature 7: Waitlist button ──────────────────────────────────── */
+    .btn-waitlist { padding:8px 16px; border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all .2s; font-family:inherit; background:rgba(66,230,149,0.08); border:1px solid rgba(66,230,149,0.3); color:var(--green); }
+    .btn-waitlist:hover { background:rgba(66,230,149,0.16); }
+    .btn-waitlist.active { background:rgba(66,230,149,0.15); border-color:var(--green); }
+
     @media (max-width: 640px) {
       nav { padding: 14px 18px; }
       .featured-card { flex: 0 0 280px; }
@@ -107,6 +132,7 @@
 <nav>
   <a class="nav-logo" href="/">TicketVerse</a>
   <div class="nav-right">
+    <a href="/wishlist" class="profile-link">❤️ Wishlist</a>
     <a href="/my-bookings">My Bookings</a>
     <a href="/profile" class="profile-link">My Profile</a>
     <button class="btn-logout" id="logoutBtn">Log out</button>
@@ -150,6 +176,32 @@
       <!-- dynamic category buttons injected by loadCategoryFilters() -->
     </div>
 
+    <!-- Feature 2: Advanced filters -->
+    <div class="adv-filters">
+      <div class="filter-group">
+        <span class="lbl">🏙️ City</span>
+        <select id="cityFilter">
+          <option value="">All cities</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="lbl">₹ Min</span>
+        <input type="number" id="minPrice" placeholder="0" min="0" style="width:80px;" />
+      </div>
+      <div class="filter-group">
+        <span class="lbl">₹ Max</span>
+        <input type="number" id="maxPrice" placeholder="Any" min="0" style="width:80px;" />
+      </div>
+      <div class="filter-group">
+        <span class="lbl">📅 From</span>
+        <input type="date" id="dateFrom" />
+      </div>
+      <div class="filter-group">
+        <span class="lbl">To</span>
+        <input type="date" id="dateTo" />
+      </div>
+    </div>
+
     <div class="events-grid" id="eventsGrid">
       <div class="loading" style="grid-column:1/-1">Loading events…</div>
     </div>
@@ -157,204 +209,8 @@
 
 </div>
 
-<script>
-  const token = sessionStorage.getItem("token");
-  if (!token) { location.href = "/"; }
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
-  let allEvents = [];
-  let activeCategory = "";
-
-  const CATEGORY_ICONS = {
-    Music: "🎵", Sports: "🏆", Comedy: "😂", Theatre: "🎭",
-    Conference: "📋", Festival: "🎪", Workshop: "🔧", Other: "🎟️",
-  };
-
-  function fmtDate(d) {
-    return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-  }
-
-  // ── Featured events ───────────────────────────────────────
-  async function loadFeatured() {
-    try {
-      const r = await fetch("/events/featured");
-      const data = await r.json();
-      if (!data.length) {
-        document.getElementById("featuredSection").style.display = "none";
-        return;
-      }
-      document.getElementById("featuredCarousel").innerHTML = data.map(ev => {
-        const icon = CATEGORY_ICONS[ev.category] || "🎟️";
-        return `
-          <div class="featured-card" onclick="goToBooking(${ev.id})">
-            <div class="featured-badge-overlay">★ Featured</div>
-            <div class="featured-img">${icon}</div>
-            <div class="featured-body">
-              <div class="featured-cat">${ev.category || "Other"}</div>
-              <div class="featured-title">${ev.title}</div>
-              <div class="featured-meta">
-                <span>${fmtDate(ev.event_date)}</span>
-                <span class="featured-price">${ev.price > 0 ? "₹" + ev.price : "Free"}</span>
-              </div>
-            </div>
-          </div>`;
-      }).join("");
-    } catch {
-      document.getElementById("featuredSection").style.display = "none";
-    }
-  }
-
-  // ── Trending events ───────────────────────────────────────
-  async function loadTrending() {
-    try {
-      const r = await fetch("/events/trending");
-      const data = await r.json();
-      if (!data.length) {
-        document.getElementById("trendingSection").style.display = "none";
-        return;
-      }
-      document.getElementById("trendingGrid").innerHTML = data.map((ev, i) => `
-        <div class="trending-card" onclick="goToBooking(${ev.id})">
-          <div class="trending-rank ${i < 3 ? "top3" : ""}">${i + 1}</div>
-          <div class="trending-info">
-            <div class="t-title">${ev.title}</div>
-            <div class="t-meta">${fmtDate(ev.event_date)} · ${ev.category}</div>
-          </div>
-          <div class="trending-price">${ev.price > 0 ? "₹" + ev.price : "Free"}</div>
-        </div>`).join("");
-    } catch {
-      document.getElementById("trendingSection").style.display = "none";
-    }
-  }
-
-  // ── All events ────────────────────────────────────────────
-  async function loadEvents() {
-    try {
-      const r = await fetch("/events", { headers });
-      allEvents = await r.json();
-      renderEvents();
-    } catch {
-      document.getElementById("eventsGrid").innerHTML = '<div class="empty" style="grid-column:1/-1">Failed to load events.</div>';
-    }
-  }
-
-  function renderEvents() {
-    const search = document.getElementById("searchInput").value.toLowerCase();
-    let filtered = allEvents.filter(ev => {
-      const matchCat  = !activeCategory || ev.category === activeCategory;
-      const matchSearch = !search
-        || ev.title.toLowerCase().includes(search)
-        || (ev.location || "").toLowerCase().includes(search)
-        || (ev.description || "").toLowerCase().includes(search);
-      return matchCat && matchSearch;
-    });
-
-    if (!filtered.length) {
-      document.getElementById("eventsGrid").innerHTML = '<div class="empty" style="grid-column:1/-1">No events found.</div>';
-      return;
-    }
-
-    document.getElementById("eventsGrid").innerHTML = filtered.map(ev => {
-      const icon = CATEGORY_ICONS[ev.category] || "🎟️";
-      const sold = ev.total_tickets - ev.available_tickets;
-      const pct  = Math.round((sold / ev.total_tickets) * 100);
-      return `
-        <div class="event-card">
-          <div class="ev-img">${icon}</div>
-          <div class="ev-body">
-            <div class="ev-cat">
-              ${ev.is_featured ? '<span class="featured-star">★</span>' : ""}
-              ${ev.category || "Other"}
-            </div>
-            <div class="ev-title">${ev.title}</div>
-            <div class="ev-meta">
-              <span>📅 ${fmtDate(ev.event_date)}</span>
-              <span>📍 ${ev.location || "TBA"}</span>
-            </div>
-            <div class="ev-footer">
-              <div>
-                <div class="ev-price">${ev.price > 0 ? "₹" + ev.price : "Free"}</div>
-                <div class="ev-tickets">${ev.available_tickets} left · ${pct}% sold</div>
-              </div>
-              <div class="book-action">
-                ${ev.available_tickets === 0 ? "" : `<input type="number" class="qty-input" id="qty-${ev.id}" min="1" max="${ev.available_tickets}" value="1" title="Number of tickets" />`}
-                <button class="btn-book"
-                  ${ev.available_tickets === 0 ? "disabled" : ""}
-                  onclick="goToBooking(${ev.id})">
-                  ${ev.available_tickets === 0 ? "Sold Out" : "Book Now"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>`;
-    }).join("");
-  }
-
-  // ── Category filter ───────────────────────────────────────
-  // ── Load category filter buttons dynamically ────────────────────────────
-  async function loadCategoryFilters() {
-    const bar = document.querySelector(".filter-bar");
-    if (!bar) return;
-    try {
-      const r    = await fetch("/categories");
-      const cats = await r.json();
-      // Remove previously injected dynamic buttons (keep static "All" and search)
-      bar.querySelectorAll("[data-cat]:not([data-cat=''])").forEach(b => b.remove());
-      cats.forEach(c => {
-        const btn = document.createElement("button");
-        btn.className = "filter-btn";
-        btn.dataset.cat = c.slug;
-        btn.textContent = `${c.icon_emoji || "🎟️"} ${c.name}`;
-        // Update CATEGORY_ICONS map live
-        CATEGORY_ICONS[c.slug] = c.icon_emoji || "🎟️";
-        bar.appendChild(btn);
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          activeCategory = c.slug;
-          renderEvents();
-        });
-      });
-    } catch { /* keep defaults */ }
-  }
-
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeCategory = btn.dataset.cat;
-      renderEvents();
-    });
-  });
-
-  // ── Search ────────────────────────────────────────────────
-  document.getElementById("searchInput").addEventListener("input", renderEvents);
-
-  // ── Navigation ────────────────────────────────────────────
-  function goToBooking(eventId) {
-    const input          = document.getElementById("qty-" + eventId);
-    const tickets_booked = input ? Math.max(1, parseInt(input.value, 10) || 1) : 1;
-
-    sessionStorage.setItem("seat_selection_meta", JSON.stringify({
-      event_id:       eventId,
-      tickets_booked: tickets_booked,
-    }));
-
-    location.href = "/seat-selection";
-  }
-
-  // ── Logout ────────────────────────────────────────────────
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await fetch("/auth/logout", { method: "POST", headers });
-    sessionStorage.clear();
-    location.href = "/";
-  });
-
-  // ── Init ──────────────────────────────────────────────────
-  loadFeatured();
-  loadTrending();
-  loadCategoryFilters();
-  loadEvents();
-</script>
+<script src="/js/api.js"></script>
+<script src="/js/auth-channel.js"></script>
+<script src="/js/events.js"></script>
 </body>
 </html>

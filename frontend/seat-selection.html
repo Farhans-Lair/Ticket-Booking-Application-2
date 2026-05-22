@@ -62,6 +62,7 @@
     .legend-box.available { background:var(--seat-avail-bg); border:2px solid var(--seat-avail-border); }
     .legend-box.selected  { background:var(--seat-sel-bg); border:2px solid var(--seat-sel-border); }
     .legend-box.booked    { background:var(--seat-booked-bg); border:2px solid var(--seat-booked-border); }
+    .legend-box.held      { background:rgba(255,159,67,0.2); border:2px solid rgba(255,159,67,0.6); }
 
     /* SEAT GRID */
     #seat-grid { margin-bottom:20px; }
@@ -152,6 +153,7 @@
       <div class="legend-item"><div class="legend-box available"></div> Available</div>
       <div class="legend-item"><div class="legend-box selected"></div> Selected</div>
       <div class="legend-item"><div class="legend-box booked"></div> Booked</div>
+      <div class="legend-item"><div class="legend-box held"></div> Held (by others)</div>
     </div>
 
     <div id="seat-grid"></div>

@@ -144,6 +144,7 @@
       <button class="btn-ghost" onclick="location.href='/admin/categories/manage'">🏷️ Categories</button>
       <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
       <button class="btn-ghost" onclick="location.href='/admin/revenue'">📊 Revenue</button>
+      <button class="btn-ghost" onclick="location.href='/admin/coupons'">🎟️ Coupons</button>
       <button class="btn-ghost danger" id="logoutBtn">Logout</button>
     </div>
   </div>
@@ -176,6 +177,11 @@
       <div style="font-size:2rem;margin-bottom:10px;">📊</div>
       <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Revenue</div>
       <div style="font-size:0.8rem;color:var(--muted);">View platform revenue and analytics</div>
+    </div>
+    <div onclick="location.href='/admin/coupons'" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.8rem;margin-bottom:8px;">🎟️</div>
+      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Coupons</div>
+      <div style="font-size:0.8rem;color:var(--muted);">Create &amp; manage discount coupon codes</div>
     </div>
   </div>
 

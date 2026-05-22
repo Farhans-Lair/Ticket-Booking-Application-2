@@ -109,6 +109,26 @@
     .refunded-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.2); color:var(--accent); font-size:0.82rem; font-weight:600; }
     .refund-pending-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(255,159,67,0.1); border:1px solid rgba(255,159,67,0.2); color:var(--orange); font-size:0.82rem; font-weight:600; }
 
+    /* Feature 3: QR code display */
+    .qr-section { margin-top:14px; padding:14px 18px; background:rgba(66,230,149,0.06); border:1px solid rgba(66,230,149,0.18); border-radius:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .qr-section img { width:100px; height:100px; border-radius:8px; background:#fff; padding:4px; }
+    .qr-info { font-size:0.82rem; color:var(--muted); }
+    .qr-info strong { color:var(--green); display:block; margin-bottom:4px; }
+    .btn-qr-download { padding:7px 16px; border-radius:8px; background:rgba(66,230,149,0.12); border:1px solid rgba(66,230,149,0.3); color:var(--green); font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s; text-decoration:none; display:inline-block; }
+    .btn-qr-download:hover { background:rgba(66,230,149,0.2); }
+
+    /* Feature 5: Review form */
+    .review-section { margin-top:14px; padding:14px 18px; background:rgba(245,200,66,0.05); border:1px solid rgba(245,200,66,0.15); border-radius:12px; }
+    .review-section h4 { font-size:0.88rem; font-weight:700; margin-bottom:10px; color:var(--text); }
+    .star-row { display:flex; gap:6px; margin-bottom:10px; }
+    .star-btn { background:none; border:none; font-size:1.5rem; cursor:pointer; line-height:1; transition:transform .15s; filter:grayscale(1) opacity(0.4); }
+    .star-btn.active { filter:none; transform:scale(1.15); }
+    .review-text { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; font-size:0.85rem; resize:vertical; min-height:64px; outline:none; }
+    .review-text:focus { border-color:var(--gold); }
+    .btn-submit-review { margin-top:10px; padding:10px 22px; border-radius:10px; background:linear-gradient(135deg,var(--gold),var(--gold-dark)); border:none; color:#0a0a14; font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer; transition:transform .15s; }
+    .btn-submit-review:hover { transform:translateY(-1px); }
+    .review-done { font-size:0.85rem; color:var(--green); font-weight:600; }
+
     /* Cancel modal */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
     .modal-box { background:#13132a; border:1px solid var(--border); border-radius:20px; padding:32px; max-width:440px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.5); animation:modal-in 0.25s cubic-bezier(0.16,1,0.3,1); }
@@ -352,6 +372,26 @@ function renderBookings(bookings, container) {
         <div class="card-actions" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
           ${actionHTML}
         </div>
+
+        ${b.payment_status === "paid" && cancStatus === "active" && b.qr_token ? `
+        <div class="qr-section">
+          <img src="/api/qr/${b.id}" onerror="this.style.display='none'" alt="QR Code" id="qr-img-${b.id}" />
+          <div class="qr-info">
+            <strong>🔲 Entry QR Code</strong>
+            Show this at the venue for contactless check-in.
+          </div>
+          <button class="btn-qr-download" onclick="showQr(${b.id})">View Full QR</button>
+        </div>` : ""}
+
+        ${b.payment_status === "paid" && cancStatus === "active" ? `
+        <div class="review-section" id="review-section-${b.id}">
+          <h4>⭐ Leave a Review</h4>
+          <div class="star-row" id="stars-${b.id}">
+            ${[1,2,3,4,5].map(n => `<button class="star-btn" data-val="${n}" onclick="setRating(${b.id},${n})">★</button>`).join("")}
+          </div>
+          <textarea class="review-text" id="review-text-${b.id}" placeholder="Tell others about this event…"></textarea>
+          <button class="btn-submit-review" onclick="submitReview(${b.id}, ${b.event_id})">Submit Review</button>
+        </div>` : ""}
       </div>`;
 
     container.appendChild(card);
@@ -567,6 +607,52 @@ async function confirmCancellation() {
 </script>
 
 <script src="/js/auth-channel.js"></script>
+
+<!-- Feature 5: Review JS -->
+<script>
+const _ratings = {};  // { bookingId: rating }
+
+function setRating(bookingId, val) {
+  _ratings[bookingId] = val;
+  document.querySelectorAll(`#stars-${bookingId} .star-btn`).forEach(btn => {
+    btn.classList.toggle("active", parseInt(btn.dataset.val, 10) <= val);
+  });
+}
+
+async function submitReview(bookingId, eventId) {
+  const rating = _ratings[bookingId];
+  if (!rating) { alert("Please select a star rating first."); return; }
+  const text = (document.getElementById(`review-text-${bookingId}`)?.value || "").trim();
+  try {
+    const tabToken = sessionStorage.getItem("token");
+    const r = await fetch(`/reviews/events/${eventId}`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json", ...(tabToken ? { Authorization:`Bearer ${tabToken}` } : {}) },
+      body: JSON.stringify({ rating, text }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    const sec = document.getElementById(`review-section-${bookingId}`);
+    if (sec) sec.innerHTML = `<div class="review-done">✓ Review submitted — thank you!</div>`;
+  } catch (err) {
+    alert("Could not submit review: " + err.message);
+  }
+}
+
+/* Feature 3: show QR in a lightbox */
+function showQr(bookingId) {
+  const src = `/api/qr/${bookingId}`;
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;";
+  overlay.innerHTML = `
+    <div style="background:#13132a;border-radius:16px;padding:28px;text-align:center;max-width:320px;">
+      <img src="${src}" style="width:240px;height:240px;border-radius:8px;background:#fff;padding:8px;display:block;margin:0 auto 16px;" onerror="this.src=''" />
+      <p style="font-size:0.82rem;color:rgba(240,238,232,0.5);margin-bottom:16px;">Show this QR at the venue for contactless check-in.</p>
+      <button onclick="this.closest('div').parentNode.remove()" style="padding:10px 24px;border-radius:10px;background:var(--gold,#f5c842);border:none;color:#0a0a14;font-weight:700;cursor:pointer;">Close</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+</script>
 </body>
 </html>
   

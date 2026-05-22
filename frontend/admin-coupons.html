@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coupon Management — TicketVerse Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--gold:#f5c842;--bg:#0a0a14;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.09);--text:#f0eee8;--muted:rgba(240,238,232,0.5);--accent:#7c6af7;--red:#f74a6a;--green:#42e695;--orange:#ff9f43;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(10,10,20,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);}
+    .nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--gold);}
+    .nav-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .btn-ghost{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:0.82rem;cursor:pointer;transition:all .2s;}
+    .btn-ghost:hover{background:rgba(255,255,255,.08);color:var(--text);}
+    .page{max-width:1100px;margin:0 auto;padding:40px 24px 80px;}
+    .page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-bottom:32px;}
+    .two-col{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start;}
+    @media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+    /* form card */
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;}
+    .form-card h3{font-size:1.1rem;font-weight:700;margin-bottom:20px;}
+    .field{margin-bottom:14px;}
+    .field label{display:block;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
+    .field input,.field select{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;transition:border-color .2s;}
+    .field input:focus,.field select:focus{border-color:var(--accent);}
+    .field select option{background:#13131f;}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .btn-create{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#d4a520);border:none;border-radius:10px;color:#0a0a14;font-family:inherit;font-size:0.92rem;font-weight:700;cursor:pointer;transition:transform .15s;margin-top:6px;}
+    .btn-create:hover{transform:translateY(-1px);}
+    /* table */
+    .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+    .table-card h3{font-size:1.1rem;font-weight:700;padding:20px 24px;border-bottom:1px solid var(--border);}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:12px 16px;text-align:left;font-size:0.85rem;border-bottom:1px solid rgba(255,255,255,.05);}
+    th{font-size:0.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;}
+    tr:last-child td{border-bottom:none;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+    .badge.active{background:rgba(66,230,149,.12);color:var(--green);border:1px solid rgba(66,230,149,.25);}
+    .badge.inactive{background:rgba(247,74,106,.1);color:var(--red);border:1px solid rgba(247,74,106,.22);}
+    .badge.percent{background:rgba(124,106,247,.12);color:var(--accent);border:1px solid rgba(124,106,247,.25);}
+    .badge.flat{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.25);}
+    .btn-toggle{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;border:1px solid var(--border);background:var(--card);color:var(--muted);}
+    .btn-toggle:hover{border-color:var(--accent);color:var(--accent);}
+    .msg{margin-top:10px;font-size:0.82rem;min-height:18px;}
+    .msg.ok{color:var(--green);}
+    .msg.err{color:var(--red);}
+    .loading{padding:32px;text-align:center;color:var(--muted);}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">⚙️ Admin</div>
+  <div class="nav-actions">
+    <button class="btn-ghost" onclick="location.href='/admin'">← Dashboard</button>
+    <button class="btn-ghost" onclick="location.href='/admin/moderation'">🛡️ Moderation</button>
+    <button class="btn-ghost" onclick="location.href='/admin/categories/manage'">🏷️ Categories</button>
+    <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
+    <button class="btn-ghost" id="logoutBtn">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">🎟️ Coupon Management</div>
+
+  <div class="two-col">
+    <!-- Create form -->
+    <div class="form-card">
+      <h3>Create Coupon</h3>
+      <div class="field">
+        <label>Code</label>
+        <input id="f-code" type="text" placeholder="SUMMER20" style="text-transform:uppercase;" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Type</label>
+          <select id="f-type">
+            <option value="percent">Percent (%)</option>
+            <option value="flat">Flat (₹)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Value</label>
+          <input id="f-value" type="number" min="0" placeholder="20" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Min Order (₹)</label>
+          <input id="f-min" type="number" min="0" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>Max Discount (₹)</label>
+          <input id="f-maxdisc" type="number" min="0" placeholder="Optional" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Valid From</label>
+          <input id="f-from" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label>Valid To</label>
+          <input id="f-to" type="datetime-local" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Usage Limit (0=∞)</label>
+          <input id="f-limit" type="number" min="0" value="0" />
+        </div>
+        <div class="field">
+          <label>Per-User Limit (0=∞)</label>
+          <input id="f-per-user" type="number" min="0" value="1" />
+        </div>
+      </div>
+      <button class="btn-create" onclick="createCoupon()">＋ Create Coupon</button>
+      <div class="msg" id="createMsg"></div>
+    </div>
+
+    <!-- Coupon list -->
+    <div class="table-card">
+      <h3>All Coupons</h3>
+      <div id="couponTable"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script>
+const token = sessionStorage.getItem("token");
+if (!token) location.href = "/";
+const headers = { "Content-Type":"application/json", Authorization:`Bearer ${token}` };
+
+async function loadCoupons() {
+  try {
+    const r    = await fetch("/coupons", { headers });
+    const data = await r.json();
+    const el   = document.getElementById("couponTable");
+    if (!data.length) { el.innerHTML = `<div class="loading">No coupons yet.</div>`; return; }
+
+    el.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Code</th><th>Type</th><th>Value</th><th>Min ₹</th>
+          <th>Used</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${data.map(c => `
+            <tr id="coupon-row-${c.id}">
+              <td><strong>${c.code}</strong></td>
+              <td><span class="badge ${c.discount_type}">${c.discount_type === "percent" ? c.discount_value + "%" : "₹" + c.discount_value}</span></td>
+              <td>${c.discount_type === "percent" ? c.discount_value + "%" : "₹" + c.discount_value}</td>
+              <td>₹${c.min_amount || 0}</td>
+              <td>${c.usage_count}${c.usage_limit > 0 ? "/" + c.usage_limit : ""}</td>
+              <td><span class="badge ${c.status}">${c.status}</span></td>
+              <td>
+                <button class="btn-toggle" onclick="toggleStatus(${c.id}, '${c.status}')">
+                  ${c.status === "active" ? "Deactivate" : "Activate"}
+                </button>
+              </td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById("couponTable").innerHTML = `<div class="loading">Failed to load coupons.</div>`;
+  }
+}
+
+async function createCoupon() {
+  const msg  = document.getElementById("createMsg");
+  const body = {
+    code:           (document.getElementById("f-code").value || "").toUpperCase().trim(),
+    discount_type:  document.getElementById("f-type").value,
+    discount_value: parseFloat(document.getElementById("f-value").value) || 0,
+    min_amount:     parseFloat(document.getElementById("f-min").value) || 0,
+    max_discount:   parseFloat(document.getElementById("f-maxdisc").value) || null,
+    valid_from:     document.getElementById("f-from").value || null,
+    valid_to:       document.getElementById("f-to").value   || null,
+    usage_limit:    parseInt(document.getElementById("f-limit").value,10) || 0,
+    per_user_limit: parseInt(document.getElementById("f-per-user").value,10) || 1,
+  };
+
+  if (!body.code || !body.discount_value) {
+    msg.className = "msg err"; msg.textContent = "Code and value are required."; return;
+  }
+
+  try {
+    const r = await fetch("/coupons", { method:"POST", headers, body:JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    msg.className = "msg ok"; msg.textContent = `✓ Coupon "${d.code}" created!`;
+    loadCoupons();
+  } catch(e) { msg.className = "msg err"; msg.textContent = "Error: " + e.message; }
+}
+
+async function toggleStatus(id, current) {
+  const newStatus = current === "active" ? "inactive" : "active";
+  try {
+    const r = await fetch(`/coupons/${id}/status`, { method:"PATCH", headers, body:JSON.stringify({ status:newStatus }) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    loadCoupons();
+  } catch(e) { alert("Could not update status: " + e.message); }
+}
+
+document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+  await fetch("/auth/logout", { method:"POST", headers });
+  sessionStorage.clear(); location.href = "/";
+});
+
+loadCoupons();
+</script>
+</body>
+</html>
