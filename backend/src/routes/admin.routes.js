@@ -13,18 +13,19 @@ router.get("/categories/manage", (req, res) => res.sendFile(path.join(__dirname,
 router.get("/organizers", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-organizers.html")));
 router.get("/moderation", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-moderation.html")));
 router.get("/payouts",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-payouts.html")));
+// FIX 1: Coupon management page was missing — caused 404 on /admin/coupons
+router.get("/coupons",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-coupons.html")));
 
-// ── FIX Issue 2 & 3: Event Moderation API ────────────────────────────────────
-// These are mounted under /admin router, so paths are relative (no /api/admin prefix)
+// ── Event Moderation API ──────────────────────────────────────────────────────
 router.get("/moderation/events",           authenticate, authorizeAdmin, adminCtrl.getAllEventsForAdmin);
 router.get("/moderation/events/pending",   authenticate, authorizeAdmin, adminCtrl.getPendingEvents);
 router.put("/moderation/events/:id/approve", authenticate, authorizeAdmin, adminCtrl.approveEvent);
 router.put("/moderation/events/:id/reject",  authenticate, authorizeAdmin, adminCtrl.rejectEvent);
 
-// ── Feature 2: Toggle featured ────────────────────────────────────────────────
+// ── Toggle featured ───────────────────────────────────────────────────────────
 router.put("/events/:id/feature", authenticate, authorizeAdmin, adminCtrl.toggleFeatured);
 
-// ── FIX Issue 5: Payout API ───────────────────────────────────────────────────
+// ── Payout API ────────────────────────────────────────────────────────────────
 router.get( "/payouts/data",                  authenticate, authorizeAdmin, adminCtrl.listPayouts);
 router.get( "/payouts/settlement/:organizerId", authenticate, authorizeAdmin, adminCtrl.getSettlement);
 router.post("/payouts/create",                authenticate, authorizeAdmin, adminCtrl.createPayout);

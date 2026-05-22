@@ -8,7 +8,6 @@ const rateLimit    = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 
 const authenticate      = require("./middleware/auth.middleware");
-// Feature 8: Correlation ID tracing — must be first middleware
 const correlationId     = require("./middleware/correlationId.middleware");
 
 const authController    = require("./controllers/auth.controllers");
@@ -18,31 +17,25 @@ const bookingRoutes     = require("./routes/booking.routes");
 const revenueRoutes     = require("./routes/revenue.routes");
 const adminRoutes       = require("./routes/admin.routes");
 const paymentRoutes     = require("./routes/payment.routes");
-const seatRoutes        = require("./routes/seat.routes");        // Feature 1: hold
+const seatRoutes        = require("./routes/seat.routes");
 const organizerRoutes   = require("./routes/organizer.routes");
 const cancellationRoutes = require("./routes/cancellation.routes");
 const userRoutes        = require("./routes/user.routes");
 const catCtrl           = require("./controllers/category.controllers");
 const errorHandler      = require("./middleware/error.middleware");
 
-// New feature routes
-const searchRoutes   = require("./routes/search.routes");   // Feature 2: Search + filters
-const checkinRoutes  = require("./routes/checkin.routes");  // Feature 3: QR check-in
-const couponRoutes   = require("./routes/coupon.routes");   // Feature 4: Coupons
-const reviewRoutes   = require("./routes/review.routes");   // Feature 5: Reviews
-const wishlistRoutes = require("./routes/wishlist.routes"); // Feature 6: Wishlist
-const waitlistRoutes = require("./routes/waitlist.routes"); // Feature 7: Waitlist
+const searchRoutes   = require("./routes/search.routes");
+const checkinRoutes  = require("./routes/checkin.routes");
+const couponRoutes   = require("./routes/coupon.routes");
+const reviewRoutes   = require("./routes/review.routes");
+const wishlistRoutes = require("./routes/wishlist.routes");
+const waitlistRoutes = require("./routes/waitlist.routes");
 
-// Feature 1: Seat hold expiry scheduler
 const { startSeatHoldScheduler } = require("./services/seatHold.scheduler");
-// Feature 3 (existing): event reminder scheduler
 const { startReminderScheduler } = require("./services/reminder.services");
 
 const app = express();
 
-/* =====================================================
-   Feature 8: Correlation ID — attach before everything
-===================================================== */
 app.use(correlationId);
 
 /* =====================================================
@@ -73,9 +66,6 @@ app.use(
   })
 );
 
-/* =====================================================
-   Security Headers  (Feature 9: HTTPS redirect handled in server.js)
-===================================================== */
 app.use((req, res, next) => {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   res.setHeader("X-Frame-Options",       "DENY");
@@ -87,9 +77,6 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 app.use(express.json({ limit: "25mb" }));
 
-/* =====================================================
-   Health Check
-===================================================== */
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
 /* =====================================================
@@ -111,9 +98,6 @@ const paymentLimiter = rateLimit({
   message: { error: "Too many payment requests. Please slow down." },
 });
 
-/* =====================================================
-   No-cache for protected pages
-===================================================== */
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.setHeader("Pragma",        "no-cache");
@@ -121,15 +105,9 @@ app.use((req, res, next) => {
   next();
 });
 
-/* =====================================================
-   Static Assets
-===================================================== */
 app.use("/js",  express.static(path.join(__dirname, "../../frontend/js")));
 app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 
-/* =====================================================
-   /auth/me
-===================================================== */
 app.get("/auth/me", globalLimiter, authenticate, authController.me);
 
 /* =====================================================
@@ -139,37 +117,25 @@ app.use("/auth",          authLimiter,    authRoutes);
 app.use("/events",        globalLimiter,  eventRoutes);
 app.use("/bookings",      globalLimiter,  bookingRoutes);
 app.use("/payments",      paymentLimiter, paymentRoutes);
-app.use("/seats",         globalLimiter,  seatRoutes);        // Feature 1: +hold
+app.use("/seats",         globalLimiter,  seatRoutes);
 app.use("/api",           globalLimiter,  revenueRoutes);
-app.use("/organizer",     globalLimiter,  organizerRoutes);
 app.use("/cancellations", globalLimiter,  cancellationRoutes);
 app.use("/user",          globalLimiter,  userRoutes);
-
-// Feature 2: Search + city/price/date filters (public, no auth)
-app.use("/search",   globalLimiter, searchRoutes);
-
-// Feature 3: QR check-in
-app.use("/checkin",  globalLimiter, checkinRoutes);
-
-// Feature 4: Coupons
-app.use("/coupons",  globalLimiter, couponRoutes);
-
-// Feature 5: Reviews & ratings
-app.use("/reviews",  globalLimiter, reviewRoutes);
-
-// Feature 6: Wishlist
-app.use("/wishlist", globalLimiter, wishlistRoutes);
-
-// Feature 7: Waitlist
-app.use("/waitlist", globalLimiter, waitlistRoutes);
+app.use("/search",        globalLimiter,  searchRoutes);
+app.use("/checkin",       globalLimiter,  checkinRoutes);
+app.use("/coupons",       globalLimiter,  couponRoutes);
+app.use("/reviews",       globalLimiter,  reviewRoutes);
+app.use("/wishlist",      globalLimiter,  wishlistRoutes);
+app.use("/waitlist",      globalLimiter,  waitlistRoutes);
 
 /* =====================================================
    HTML Page Routes
+   NOTE: /organizer must be registered AFTER all
+   /organizer API sub-routes to avoid conflicts.
 ===================================================== */
 const sendPage = (file) => (req, res) =>
   res.sendFile(path.join(__dirname, `../../frontend/${file}`));
 
-// Public
 app.get("/",                              sendPage("index.html"));
 app.get("/events-page",                   sendPage("events.html"));
 app.get("/my-bookings",                   sendPage("my-bookings.html"));
@@ -182,9 +148,14 @@ app.get("/organizer-events",              sendPage("organizer-events.html"));
 app.get("/organizer-revenue",             sendPage("organizer-revenue.html"));
 app.get("/organizer-cancellation-policy", sendPage("organizer-cancellation-policy.html"));
 app.get("/organizer-payouts",             sendPage("organizer-payouts.html"));
+// FIX 3: These page routes were missing — caused 404 on /organizer/checkin and /wishlist-page
+app.get("/organizer/checkin",             sendPage("checkin.html"));
+app.get("/wishlist-page",                 sendPage("wishlist.html"));
 
-// Public: category list
 app.get("/categories", catCtrl.listCategories);
+
+// NOTE: /organizer API routes registered here, AFTER the specific page routes above
+app.use("/organizer", globalLimiter, organizerRoutes);
 
 app.use("/admin", adminRoutes);
 
@@ -193,15 +164,9 @@ app.use("/admin", adminRoutes);
 ===================================================== */
 app.use((req, res) => res.status(404).json({ error: "Route not found." }));
 
-/* =====================================================
-   Global Error Handler
-===================================================== */
 app.use(errorHandler);
 
-/* =====================================================
-   Start Schedulers
-===================================================== */
-startSeatHoldScheduler();   // Feature 1: sweep expired holds every minute
-startReminderScheduler();   // existing: daily event reminder emails
+startSeatHoldScheduler();
+startReminderScheduler();
 
 module.exports = app;
