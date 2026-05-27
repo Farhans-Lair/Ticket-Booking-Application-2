@@ -4,21 +4,14 @@ module.exports = {
   setupFiles: ["<rootDir>/jest.setup.js"],
 
   // ─────────────────────────────────────────────────────────────
-  // FIX: Reset the module registry before every test FILE.
+  // DO NOT use resetModules:true globally — in Jest 30 it resets
+  // the registry before every individual it() test, not just
+  // between files. This causes route handlers loaded in beforeAll
+  // to become undefined by the time the test actually runs.
   //
-  // Without this, jest --runInBand shares the Node module cache
-  // across all test files in the same process. db.test.js calls
-  // sequelize.close() in afterAll, which destroys the connection
-  // pool on the cached Sequelize instance. When health.test.js
-  // then loads models/index.js it gets the same broken Sequelize
-  // instance from cache → sequelize.define() misbehaves →
-  // Payout is not a Model subclass → hasMany crash.
-  //
-  // resetModules: true gives every test file a completely fresh
-  // require() cache, so each file gets its own live Sequelize
-  // instance and models initialise correctly.
+  // Instead each test file that needs module isolation calls
+  // jest.isolateModules() explicitly inside beforeAll.
   // ─────────────────────────────────────────────────────────────
-  resetModules: true,
 
   // Give async DB operations time to finish
   testTimeout: 15000,

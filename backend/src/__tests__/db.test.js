@@ -1,17 +1,19 @@
 // ─────────────────────────────────────────────────────────────
 // db.test.js — Database connectivity smoke test
 //
-// FIX: With resetModules:true each test file gets a fresh
-// require() cache. We let Jest handle teardown through the
-// module lifecycle rather than manually closing sequelize,
-// which was poisoning the shared instance for later test files.
+// Uses jest.isolateModules() so the Sequelize instance created
+// here lives in its own module scope and never pollutes the
+// shared module cache used by health.test.js.
+// Calling sequelize.close() in afterAll is therefore safe:
+// it only destroys THIS file's private instance.
 // ─────────────────────────────────────────────────────────────
 
 let sequelize;
 
 beforeAll(() => {
-  // Require inside beforeAll so resetModules gives a fresh instance
-  sequelize = require("../config/database");
+  jest.isolateModules(() => {
+    sequelize = require("../config/database");
+  });
 });
 
 afterAll(async () => {

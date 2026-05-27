@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 // health.test.js — HTTP health-check smoke test
 //
-// With resetModules:true, requiring app here gives a completely
-// fresh Express app + Sequelize instance, independent of what
-// db.test.js loaded and closed.
+// jest.isolateModules() gives this test its own private module
+// registry. Even when db.test.js has already connected (and
+// closed) a Sequelize instance, the app loaded here gets a
+// completely fresh Sequelize instance and all route handlers
+// (including seatController.holdSeats) are properly defined.
 // ─────────────────────────────────────────────────────────────
 
 const request = require("supertest");
@@ -12,8 +14,10 @@ let app;
 let sequelize;
 
 beforeAll(() => {
-  app      = require("../app");
-  sequelize = require("../config/database");
+  jest.isolateModules(() => {
+    app      = require("../app");
+    sequelize = require("../config/database");
+  });
 });
 
 afterAll(async () => {
