@@ -166,7 +166,11 @@ app.use((req, res) => res.status(404).json({ error: "Route not found." }));
 
 app.use(errorHandler);
 
-startSeatHoldScheduler();
-startReminderScheduler();
+// Don't start background schedulers during tests — they keep the Jest
+// process alive and fire DB queries against an already-closed connection.
+if (process.env.NODE_ENV !== "test") {
+  startSeatHoldScheduler();
+  startReminderScheduler();
+}
 
 module.exports = app;
