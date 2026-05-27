@@ -43,6 +43,23 @@ const generateQrDataUri = async (token) => {
 };
 
 /**
+ * Encodes a JWT as a QR-code and returns a raw PNG Buffer.
+ * Used by GET /bookings/:id/qr so the browser can load it as a plain
+ * image (Content-Type: image/png) without a data-URI round-trip.
+ */
+const generateQrPng = async (token) => {
+  try {
+    return await QRCode.toBuffer(token, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 300,
+    });
+  } catch (err) {
+    throw new Error(`QR PNG generation failed: ${err.message}`);
+  }
+};
+
+/**
  * Verifies the QR JWT and returns the decoded payload.
  * Throws JsonWebTokenError / TokenExpiredError on failure.
  */
@@ -50,4 +67,4 @@ const verifyToken = (token) => {
   return jwt.verify(token, SECRET);
 };
 
-module.exports = { generateToken, generateQrDataUri, verifyToken };
+module.exports = { generateToken, generateQrDataUri, generateQrPng, verifyToken };

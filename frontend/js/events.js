@@ -85,11 +85,17 @@ async function loadFeatured() {
       return;
     }
     document.getElementById("featuredCarousel").innerHTML = data.map(ev => {
-      const icon = CATEGORY_ICONS[ev.category] || "🎟️";
+      const icon     = CATEGORY_ICONS[ev.category] || "🎟️";
+      const imgUrl   = ev.images && ev.images[0];
+      const imgHtml  = imgUrl
+        ? `<img src="${imgUrl}" alt="${ev.title}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';this.parentNode.dataset.fallback='1';" />`
+        : "";
       return `
         <div class="featured-card" onclick="goToBooking(${ev.id})">
           <div class="featured-badge-overlay">★ Featured</div>
-          <div class="featured-img">${icon}</div>
+          <div class="featured-img" data-icon="${icon}" style="${imgUrl ? "" : ""}">
+            ${imgUrl ? imgHtml : icon}
+          </div>
           <div class="featured-body">
             <div class="featured-cat">${ev.category || "Other"}</div>
             <div class="featured-title">${ev.title}</div>
@@ -270,6 +276,10 @@ function renderEventsData(events) {
 
   grid.innerHTML = events.map(ev => {
     const icon    = CATEGORY_ICONS[ev.category] || "🎟️";
+    const imgUrl  = ev.images && ev.images[0];
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${ev.title}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';" />`
+      : icon;
     const sold    = ev.total_tickets - ev.available_tickets;
     const pct     = Math.round((sold / ev.total_tickets) * 100);
     const soldOut = ev.available_tickets === 0;
@@ -303,7 +313,7 @@ function renderEventsData(events) {
 
     return `
       <div class="event-card">
-        <div class="ev-img">${icon}</div>
+        <div class="ev-img">${imgHtml}</div>
         <div class="ev-body">
           <div class="ev-cat-row" style="display:flex;align-items:center;justify-content:space-between;">
             <div class="ev-cat">

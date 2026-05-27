@@ -25,4 +25,11 @@ router.get(
   (req, res, next) => bookingController.downloadBookingInvoice(req, res, next)
 );
 
+// GET /bookings/:id/qr — serve QR code as a PNG image (protected)
+router.get(
+  "/:id/qr",
+  authenticate,
+  (req, res, next) => bookingController.getQrCode(req, res, next)
+);
+
 module.exports = router;

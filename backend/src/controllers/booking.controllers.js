@@ -8,6 +8,7 @@ const {
   fetchTicketFromS3,
   fetchInvoiceFromS3,
 } = require("../services/s3.services");
+const { generateQrPng } = require("../services/qr.services");
 const logger = require("../config/logger");
 
 
@@ -113,4 +114,36 @@ const downloadBookingInvoice = async (req, res, next) => {
   }
 };
 
-module.exports = { getMyBookings, downloadTicket, downloadBookingInvoice };
+/**
+ * GET /bookings/:id/qr
+ * Returns the booking's QR code as a PNG image.
+ * The browser can use this directly as an <img src> URL.
+ */
+const getQrCode = async (req, res, next) => {
+  try {
+    const userId    = req.user.id;
+    const bookingId = parseInt(req.params.id, 10);
+
+    const booking = await bookingService.getBookingById(bookingId, userId);
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+    if (!booking.qr_token) {
+      return res.status(404).json({ error: "QR code not available for this booking" });
+    }
+
+    const pngBuffer = await generateQrPng(booking.qr_token);
+
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.send(pngBuffer);
+
+  } catch (err) {
+    logger.error("QR code fetch failed", {
+      userId: req.user?.id, bookingId: req.params?.id, error: err.message,
+    });
+    next(err);
+  }
+};
+
+module.exports = { getMyBookings, downloadTicket, downloadBookingInvoice, getQrCode };

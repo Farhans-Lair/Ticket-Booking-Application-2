@@ -282,6 +282,7 @@ async function loadBookings(fromCache = false) {
     // Cache for this tab — cleared on logout via sessionStorage.clear()
     sessionStorage.setItem(cacheKey, JSON.stringify(bookings));
     renderBookings(bookings, container);
+    loadQrThumbnails(bookings);
   } catch (err) {
     alert(err.message || "Error loading bookings");
   }
@@ -375,7 +376,7 @@ function renderBookings(bookings, container) {
 
         ${b.payment_status === "paid" && cancStatus === "active" && b.qr_token ? `
         <div class="qr-section">
-          <img src="/api/qr/${b.id}" onerror="this.style.display='none'" alt="QR Code" id="qr-img-${b.id}" />
+          <img id="qr-img-${b.id}" alt="QR Code" style="width:100px;height:100px;border-radius:8px;background:#fff;padding:4px;" />
           <div class="qr-info">
             <strong>🔲 Entry QR Code</strong>
             Show this at the venue for contactless check-in.
@@ -640,17 +641,51 @@ async function submitReview(bookingId, eventId) {
 }
 
 /* Feature 3: show QR in a lightbox */
-function showQr(bookingId) {
-  const src = `/api/qr/${bookingId}`;
+async function showQr(bookingId) {
+  const tabToken = sessionStorage.getItem("token");
+  const headers  = tabToken ? { Authorization: `Bearer ${tabToken}` } : {};
+
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;";
   overlay.innerHTML = `
     <div style="background:#13132a;border-radius:16px;padding:28px;text-align:center;max-width:320px;">
-      <img src="${src}" style="width:240px;height:240px;border-radius:8px;background:#fff;padding:8px;display:block;margin:0 auto 16px;" onerror="this.src=''" />
+      <div id="qr-lightbox-img" style="width:264px;height:264px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <span style="color:#999;font-size:0.8rem;">Loading…</span>
+      </div>
       <p style="font-size:0.82rem;color:rgba(240,238,232,0.5);margin-bottom:16px;">Show this QR at the venue for contactless check-in.</p>
       <button onclick="this.closest('div').parentNode.remove()" style="padding:10px 24px;border-radius:10px;background:var(--gold,#f5c842);border:none;color:#0a0a14;font-weight:700;cursor:pointer;">Close</button>
     </div>`;
   document.body.appendChild(overlay);
+
+  try {
+    const resp = await fetch(`/bookings/${bookingId}/qr`, { headers });
+    if (!resp.ok) throw new Error("QR fetch failed");
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const container = document.getElementById("qr-lightbox-img");
+    container.innerHTML = `<img src="${url}" style="width:256px;height:256px;border-radius:6px;" />`;
+  } catch {
+    const container = document.getElementById("qr-lightbox-img");
+    if (container) container.innerHTML = `<span style="color:#f55;font-size:0.8rem;">Could not load QR code.</span>`;
+  }
+}
+
+/* Load QR thumbnail images with auth header after cards are rendered */
+async function loadQrThumbnails(bookings) {
+  const tabToken = sessionStorage.getItem("token");
+  if (!tabToken) return;
+  const headers = { Authorization: `Bearer ${tabToken}` };
+
+  for (const b of bookings) {
+    const img = document.getElementById(`qr-img-${b.id}`);
+    if (!img) continue;
+    try {
+      const resp = await fetch(`/bookings/${b.id}/qr`, { headers });
+      if (!resp.ok) continue;
+      const blob = await resp.blob();
+      img.src = URL.createObjectURL(blob);
+    } catch { /* silently skip broken QRs */ }
+  }
 }
 </script>
 </body>
