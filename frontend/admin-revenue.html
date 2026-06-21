@@ -19,7 +19,8 @@
     }
     html,body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
 
-    .main { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:36px 32px 80px; }
+    .main { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:40px 32px 80px; }
+    @media (max-width: 720px) { .main { padding: 28px 16px 60px; } }
 
     /* PAGE TABS */
     .page-tabs { display:flex; gap:4px; margin-bottom:32px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; width:fit-content; }

@@ -36,7 +36,8 @@
     .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: .4rem .9rem; border-radius: 8px; cursor: pointer; font-size: .85rem; transition: all .2s; }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-    .page { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .page { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:40px 32px 80px; }
+    @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
 
     .page-header { margin-bottom: 2.2rem; }
     .page-header h1 { font-size: 1.8rem; font-weight: 700; }

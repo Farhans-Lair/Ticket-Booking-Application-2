@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Wishlist — TicketVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #f5c842; --gold-dark: #d4a520; --bg-deep: #0a0a14;
+      --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.1);
+      --text: #f0eee8; --text-muted: rgba(240,238,232,0.55);
+      --accent: #7c6af7; --red: #f74a6a; --card: #13131f; --green: #22c55e;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text); min-height: 100vh; }
+
+    .page-header { padding: 40px 0 8px; }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.1rem; }
+    .page-header h1 em { color: var(--gold); font-style: normal; }
+    .page-header p { color: var(--text-muted); margin-top: 6px; font-size: 0.92rem; }
+
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; padding: 28px 0 60px; }
+
+    .event-card  { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; transition: transform .25s, box-shadow .25s; }
+    .event-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.45); }
+    .ev-img { width: 100%; height: 160px; object-fit: cover; background: linear-gradient(135deg, #1a1a3e, #2a2a5e); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .ev-body { padding: 16px; }
+    .ev-cat-row { display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px; }
+    .ev-cat  { font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .ev-title { font-weight: 700; font-size: 0.97rem; margin-bottom: 8px; line-height: 1.3; }
+    .ev-meta  { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; }
+    .ev-meta span { display: block; margin-bottom: 2px; }
+
+    .notify-pill { font-size: 0.72rem; color: var(--gold); background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.25); border-radius: 20px; padding: 3px 10px; }
+
+    .card-actions { display: flex; gap: 8px; }
+    .btn-book   { flex: 1; padding: 9px 14px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity .2s; font-family: inherit; }
+    .btn-book:hover { opacity: 0.85; }
+    .btn-remove { padding: 9px 14px; background: none; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 8px; font-size: 0.82rem; cursor: pointer; transition: all .2s; font-family: inherit; }
+    .btn-remove:hover { border-color: var(--red); color: var(--red); }
+
+    .empty-state { text-align: center; padding: 100px 20px; }
+    .empty-state .emoji { font-size: 3.5rem; margin-bottom: 16px; }
+    .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 8px; }
+    .empty-state p { color: var(--text-muted); font-size: 0.9rem; }
+    .empty-state a { color: var(--gold); text-decoration: none; font-weight: 600; }
+
+    .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+
+    @media (max-width: 640px) {
+      .events-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="user">
+  <a href="/events-page" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/events-page" class="tv-shell-link">Events</a>
+    <a href="/wishlist-page" class="tv-shell-link active">Wishlist</a>
+    <a href="/my-bookings" class="tv-shell-link">My Bookings</a>
+    <a href="/profile" class="tv-shell-link">Profile</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
+
+<div class="tv-shell-main">
+  <div class="page-header">
+    <h1>My <em>Wishlist</em></h1>
+    <p>Events you've saved for later</p>
+  </div>
+
+  <div id="wishlistGrid">
+    <div class="loading">Loading your wishlist…</div>
+  </div>
+</div>
+
+<script src="/js/starfield.js"></script>
+<script src="/js/api.js"></script>
+<script>
+  const token = sessionStorage.getItem("token");
+  if (!token) location.href = "/";
+
+  const CATEGORY_ICONS = {
+    Music: "🎵", Sports: "🏆", Comedy: "😂", Theatre: "🎭",
+    Conference: "📋", Festival: "🎪", Workshop: "🔧", Other: "🎟️",
+  };
+
+  function fmtDate(d) {
+    return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    try { await apiRequest("/auth/logout", "POST", null, true); } catch (_) {}
+    sessionStorage.clear();
+    location.href = "/";
+  });
+
+  async function loadWishlist() {
+    const grid = document.getElementById("wishlistGrid");
+    try {
+      const items = await apiRequest("/wishlist", "GET", null, true);
+
+      if (!items || !items.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="emoji">🤍</div>
+            <h3>Your wishlist is empty</h3>
+            <p>Save events you're interested in and they'll show up here.<br/>
+              <a href="/events-page">Browse events →</a>
+            </p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = `<div class="events-grid">${items.map(renderCard).join("")}</div>`;
+    } catch (err) {
+      grid.innerHTML = `<div class="loading">Could not load your wishlist: ${err.message}</div>`;
+    }
+  }
+
+  function renderCard(item) {
+    const ev = item.Event || {};
+    const icon   = CATEGORY_ICONS[ev.category] || "🎟️";
+    const imgUrl = ev.images && ev.images[0];
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${ev.title}" class="ev-img" onerror="this.outerHTML='<div class=&quot;ev-img&quot;>${icon}</div>'" />`
+      : `<div class="ev-img">${icon}</div>`;
+
+    return `
+      <div class="event-card">
+        ${imgHtml}
+        <div class="ev-body">
+          <div class="ev-cat-row">
+            <div class="ev-cat">${ev.category || "Other"}</div>
+            ${item.notify_on_availability ? '<span class="notify-pill">🔔 Notify me</span>' : ""}
+          </div>
+          <div class="ev-title">${ev.title || "Event no longer available"}</div>
+          <div class="ev-meta">
+            <span>📅 ${ev.event_date ? fmtDate(ev.event_date) : "—"}</span>
+            <span>📍 ${ev.city || "TBA"}</span>
+            <span>${ev.price > 0 ? "₹" + ev.price : "Free"}</span>
+          </div>
+          <div class="card-actions">
+            ${ev.id ? `<button class="btn-book" onclick="bookFromWishlist(${ev.id})">Book Now</button>` : ""}
+            <button class="btn-remove" onclick="removeFromWishlist(${ev.id || item.event_id})">Remove</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function bookFromWishlist(eventId) {
+    sessionStorage.setItem("seat_selection_meta", JSON.stringify({ event_id: eventId, tickets_booked: 1 }));
+    location.href = "/seat-selection";
+  }
+
+  async function removeFromWishlist(eventId) {
+    try {
+      await apiRequest(`/wishlist/${eventId}`, "DELETE", null, true);
+      loadWishlist();
+    } catch (err) {
+      alert("Could not remove from wishlist: " + err.message);
+    }
+  }
+
+  loadWishlist();
+</script>
+</body>
+</html>
