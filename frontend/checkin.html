@@ -4,10 +4,13 @@
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Check-In Scanner — TicketVerse Organizer</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     :root{--gold:#f5c842;--bg:#0a0a14;--card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--text:#f0eee8;--muted:rgba(240,238,232,0.5);--accent:#7c6af7;--red:#f74a6a;--green:#42e695;}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    .checkin-wrap{position:relative;z-index:1;min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
     .logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--gold);margin-bottom:28px;}
     .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:480px;backdrop-filter:blur(16px);box-shadow:0 24px 64px rgba(0,0,0,.4);}
     h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:6px;}
@@ -30,7 +33,26 @@
   </style>
 </head>
 <body>
-<div class="logo">TicketVerse Organizer</div>
+
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="organizer">
+  <a href="/organizer-dashboard" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Organizer</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/organizer-dashboard" class="tv-shell-link">Dashboard</a>
+    <a href="/organizer-events" class="tv-shell-link">My Events</a>
+    <a href="/organizer-revenue" class="tv-shell-link">Revenue</a>
+    <a href="/organizer-payouts" class="tv-shell-link">Payouts</a>
+    <a href="/organizer-cancellation-policy" class="tv-shell-link">Cancellation Policies</a>
+    <a href="/organizer/checkin" class="tv-shell-link active">Check-In</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
+
+<div class="checkin-wrap">
 <div class="card">
   <h2>🔲 QR Check-In Scanner</h2>
   <p class="sub">Paste the JWT from a scanned QR code to check in a guest.</p>
@@ -46,11 +68,20 @@
   <div class="divider"></div>
   <a class="back" href="/organizer-dashboard">← Back to Organizer Dashboard</a>
 </div>
+</div>
 
+<script src="/js/starfield.js"></script>
 <script src="/js/api.js"></script>
 <script>
 const token = sessionStorage.getItem("token");
 if (!token) location.href = "/";
+
+document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+  await fetch("/auth/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+  sessionStorage.clear();
+  window.location.href = "/";
+});
+
 
 async function checkIn() {
   const qrToken = (document.getElementById("tokenInput").value || "").trim();

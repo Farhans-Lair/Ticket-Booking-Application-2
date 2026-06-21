@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile — TicketVerse</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -107,15 +109,20 @@
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">TicketVerse</a>
-  <div class="nav-links">
-    <a href="/events-page">Events</a>
-    <a href="/my-bookings">My Bookings</a>
-    <a href="/profile" class="active">Profile</a>
-    <button class="btn-logout" id="logoutBtn">Log out</button>
-  </div>
-</nav>
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="user">
+  <a href="/events-page" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/events-page" class="tv-shell-link">Events</a>
+    <a href="/wishlist-page" class="tv-shell-link">Wishlist</a>
+    <a href="/my-bookings" class="tv-shell-link">My Bookings</a>
+    <a href="/profile" class="tv-shell-link active">Profile</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
 <div class="page">
   <div class="page-header">
@@ -232,6 +239,7 @@
   </div>
 </div>
 
+<script src="/js/starfield.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
 <script>

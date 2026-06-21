@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TicketVerse — Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     :root {
@@ -131,24 +133,24 @@
 <body>
 <canvas id="bg-canvas"></canvas>
 
-<div class="app">
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="logo-wrap">
-      <span class="logo">TicketVerse</span>
-      <span class="admin-badge">ADMIN</span>
-    </div>
-    <div class="nav-actions">
-      <button class="btn-ghost" onclick="location.href='/admin/organizers'">👥 Organizers</button>
-      <button class="btn-ghost" onclick="location.href='/admin/moderation'">🛡️ Moderation</button>
-      <button class="btn-ghost" onclick="location.href='/admin/categories/manage'">🏷️ Categories</button>
-      <button class="btn-ghost" onclick="location.href='/admin/payouts'">💳 Payouts</button>
-      <button class="btn-ghost" onclick="location.href='/admin/revenue'">📊 Revenue</button>
-      <button class="btn-ghost" onclick="location.href='/admin/coupons'">🎟️ Coupons</button>
-      <button class="btn-ghost danger" id="logoutBtn">Logout</button>
-    </div>
-  </div>
+<header class="tv-shell-header" data-role="admin">
+  <a href="/admin" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Admin</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/admin" class="tv-shell-link active">Dashboard</a>
+    <a href="/admin/organizers" class="tv-shell-link">Organizers</a>
+    <a href="/admin/moderation" class="tv-shell-link">Moderation</a>
+    <a href="/admin/categories/manage" class="tv-shell-link">Categories</a>
+    <a href="/admin/coupons" class="tv-shell-link">Coupons</a>
+    <a href="/admin/payouts" class="tv-shell-link">Payouts</a>
+    <a href="/admin/revenue" class="tv-shell-link">Revenue</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
+<div class="app">
   <!-- ═══════════════════════════════════════════
        QUICK-ACCESS CARDS
   ═══════════════════════════════════════════ -->
@@ -269,24 +271,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Canvas BG -->
-<script>
-const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
-let W,H;
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
-window.addEventListener('resize',resize);resize();
-const stars=Array.from({length:200},()=>({x:Math.random()*5000,y:Math.random()*5000,r:Math.random()*1.1+.2,a:Math.random(),da:(Math.random()*.007+.002)*(Math.random()>.5?1:-1)}));
-const pts=Array.from({length:80},()=>({x:Math.random()*500,y:Math.random()*400,r:Math.random()*1.8+.4,speed:Math.random()*.4+.15,dx:(Math.random()-.5)*.3,alpha:Math.random()*.4+.1,fadeDir:1,col:['rgba(245,200,66,','rgba(124,106,247,','rgba(247,74,106,'][Math.floor(Math.random()*3)]}));
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#0a0a14');g.addColorStop(1,'#0d0d22');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  [[.1,.3,280,'rgba(124,106,247,0.06)'],[.85,.7,350,'rgba(245,200,66,0.04)'],[.5,.1,200,'rgba(247,74,106,0.04)']].forEach(([ox,oy,r,c])=>{const rg=ctx.createRadialGradient(ox*W,oy*H,0,ox*W,oy*H,r);rg.addColorStop(0,c);rg.addColorStop(1,'transparent');ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);});
-  stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0)s.da*=-1;ctx.beginPath();ctx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.max(0,s.a)*.45})`;ctx.fill();});
-  pts.forEach(p=>{p.y-=p.speed;p.x+=p.dx;p.alpha+=.003*p.fadeDir;if(p.alpha>.6||p.alpha<.07)p.fadeDir*=-1;if(p.y<-10){p.x=Math.random()*W;p.y=H+10;}ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.col+p.alpha+')';ctx.fill();});
-  requestAnimationFrame(draw);
-}
-draw();
-</script>
+<script src="/js/starfield.js"></script>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth-channel.js"></script>

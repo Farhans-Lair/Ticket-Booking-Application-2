@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Payouts — TicketVerse Organizer</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -85,16 +87,23 @@
 </head>
 <body>
 
-<nav>
-  <a class="nav-logo" href="/organizer-dashboard">TicketVerse</a>
-  <div class="nav-links">
-    <a href="/organizer-dashboard">Dashboard</a>
-    <a href="/organizer-events">Events</a>
-    <a href="/organizer-revenue">Revenue</a>
-    <a href="/organizer-payouts" class="active">Payouts</a>
-    <button class="btn-logout" id="logoutBtn">Log out</button>
-  </div>
-</nav>
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="organizer">
+  <a href="/organizer-dashboard" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Organizer</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/organizer-dashboard" class="tv-shell-link">Dashboard</a>
+    <a href="/organizer-events" class="tv-shell-link">My Events</a>
+    <a href="/organizer-revenue" class="tv-shell-link">Revenue</a>
+    <a href="/organizer-payouts" class="tv-shell-link active">Payouts</a>
+    <a href="/organizer-cancellation-policy" class="tv-shell-link">Cancellation Policies</a>
+    <a href="/organizer/checkin" class="tv-shell-link">Check-In</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
 <div class="page">
   <div class="page-header">
@@ -175,6 +184,7 @@
   <div id="payoutsList"><div class="loading">Loading payouts…</div></div>
 </div>
 
+<script src="/js/starfield.js"></script>
 <script>
   const token = sessionStorage.getItem("token");
   if (!token) { location.href = "/"; }

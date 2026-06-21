@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Revenue — Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/dashboard-shell.css" />
   <style>
     :root {
-      --primary:#6c63ff; --bg:#0f0f1a; --card:#1a1a2e; --border:#2a2a45;
-      --text:#e2e8f0; --muted:#8b8fa8; --success:#22c55e; --danger:#ef4444; --warning:#f59e0b;
+      --primary:#7c6af7; --bg:#0a0a14; --card:#13131f; --border:rgba(255,255,255,0.1);
+      --text:#f0eee8; --muted:rgba(240,238,232,0.5); --success:#22c55e; --danger:#f74a6a; --warning:#f59e0b;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
 
     nav { background:var(--card); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; }
     .nav-brand { font-size:1.2rem; font-weight:700; color:var(--primary); }
@@ -90,17 +92,23 @@
 </head>
 <body>
 
-<nav>
-  <span class="nav-brand">🎟 Organizer Panel</span>
-  <div class="nav-links">
-    <a href="/organizer-dashboard">Dashboard</a>
-    <a href="/organizer-events">My Events</a>
-    <a href="/organizer-revenue" class="active">Revenue</a>
-    <a href="/organizer-payouts">Payouts</a>
-    <a href="/organizer-cancellation-policy">Cancellation</a>
-    <button class="btn-logout" id="logoutBtn">Logout</button>
-  </div>
-</nav>
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="organizer">
+  <a href="/organizer-dashboard" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Organizer</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/organizer-dashboard" class="tv-shell-link">Dashboard</a>
+    <a href="/organizer-events" class="tv-shell-link">My Events</a>
+    <a href="/organizer-revenue" class="tv-shell-link active">Revenue</a>
+    <a href="/organizer-payouts" class="tv-shell-link">Payouts</a>
+    <a href="/organizer-cancellation-policy" class="tv-shell-link">Cancellation Policies</a>
+    <a href="/organizer/checkin" class="tv-shell-link">Check-In</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
 <main class="page">
   <div class="page-header">
@@ -165,6 +173,7 @@
   </div>
 </main>
 
+<script src="/js/starfield.js"></script>
 <script>
   const token = sessionStorage.getItem("token");
   const role  = sessionStorage.getItem("role");

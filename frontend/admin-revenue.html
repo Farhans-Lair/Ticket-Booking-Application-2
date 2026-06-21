@@ -5,38 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TicketVerse — Revenue & Payouts</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     :root {
-      --bg:#f0f2f7; --bg-side:#1a1d2e; --surface:#ffffff; --border:#e4e7f0;
-      --text:#1a1d2e; --text-mid:#4a5068; --text-muted:#8b90a7;
-      --gold:#f5a623; --green:#1aab6d; --green-light:#edfaf4;
-      --blue:#3b5bdb; --red:#e53e3e; --red-light:#fff5f5;
-      --purple:#7c6af7; --purple-light:#f3f0ff; --orange:#f59e0b;
-      --shadow-sm:0 1px 4px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+      --bg:#0a0a14; --surface:#13131f; --border:rgba(255,255,255,0.1);
+      --text:#f0eee8; --text-mid:rgba(240,238,232,0.75); --text-muted:rgba(240,238,232,0.5);
+      --gold:#f5c842; --green:#22c55e; --green-light:rgba(34,197,94,0.12);
+      --blue:#5b86ff; --red:#f74a6a; --red-light:rgba(247,74,106,0.12);
+      --purple:#7c6af7; --purple-light:rgba(124,106,247,0.12); --orange:#f59e0b;
+      --shadow-sm:0 1px 4px rgba(0,0,0,0.2); --shadow-md:0 4px 16px rgba(0,0,0,0.3);
     }
     html,body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100%; }
-    body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-      background-image:linear-gradient(rgba(59,91,219,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,91,219,0.04) 1px,transparent 1px);
-      background-size:40px 40px; }
-
-    .topbar { position:sticky; top:0; z-index:100; background:var(--bg-side); padding:0 36px; height:62px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
-    .topbar-left { display:flex; align-items:center; gap:16px; }
-    .logo { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:#f5c842; }
-    .page-title-bar { font-size:.82rem; font-weight:600; color:rgba(255,255,255,0.45); letter-spacing:.05em; padding-left:16px; border-left:1px solid rgba(255,255,255,0.12); }
-    .topbar-right { display:flex; align-items:center; gap:10px; }
-    .btn-topbar { padding:8px 18px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:500; cursor:pointer; transition:all .2s; }
-    .btn-back { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.75); }
-    .btn-back:hover { background:rgba(255,255,255,0.13); color:#fff; }
-    .btn-logout { background:rgba(229,62,62,0.15); border:1px solid rgba(229,62,62,0.3); color:#fc8181; }
-    .btn-logout:hover { background:rgba(229,62,62,0.28); }
 
     .main { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:36px 32px 80px; }
 
     /* PAGE TABS */
-    .page-tabs { display:flex; gap:4px; margin-bottom:32px; background:#e8eaf2; border-radius:12px; padding:4px; width:fit-content; }
+    .page-tabs { display:flex; gap:4px; margin-bottom:32px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; width:fit-content; }
     .page-tab { padding:10px 24px; border:none; background:none; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:500; color:var(--text-muted); border-radius:9px; cursor:pointer; transition:all .2s; }
-    .page-tab.active { background:#fff; color:var(--text); font-weight:600; box-shadow:var(--shadow-sm); }
+    .page-tab.active { background:rgba(245,200,66,0.14); color:var(--gold); font-weight:600; }
 
     /* TAB PANELS */
     .tab-panel { display:none; }
@@ -62,7 +50,7 @@
 
     table { width:100%; border-collapse:collapse; font-size:.87rem; }
     th { text-align:left; padding:12px 16px; color:var(--text-muted); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); white-space:nowrap; }
-    td { padding:14px 16px; border-bottom:1px solid rgba(0,0,0,0.04); }
+    td { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.06); }
     tr:last-child td { border-bottom:none; }
 
     .status-pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:700; white-space:nowrap; }
@@ -85,7 +73,7 @@
     /* MODAL */
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; align-items:center; justify-content:center; }
     .modal-backdrop.open { display:flex; }
-    .modal { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:440px; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; width:100%; max-width:440px; }
     .modal h3 { font-size:1.05rem; margin-bottom:16px; }
     .form-group { margin-bottom:14px; }
     .form-group label { display:block; font-size:.78rem; font-weight:600; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.06em; }
@@ -97,16 +85,24 @@
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <span class="logo">TicketVerse</span>
-    <span class="page-title-bar">Revenue & Payouts</span>
-  </div>
-  <div class="topbar-right">
-    <button class="btn-topbar btn-back" onclick="location.href='/admin'">← Dashboard</button>
-    <button class="btn-topbar btn-logout" id="logoutBtn">Logout</button>
-  </div>
-</div>
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="admin">
+  <a href="/admin" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Admin</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/admin" class="tv-shell-link">Dashboard</a>
+    <a href="/admin/organizers" class="tv-shell-link">Organizers</a>
+    <a href="/admin/moderation" class="tv-shell-link">Moderation</a>
+    <a href="/admin/categories/manage" class="tv-shell-link">Categories</a>
+    <a href="/admin/coupons" class="tv-shell-link">Coupons</a>
+    <a href="/admin/payouts" class="tv-shell-link">Payouts</a>
+    <a href="/admin/revenue" class="tv-shell-link active">Revenue</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
 <div class="main">
 
@@ -175,6 +171,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/admin-auth.js"></script>
 <script src="/js/admin-revenue.js"></script>
+<script src="/js/starfield.js"></script>
 <script>
 const token   = sessionStorage.getItem("token");
 const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };

@@ -1,0 +1,137 @@
+/* ==========================================================================
+   dashboard-shell.css
+   One header component, shared by every TicketVerse dashboard page —
+   admin, organizer, and user. The [data-role] attribute on <header>
+   controls only the badge label/color; structure and behaviour are
+   identical everywhere, which is the whole point.
+   ========================================================================== */
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tv-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 64px;
+  padding: 0 32px;
+  background: rgba(10, 10, 20, 0.82);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tv-shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.tv-shell-logo {
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: #f5c842;
+  white-space: nowrap;
+}
+
+.tv-shell-badge {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.tv-shell-header[data-role="admin"] .tv-shell-badge {
+  background: rgba(245, 200, 66, 0.16);
+  border: 1px solid rgba(245, 200, 66, 0.4);
+  color: #f5c842;
+}
+
+.tv-shell-header[data-role="organizer"] .tv-shell-badge {
+  background: rgba(124, 106, 247, 0.16);
+  border: 1px solid rgba(124, 106, 247, 0.4);
+  color: #b8acff;
+}
+
+.tv-shell-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+.tv-shell-nav::-webkit-scrollbar { display: none; }
+
+.tv-shell-link {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: rgba(240, 238, 232, 0.55);
+  text-decoration: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.tv-shell-link:hover {
+  color: #f0eee8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tv-shell-link.active {
+  color: #0a0a14;
+  background: #f5c842;
+  font-weight: 700;
+}
+
+.tv-shell-header[data-role="organizer"] .tv-shell-link.active {
+  color: #fff;
+  background: #7c6af7;
+}
+
+.tv-shell-logout {
+  flex-shrink: 0;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(247, 74, 106, 0.1);
+  border: 1px solid rgba(247, 74, 106, 0.3);
+  color: #f74a6a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tv-shell-logout:hover {
+  background: rgba(247, 74, 106, 0.22);
+}
+
+/* Page body shell: gives every dashboard page the same max-width
+   content column under the sticky header. */
+.tv-shell-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
+
+@media (max-width: 720px) {
+  .tv-shell-header { gap: 16px; padding: 0 16px; }
+  .tv-shell-main { padding: 28px 16px 60px; }
+}

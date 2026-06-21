@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Event Categories — TicketVerse Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard-shell.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -73,17 +75,24 @@
 </head>
 <body>
 
-<nav>
-  <a class="nav-logo" href="/admin">TicketVerse Admin</a>
-  <div class="nav-links">
-    <a href="/admin">Dashboard</a>
-    <a href="/admin/organizers">Organizers</a>
-    <a href="/admin/moderation">Moderation</a>
-    <a href="/admin/categories/manage" class="active">Categories</a>
-    <a href="/admin/payouts">Payouts</a>
-    <a href="/admin/revenue">Revenue</a>
-  </div>
-</nav>
+<canvas id="bg-canvas"></canvas>
+
+<header class="tv-shell-header" data-role="admin">
+  <a href="/admin" class="tv-shell-brand">
+    <span class="tv-shell-logo">TicketVerse</span>
+    <span class="tv-shell-badge">Admin</span>
+  </a>
+  <nav class="tv-shell-nav">
+    <a href="/admin" class="tv-shell-link">Dashboard</a>
+    <a href="/admin/organizers" class="tv-shell-link">Organizers</a>
+    <a href="/admin/moderation" class="tv-shell-link">Moderation</a>
+    <a href="/admin/categories/manage" class="tv-shell-link active">Categories</a>
+    <a href="/admin/coupons" class="tv-shell-link">Coupons</a>
+    <a href="/admin/payouts" class="tv-shell-link">Payouts</a>
+    <a href="/admin/revenue" class="tv-shell-link">Revenue</a>
+  </nav>
+  <button class="tv-shell-logout" id="logoutBtn">Log out</button>
+</header>
 
 <div class="page">
   <div class="page-header">
@@ -135,10 +144,17 @@
   </div>
 </div>
 
+<script src="/js/starfield.js"></script>
 <script>
   const token = sessionStorage.getItem("token");
   if (!token) { location.href = "/admin"; }
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    await fetch("/auth/logout", { method: "POST", headers });
+    sessionStorage.clear();
+    window.location.href = "/";
+  });
 
   let categories = [];
   let editingId  = null;
