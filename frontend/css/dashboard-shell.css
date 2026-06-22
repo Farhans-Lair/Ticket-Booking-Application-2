@@ -121,13 +121,16 @@
   background: rgba(247, 74, 106, 0.22);
 }
 
-/* Page body shell: gives every dashboard page the same max-width
-   content column under the sticky header. */
+/* Page body shell: gives every dashboard page the same content
+   column under the sticky header. Anchored left (no auto-centering)
+   so content starts at the exact same x-position as the header's
+   own padding — a centered "island" would visually drift from the
+   full-width header on any screen wider than max-width. */
 .tv-shell-main {
   position: relative;
   z-index: 1;
   max-width: 1280px;
-  margin: 0 auto;
+  margin: 0;
   padding: 40px 32px 80px;
 }
 
