@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 # =============================================================
 # iam.tf
 # =============================================================
 
 # ---------------------------
 # 1. EC2 Instance Role
+=======
+# ---------------------------
+# IAM Role for EC2
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 # ---------------------------
 resource "aws_iam_role" "backend_ec2_role" {
   name = "${var.project_name}-ec2-role"
@@ -18,16 +23,25 @@ resource "aws_iam_role" "backend_ec2_role" {
   })
 }
 
+<<<<<<< HEAD
 resource "aws_iam_role_policy_attachment" "ec2_ecr_read" {
+=======
+resource "aws_iam_role_policy_attachment" "ecr_read" {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   role       = aws_iam_role.backend_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+<<<<<<< HEAD
 resource "aws_iam_role_policy_attachment" "ec2_ssm_core" {
+=======
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   role       = aws_iam_role.backend_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+<<<<<<< HEAD
 resource "aws_iam_role_policy_attachment" "ec2_cloudwatch_agent" {
   role       = aws_iam_role.backend_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -66,10 +80,13 @@ resource "aws_iam_role_policy" "ec2_cloudwatch_put_metrics" {
     }]
   })
 }
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 
 resource "aws_iam_instance_profile" "backend_instance_profile" {
   name = "${var.project_name}-backend-ec2-profile"
   role = aws_iam_role.backend_ec2_role.name
+<<<<<<< HEAD
 }
 
 # ---------------------------
@@ -179,4 +196,6 @@ resource "aws_iam_role_policy" "github_ecr_push_ssm_deploy" {
       }
     ]
   })
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 }

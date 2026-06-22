@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -539,5 +540,41 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 loadOrganizers();
 loadEvents().then(() => renderFeatured());
 </script>
+=======
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+  <h1>Admin Dashboard</h1>
+
+<button onclick="goToRevenue()">Revenue Analytics</button>
+
+<button id="logoutBtn">Logout</button>
+
+  <hr>
+<h2>Create New Event</h2>
+
+<input type="text" id="title" placeholder="Event Title">
+<input type="text" id="description" placeholder="Description">
+<input type="text" id="location" placeholder="Location">
+<input type="date" id="event_date">
+<input type="number" id="price" placeholder="Price">
+<input type="number" id="total_tickets" placeholder="Total Tickets">
+<input type="number" id="available_tickets" placeholder="Available Tickets">
+
+<button id="createEventBtn">Create Event</button>
+
+
+  <hr>
+
+  <h2>All Events</h2>
+  <div id="events-list"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 </body>
 </html>

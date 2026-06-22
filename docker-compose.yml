@@ -5,8 +5,13 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
+<<<<<<< HEAD
       MYSQL_DATABASE: ticket_booking_db
       MYSQL_USER: ticket_user_1
+=======
+      MYSQL_DATABASE: ticket_db
+      MYSQL_USER: ticket_user
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
       MYSQL_PASSWORD: ticket_password
     volumes:
       - mysql_data:/var/lib/mysql
@@ -18,6 +23,7 @@ services:
       retries: 5 
 
   backend:
+<<<<<<< HEAD
     build:
       context: .                      # project root — gives Dockerfile access to frontend/
       dockerfile: backend/Dockerfile  # Dockerfile still lives inside backend/
@@ -44,6 +50,23 @@ services:
       # Mount certs as read-only; never bake secrets into an image
       - ./certs:/app/certs:ro
 
+=======
+    image: ticket
+    container_name: ticket-backend
+    restart: always
+    depends_on:
+        mysql: 
+          condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ticket_db
+      DB_USER: ticket_user
+      DB_PASSWORD: ticket_password
+      JWT_SECRET: super_secret_jwt_key_123
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
     command: ["node", "src/server.js"]
 
 volumes:

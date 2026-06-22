@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────────
 // db.test.js — Database connectivity smoke test
 //
@@ -27,6 +28,15 @@ afterAll(async () => {
 });
 
 describe("Database Connection", () => {
+=======
+const sequelize = require("../config/database");
+
+describe("Database Connection", () => {
+  afterAll(async () => {
+    await sequelize.close(); // ✅ IMPORTANT
+  });
+
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   it("should connect and authenticate with MySQL", async () => {
     await expect(sequelize.authenticate()).resolves.not.toThrow();
   });

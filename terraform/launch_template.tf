@@ -3,6 +3,7 @@ data "template_file" "user_data" {
 
   vars = {
     ACCOUNT_ID  = data.aws_caller_identity.current.account_id
+<<<<<<< HEAD
     DB_HOST     = aws_db_instance.ticket_booking_db.address
     DB_NAME     = var.db_name
     DB_USER     = var.db_username
@@ -15,6 +16,13 @@ data "template_file" "user_data" {
     AWS_REGION          = var.aws_region       # ── ADDED: for S3 SDK
     S3_BUCKET_NAME      = var.s3_bucket_name   # ── ADDED: for ticket PDF storage
     ALB_DNS = aws_lb.ticket_alb.dns_name
+=======
+    DB_HOST     = aws_db_instance.ticket_db.address
+    DB_NAME     = var.db_name
+    DB_USER     = var.db_username
+    DB_PASSWORD = var.db_password
+    JWT_SECRET  = "super_secret_jwt_key_123"
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 
   }
 }

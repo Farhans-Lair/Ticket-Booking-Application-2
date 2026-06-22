@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", async () => {
 
   // ── Verify session with server via cookie ─────────────────────────────────
@@ -25,12 +26,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (err) {
     return; // api.js 401 handler redirects to "/"
+=======
+document.addEventListener("DOMContentLoaded", () => {
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.replace("/");
+    return;
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   }
 
   document
     .getElementById("logoutBtn")
     .addEventListener("click", logout);
 
+<<<<<<< HEAD
   loadBookings(cookieConflict);
 });
 
@@ -203,3 +214,54 @@ function logout() {
 
 
 
+=======
+  loadBookings();
+});
+
+async function loadBookings() {
+  try {
+    const bookings = await apiRequest(
+      "/bookings/my-bookings",
+      "GET",
+      null,
+      true
+    );
+
+    const container = document.getElementById("bookings-list");
+    container.innerHTML = "";
+
+    if (!bookings.length) {
+      container.innerHTML = "<p>No bookings yet</p>";
+      return;
+    }
+
+    bookings.forEach(b => {
+
+      const totalAmount = b.tickets_booked * b.Event.price;
+
+      const div = document.createElement("div");
+
+      div.innerHTML = `
+        <h3>${b.Event.title}</h3>
+        <p>Event Date: ${new Date(b.Event.event_date).toLocaleDateString()}</p>
+        <p>Tickets Booked: ${b.tickets_booked}</p>
+        <p>Price per Ticket: ₹${b.Event.price}</p>
+        <p>Total Paid: ₹${totalAmount}</p>
+        <p>Booked On: ${new Date(b.booking_date).toLocaleString()}</p>
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    alert(err.message || "Error loading bookings");
+  }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.replace("/");
+}
+
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac

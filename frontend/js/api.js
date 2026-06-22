@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const API_BASE_URL = window.location.hostname === "localhost"
   ? ""   // local: same origin (Express on port 3000)
   : "";  // AWS:   same origin (Express behind ALB)
@@ -19,11 +20,26 @@ async function apiRequest(path, method = "GET", body = null, auth = false) {
   const tabToken = sessionStorage.getItem("token");
   if (tabToken) {
     headers["Authorization"] = `Bearer ${tabToken}`;
+=======
+const API_BASE_URL = "http://ticket-alb-660521080.ap-south-1.elb.amazonaws.com";
+
+async function apiRequest(path, method = "GET", body = null, auth = false) {
+  const headers = {
+    "Content-Type": "application/json"
+  };
+
+  if (auth) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
+<<<<<<< HEAD
     credentials: "include",   // still sends cookie as fallback
     body: body ? JSON.stringify(body) : null,
   });
@@ -33,6 +49,12 @@ async function apiRequest(path, method = "GET", body = null, auth = false) {
       window.location.replace("/");
       return;
     }
+=======
+    body: body ? JSON.stringify(body) : null
+  });
+
+  if (!response.ok) {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
     const text = await response.text();
     throw new Error(text || "Request failed");
   }

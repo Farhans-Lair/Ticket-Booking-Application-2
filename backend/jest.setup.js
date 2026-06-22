@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────────
 // Jest global setup — runs before every test file.
 // Sets fallback values so tests work even without a .env file.
@@ -19,3 +20,11 @@ process.env.RAZORPAY_KEY_ID     = process.env.RAZORPAY_KEY_ID     || "rzp_test_p
 process.env.RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "placeholder_secret";
 process.env.EMAIL_USER          = process.env.EMAIL_USER          || "test@example.com";
 process.env.EMAIL_PASS          = process.env.EMAIL_PASS          || "test_pass";
+=======
+process.env.DB_HOST = process.env.DB_HOST || "127.0.0.1";
+process.env.DB_PORT = process.env.DB_PORT || "3306";
+process.env.DB_NAME = process.env.DB_NAME || "ticket_db";
+process.env.DB_USER = process.env.DB_USER || "ticket_user";
+process.env.DB_PASSWORD = process.env.DB_PASSWORD || "ticket_password";
+process.env.NODE_ENV = "test";
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 variable "github_org" {
   default = "Farhans-Lair"
 }
@@ -13,6 +14,8 @@ variable "aws_region" {
   default = "ap-south-1"
 }
 
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 variable "project_name" {
   default = "ticket"
 }
@@ -30,17 +33,26 @@ variable "public_subnet_2_cidr" {
 }
 
 variable "db_name" {
+<<<<<<< HEAD
   default = "ticket_booking_db"
 }
 
 variable "db_username" {
   default = "ticket_user_1"
+=======
+  default = "ticket_db"
+}
+
+variable "db_username" {
+  default = "ticket_user"
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 }
 
 variable "db_password" {
   description = "RDS_Password"
   sensitive   = true
 }
+<<<<<<< HEAD
 
 variable "jwt_secret" {
   description = "JWT secret key"
@@ -81,3 +93,5 @@ variable "cert_chain_path" {
   description = "Absolute path to the mkcert CA root certificate (rootCA.pem). Find it by running: mkcert -CAROOT"
   type        = string
 }
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac

@@ -4,6 +4,7 @@ exec > /var/log/user-data.log 2>&1
 
 yum update -y
 
+<<<<<<< HEAD
 # Remove conflicting mariadb packages first
 yum remove mariadb mariadb-libs -y || true
 
@@ -13,11 +14,18 @@ yum-config-manager --enable mysql80-community
 yum install mysql-community-client -y
 
 # Install Docker
+=======
+# 🔥 Install Docker correctly
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 yum install -y docker
 systemctl enable docker
 systemctl start docker
 
+<<<<<<< HEAD
 # Wait until Docker daemon is ready
+=======
+# Wait until Docker daemon is REALLY ready
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 until docker info >/dev/null 2>&1; do
   sleep 5
 done
@@ -27,6 +35,7 @@ usermod -aG docker ec2-user
 APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
+<<<<<<< HEAD
 # Write .env
 #
 # USE_HTTPS=false  — The ALB terminates TLS. Node.js runs plain HTTP
@@ -38,12 +47,18 @@ cat <<'ENVEOF'> $APP_DIR/.env
 PORT=3000
 USE_HTTPS=false
 FRONTEND_URL=https://${ALB_DNS}
+=======
+# 🔥 Write .env using Terraform-injected vars
+cat <<EOF > $APP_DIR/.env
+PORT=3000
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 DB_PORT=3306
 DB_HOST=${DB_HOST}
 DB_NAME=${DB_NAME}
 DB_USER=${DB_USER}
 DB_PASSWORD=${DB_PASSWORD}
 JWT_SECRET=${JWT_SECRET}
+<<<<<<< HEAD
 RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
 RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
 EMAIL_USER=${EMAIL_USER}
@@ -52,10 +67,14 @@ AWS_REGION=${AWS_REGION}
 S3_BUCKET_NAME=${S3_BUCKET_NAME}
 COOKIE_SECURE=true
 ENVEOF
+=======
+EOF
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 
 chown ec2-user:ec2-user $APP_DIR/.env
 chmod 600 $APP_DIR/.env
 
+<<<<<<< HEAD
 # Install and configure CloudWatch Agent
 yum install -y amazon-cloudwatch-agent
 
@@ -115,6 +134,8 @@ CWEOF
 
 systemctl enable amazon-cloudwatch-agent
 
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 # Login to ECR
 aws ecr get-login-password --region ap-south-1 \
 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com
@@ -122,12 +143,19 @@ aws ecr get-login-password --region ap-south-1 \
 # Remove old container if exists
 docker rm -f ticket-backend || true
 
+<<<<<<< HEAD
 # Run container — plain HTTP, no cert mounts needed on EC2.
 # The mkcert cert is on the ALB (uploaded to IAM by Terraform).
+=======
+# Run backend container
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 docker run -d \
   --name ticket-backend \
   --restart always \
   --env-file $APP_DIR/.env \
   -p 3000:3000 \
+<<<<<<< HEAD
   -v /home/ec2-user/ticket-backend/logs:/app/logs \
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest

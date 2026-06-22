@@ -1,4 +1,5 @@
 const bookingService = require("../services/booking.services");
+<<<<<<< HEAD
 const { User, Event } = require("../models");
 const {
   generateTicketPDF,
@@ -24,10 +25,51 @@ const getMyBookings = async (req, res, next) => {
     logger.error("Failed to fetch user bookings", {
       userId: req.user?.id, error: err.message,
     });
+=======
+
+const createBooking = async (req, res, next) => {
+  try {
+    const userId = req.user.id;   // from auth middleware
+    const { event_id, tickets_booked } = req.body;
+
+    if (!event_id || !tickets_booked || tickets_booked <= 0) {
+      return res.status(400).json({
+        error: "Valid event_id and quantity required"
+      });
+    }
+
+    const booking = await bookingService.createBooking(
+      userId,
+      event_id,
+      tickets_booked
+    );
+
+    res.status(201).json({
+      message: "Booking successful",
+      booking
+    });
+
+  } catch (err) {
+    err.statusCode = 400;
     next(err);
   }
 };
 
+const getMyBookings = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const bookings = await bookingService.getUserBookings(userId);
+
+    res.json(bookings);
+
+  } catch (err) {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
+    next(err);
+  }
+};
+
+<<<<<<< HEAD
 // GET /bookings/:id/download-ticket
 const downloadTicket = async (req, res, next) => {
   try {
@@ -147,3 +189,10 @@ const getQrCode = async (req, res, next) => {
 };
 
 module.exports = { getMyBookings, downloadTicket, downloadBookingInvoice, getQrCode };
+=======
+
+module.exports = {
+  createBooking,
+  getMyBookings
+};
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac

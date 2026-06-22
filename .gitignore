@@ -13,7 +13,10 @@ crash.*.log
 # Keep provider lock file (DO NOT IGNORE)
 !.terraform.lock.hcl
 
+<<<<<<< HEAD
 rzp-key.csv
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 
 # =========================================================
 # Node.js / JavaScript
@@ -84,6 +87,7 @@ logs/
 tmp/
 temp/
 .cache/
+<<<<<<< HEAD
 
 # =============================================================
 #  ADD THESE LINES to your existing .gitignore
@@ -97,3 +101,5 @@ certs/
 *.pem
 *.p12
 *.pfx
+=======
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac

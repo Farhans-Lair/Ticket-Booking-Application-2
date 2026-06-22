@@ -1,7 +1,11 @@
 # ---------------------------
 # RDS Subnet Group
 # ---------------------------
+<<<<<<< HEAD
 resource "aws_db_subnet_group" "ticket_booking_db_subnet_group" {
+=======
+resource "aws_db_subnet_group" "ticket_db_subnet_group" {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   name = "${var.project_name}-db-subnet-group"
 
   subnet_ids = [
@@ -17,7 +21,11 @@ resource "aws_db_subnet_group" "ticket_booking_db_subnet_group" {
 # ---------------------------
 # RDS MySQL Instance
 # ---------------------------
+<<<<<<< HEAD
 resource "aws_db_instance" "ticket_booking_db" {
+=======
+resource "aws_db_instance" "ticket_db" {
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   identifier = "${var.project_name}-mysql-db"
 
   engine         = "mysql"
@@ -32,7 +40,11 @@ resource "aws_db_instance" "ticket_booking_db" {
   username = var.db_username
   password = var.db_password
 
+<<<<<<< HEAD
   db_subnet_group_name   = aws_db_subnet_group.ticket_booking_db_subnet_group.name
+=======
+  db_subnet_group_name   = aws_db_subnet_group.ticket_db_subnet_group.name
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
   publicly_accessible = false

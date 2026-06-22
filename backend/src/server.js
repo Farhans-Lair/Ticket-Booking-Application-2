@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+<<<<<<< HEAD
 const fs        = require("fs");
 const http      = require("http");
 const https     = require("https");
@@ -75,5 +76,27 @@ if (USE_HTTPS) {
     console.log("✅  Models synchronized");
   } catch (err) {
     console.error("❌  Database initialization failed:", err.message);
+=======
+const app = require("./app");
+const sequelize = require("./config/database");
+
+const PORT = process.env.PORT || 3000;
+
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Initialize DB
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected successfully");
+
+    await sequelize.sync();
+    console.log("Models synchronized successfully");
+  } catch (err) {
+    console.error("Database initialization failed:", err.message);
+>>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   }
 })();
