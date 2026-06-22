@@ -17,14 +17,26 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba(10, 10, 20, 0.82);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* The header bar itself spans the full viewport width (for the
+   continuous full-bleed background), but its actual content row
+   is constrained to the SAME max-width + left-anchor as the page
+   content below — otherwise nav links and the logout button drift
+   to the literal browser edge on wide screens while the content
+   column stops at 1280px, breaking alignment between header and
+   body on the right side. */
+.tv-shell-inner {
   display: flex;
   align-items: center;
   gap: 28px;
   height: 64px;
+  max-width: 1280px;
+  margin: 0;
   padding: 0 32px;
-  background: rgba(10, 10, 20, 0.82);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .tv-shell-brand {
@@ -135,6 +147,6 @@
 }
 
 @media (max-width: 720px) {
-  .tv-shell-header { gap: 16px; padding: 0 16px; }
+  .tv-shell-inner { gap: 16px; padding: 0 16px; }
   .tv-shell-main { padding: 28px 16px 60px; }
 }
