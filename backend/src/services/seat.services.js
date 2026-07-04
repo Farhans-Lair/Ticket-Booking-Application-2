@@ -43,6 +43,9 @@ const getSeatTiers = async (eventId) => {
 /*
 ====================================================
  ASSIGN SEAT TIERS TO EXISTING SEATS
+ FIX: Reset ALL seats to "Unassigned" first so that
+ seats not covered by the new tier rules don't keep
+ their old tier name (e.g. stale "General" entries).
 ====================================================
 */
 const assignSeatTiers = async (eventId, organizerId, tiers) => {
@@ -52,6 +55,14 @@ const assignSeatTiers = async (eventId, organizerId, tiers) => {
     if (!event) throw new Error("Event not found or you do not own this event.");
   }
 
+  // Step 1: Reset every available seat for this event to a neutral baseline.
+  // Only reset 'available' seats — never touch booked or held seats.
+  await Seat.update(
+    { seat_tier: "General", tier_price: 0 },
+    { where: { event_id: eventId, status: "available" } }
+  );
+
+  // Step 2: Apply each tier rule on top of the clean baseline.
   for (const tier of tiers) {
     const { name, price, rows } = tier;
     if (!name || price == null || !rows || !rows.length) continue;
@@ -136,13 +147,10 @@ const releaseSeats = async (eventId, seatNumbers, transaction) => {
 /*
 ====================================================
  HOLD SEATS — Feature 1
- Locks seats for HOLD_MINUTES for the given user.
- Releases any existing hold by same user first.
 ====================================================
 */
 const holdSeats = async (eventId, seatNumbers, userId) => {
   return sequelize.transaction(async (t) => {
-    // Release any existing hold this user has on this event
     await Seat.update(
       { status: "available", held_until: null, held_by_user_id: null },
       {
@@ -151,7 +159,6 @@ const holdSeats = async (eventId, seatNumbers, userId) => {
       }
     );
 
-    // Lock rows for update — prevent race conditions
     const available = await Seat.findAll({
       where: { event_id: eventId, seat_number: seatNumbers, status: "available" },
       lock:  t.LOCK.UPDATE,

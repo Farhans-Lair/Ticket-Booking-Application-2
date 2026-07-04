@@ -453,7 +453,7 @@ function openTiers(eventId, title) {
   document.getElementById("tierEventId").value        = eventId;
   document.getElementById("tierEventTitle").textContent = title;
   document.getElementById("tierModalAlert").className = "modal-alert";
-  tierRows = [{ name: "General", price: "", rows: "" }];
+  tierRows = [{ name: "", price: "", rows: "" }];
   renderTierRows();
 
   // Show available row range
