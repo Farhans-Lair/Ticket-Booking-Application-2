@@ -2,7 +2,6 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["**/__tests__/**/*.test.js"],
   setupFiles: ["<rootDir>/jest.setup.js"],
-<<<<<<< HEAD
 
   // ─────────────────────────────────────────────────────────────
   // DO NOT use resetModules:true globally — in Jest 30 it resets
@@ -19,6 +18,4 @@ module.exports = {
 
   // Show individual test names in CI output
   verbose: true,
-=======
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 };

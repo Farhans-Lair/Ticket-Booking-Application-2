@@ -6,24 +6,16 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-<<<<<<< HEAD
     "test": "jest --runInBand --forceExit"
-=======
-    "test": "jest --runInBand"
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-<<<<<<< HEAD
     "@aws-sdk/client-s3": "^3.1008.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
-=======
-    "bcrypt": "^6.0.0",
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
@@ -31,7 +23,6 @@
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.16.1",
-<<<<<<< HEAD
     "node-cron": "^3.0.3",
     "nodemailer": "^8.0.1",
     "pdfkit": "^0.17.2",
@@ -40,10 +31,6 @@
     "razorpay": "^2.9.6",
     "sequelize": "^6.37.7",
     "twilio": "^6.0.2"
-=======
-    "pg": "^8.17.1",
-    "sequelize": "^6.37.7"
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   },
   "devDependencies": {
     "jest": "^30.2.0",

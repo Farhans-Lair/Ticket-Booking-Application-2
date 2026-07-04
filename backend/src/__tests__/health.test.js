@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────────
 // health.test.js — HTTP health-check smoke test
 //
@@ -30,10 +29,6 @@ afterAll(async () => {
     }
   }
 });
-=======
-const request = require("supertest");
-const app = require("../app");
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 
 describe("Health Check", () => {
   it("should return 200 OK", async () => {

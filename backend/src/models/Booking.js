@@ -7,7 +7,6 @@ const Booking = sequelize.define("Booking", {
     autoIncrement: true,
     primaryKey: true,
   },
-<<<<<<< HEAD
   user_id:        { type: DataTypes.INTEGER, allowNull: false },
   event_id:       { type: DataTypes.INTEGER, allowNull: false },
   tickets_booked: { type: DataTypes.INTEGER, allowNull: false },
@@ -50,40 +49,6 @@ const Booking = sequelize.define("Booking", {
   // Feature 4 — Coupon / discount
   coupon_code:     { type: DataTypes.STRING(50),    allowNull: true, defaultValue: null },
   discount_amount: { type: DataTypes.DECIMAL(10,2), allowNull: false, defaultValue: 0.00 },
-=======
-  user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  event_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  tickets_booked: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-
-  ticket_amount:{
- type:DataTypes.FLOAT,
- allowNull:false
-},
-
-convenience_fee:{
- type:DataTypes.FLOAT,
- allowNull:false
-},
-
-gst_amount:{
- type:DataTypes.FLOAT,
- allowNull:false
-},
-
-total_paid:{
- type:DataTypes.FLOAT,
- allowNull:false
-}
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 }, {
   tableName: "bookings",
   timestamps: true,

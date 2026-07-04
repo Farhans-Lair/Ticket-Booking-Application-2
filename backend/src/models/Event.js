@@ -2,7 +2,6 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Event = sequelize.define("Event", {
-<<<<<<< HEAD
   id:           { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   organizer_id: { type: DataTypes.INTEGER, defaultValue: null },
   title:        { type: DataTypes.STRING(200), allowNull: false },
@@ -50,47 +49,6 @@ const Event = sequelize.define("Event", {
   average_rating: { type: DataTypes.DECIMAL(3,1), allowNull: true, defaultValue: null },
   review_count:   { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, {
-=======
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  title: {
-    type: DataTypes.STRING(200),
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-  },
-  location: {
-    type: DataTypes.STRING(150),
-  },
-  event_date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
-
-  price: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-     validate: {
-      min: 0
-    }
-  },
-
-  total_tickets: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  available_tickets: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  }
-},
-
-{
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   tableName: "events",
   timestamps: true,
   createdAt: "created_at",

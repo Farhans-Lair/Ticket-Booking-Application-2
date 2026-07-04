@@ -1,26 +1,15 @@
 const { body } = require("express-validator");
 
-<<<<<<< HEAD
 // ─── User signup ──────────────────────────────────────────────────────────────
 
 const signupRequestValidator = [
   body("name").notEmpty().withMessage("Name is required"),
   body("email").isEmail().withMessage("Valid email is required"),
-=======
-const registerValidator = [
-  body("name")
-    .notEmpty().withMessage("Name is required"),
-
-  body("email")
-    .isEmail().withMessage("Valid email is required"),
-
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
   body("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
 ];
 
-<<<<<<< HEAD
 const signupVerifyValidator = [
   body("email").isEmail().withMessage("Valid email is required"),
   body("otp")
@@ -87,17 +76,4 @@ module.exports = {
   organizerSignupRequestValidator,
   organizerSignupVerifyValidator,
 
-=======
-const loginValidator = [
-  body("email")
-    .isEmail().withMessage("Valid email is required"),
-
-  body("password")
-    .notEmpty().withMessage("Password is required"),
-];
-
-module.exports = {
-  registerValidator,
-  loginValidator,
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 };

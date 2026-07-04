@@ -21,7 +21,6 @@ const User = sequelize.define("User", {
     allowNull: false,
   },
   role: {
-<<<<<<< HEAD
     type: DataTypes.STRING(20),
     allowNull: false,
     defaultValue: "user",
@@ -49,18 +48,6 @@ const User = sequelize.define("User", {
   timestamps: true,
   createdAt: "created_at",
   updatedAt: "updated_at",
-=======
-      type: DataTypes.STRING(20),
-      allowNull: false,
-      defaultValue: "user",
-  },
-},
- {
-  tableName: "users",
-  timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
 });
 
 module.exports = User;
