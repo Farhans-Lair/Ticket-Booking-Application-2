@@ -14,56 +14,36 @@ jobs:
       contents: read
 
     env:
-<<<<<<< HEAD
-      AWS_REGION:     ap-south-1
+      AWS_REGION: ap-south-1
       AWS_ACCOUNT_ID: 453551850734
       ECR_REPOSITORY: ticket-backend
 
-      # ── Database ────────────────────────────────────────────
-      # FIX: DB_NAME updated from ticket_db → ticket_booking_db
-      DB_HOST:     127.0.0.1
-      DB_PORT:     3306
-      DB_NAME:     ticket_booking_db
-      DB_USER:     ticket_user_1
-      DB_PASSWORD: ticket_password
-
-      # ── App ─────────────────────────────────────────────────
-      NODE_ENV:    test
-      JWT_SECRET:  ci_test_jwt_secret_not_used_in_prod
-
-      # ── Razorpay (stubs for CI — not actually called) ───────
-      RAZORPAY_KEY_ID:     rzp_test_placeholder_for_ci
-      RAZORPAY_KEY_SECRET: placeholder_secret_for_ci
-
-      # ── Email (stubs for CI) ─────────────────────────────────
-      EMAIL_USER: ci@example.com
-      EMAIL_PASS: ci_placeholder
-=======
-      AWS_REGION: ap-south-1
-      AWS_ACCOUNT_ID: 680318115068
-      ECR_REPOSITORY: ticket-backend
-
+      # Database
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_NAME: ticket_db
-      DB_USER: ticket_user
+      DB_NAME: ticket_booking_db
+      DB_USER: ticket_user_1
       DB_PASSWORD: ticket_password
+
+      # App
       NODE_ENV: test
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
+      JWT_SECRET: ci_test_jwt_secret_not_used_in_prod
+
+      # Razorpay (dummy values for CI)
+      RAZORPAY_KEY_ID: rzp_test_placeholder_for_ci
+      RAZORPAY_KEY_SECRET: placeholder_secret_for_ci
+
+      # Email (dummy values for CI)
+      EMAIL_USER: ci@example.com
+      EMAIL_PASS: ci_placeholder
 
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
-<<<<<<< HEAD
-          # FIX: MYSQL_DATABASE updated from ticket_db → ticket_booking_db
           MYSQL_DATABASE: ticket_booking_db
-          MYSQL_USER:     ticket_user_1
-=======
-          MYSQL_DATABASE: ticket_db
-          MYSQL_USER: ticket_user
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
+          MYSQL_USER: ticket_user_1
           MYSQL_PASSWORD: ticket_password
         ports:
           - 3306:3306
@@ -74,19 +54,16 @@ jobs:
           --health-retries=5
 
     steps:
-<<<<<<< HEAD
-=======
-
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-<<<<<<< HEAD
       - name: Install MySQL Client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
 
       - name: Wait for MySQL to be ready
         run: |
@@ -96,26 +73,11 @@ jobs:
             sleep 2
           done
 
-      # ── FIX: Initialise the database schema before running tests ──
       - name: Load database schema
         run: |
-          mysql -h 127.0.0.1 -u root -prootpassword ticket_booking_db \
-            < db/master_schema.sql
-          echo "✅ Schema loaded successfully"
+          mysql -h 127.0.0.1 -u root -prootpassword ticket_booking_db < db/master_schema.sql
+          echo "Schema loaded successfully"
 
-=======
-      # install mysql client
-      - name: Install MySQL Client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
-
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            mysqladmin ping -h 127.0.0.1 -u root -prootpassword && break
-            sleep 2
-          done
-
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
       - name: Install dependencies
         working-directory: backend
         run: npm ci
@@ -123,11 +85,6 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: npm test
-
-<<<<<<< HEAD
-      # ─────────────────────────────────────────────────────────
-      # The steps below only run when tests pass
-      # ─────────────────────────────────────────────────────────
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -138,20 +95,6 @@ jobs:
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
-=======
-      # AWS OIDC Login
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::680318115068:role/GitHubActions-ECR-Push-Role
-          aws-region: ${{ env.AWS_REGION }}
-
-      # Debug identity (helps future troubleshooting)
-      - name: Verify AWS Identity
-        run: aws sts get-caller-identity
-
-      # ⭐ NEVER FAIL ECR CREATE STEP
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
       - name: Ensure ECR repository exists
         run: |
           aws ecr describe-repositories \
@@ -166,7 +109,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and Push Docker Image
-<<<<<<< HEAD
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
 
@@ -193,12 +135,12 @@ jobs:
             --region $AWS_REGION \
             --instance-ids $INSTANCE_ID \
             --document-name "AWS-RunShellScript" \
-            --parameters commands=["
-              aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com,
-              docker pull $IMAGE_URI,
-              docker rm -f ticket-backend || true,
-              docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 $IMAGE_URI
-            "] \
+            --parameters commands="[
+              \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\",
+              \"docker pull ${IMAGE_URI}\",
+              \"docker rm -f ticket-backend || true\",
+              \"docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 ${IMAGE_URI}\"
+            ]" \
             --query "Command.CommandId" \
             --output text)
 
@@ -213,14 +155,5 @@ jobs:
             --command-id $COMMAND_ID \
             --instance-id $INSTANCE_ID \
             --region $AWS_REGION \
-            --query "[StandardOutputContent, StandardErrorContent]" \
+            --query "[StandardOutputContent,StandardErrorContent]" \
             --output text
-=======
-        working-directory: backend
-        run: |
-          IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
-
-          docker build -t $IMAGE_URI .
-
-          docker push $IMAGE_URI
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
