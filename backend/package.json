@@ -12,6 +12,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
     "bcrypt": "^6.0.0",
@@ -26,7 +29,6 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^8.0.1",
     "pdfkit": "^0.17.2",
-    "pg": "^8.17.1",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "sequelize": "^6.37.7",

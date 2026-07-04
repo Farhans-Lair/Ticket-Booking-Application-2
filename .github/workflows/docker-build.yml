@@ -19,7 +19,6 @@ jobs:
       ECR_REPOSITORY: ticket-backend
 
       # ── Database ────────────────────────────────────────────
-      # FIX: DB_NAME updated from ticket_db → ticket_booking_db
       DB_HOST:     127.0.0.1
       DB_PORT:     3306
       DB_NAME:     ticket_booking_db
@@ -38,12 +37,14 @@ jobs:
       EMAIL_USER: ci@example.com
       EMAIL_PASS: ci_placeholder
 
+      # ── S3 (stub for CI — FIX: was missing, caused config/s3.js warning) ──
+      S3_BUCKET_NAME: ci-placeholder-bucket
+
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
-          # FIX: MYSQL_DATABASE updated from ticket_db → ticket_booking_db
           MYSQL_DATABASE: ticket_booking_db
           MYSQL_USER:     ticket_user_1
           MYSQL_PASSWORD: ticket_password
@@ -58,9 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # FIX: Upgraded from Node 20 (deprecated) to Node 22 — removes deprecation
+      # warning on every run. Dockerfile also updated to node:22-alpine.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install MySQL Client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
@@ -73,7 +76,6 @@ jobs:
             sleep 2
           done
 
-      # ── FIX: Initialise the database schema before running tests ──
       - name: Load database schema
         run: |
           mysql -h 127.0.0.1 -u root -prootpassword ticket_booking_db \
@@ -145,7 +147,7 @@ jobs:
               aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com,
               docker pull $IMAGE_URI,
               docker rm -f ticket-backend || true,
-              docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 $IMAGE_URI
+              docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 -v /home/ec2-user/ticket-backend/logs:/app/logs $IMAGE_URI
             "] \
             --query "Command.CommandId" \
             --output text)

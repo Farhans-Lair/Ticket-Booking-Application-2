@@ -4,14 +4,20 @@
  * Runs every minute and releases any seat whose held_until < NOW()
  * back to 'available', clearing held_by_user_id and held_until.
  *
- * Called once from app.js via startSeatHoldScheduler().
+ * FIX: Added NODE_ENV !== "test" guard.
+ * Without it, health.test.js loads app.js which calls
+ * startSeatHoldScheduler(), leaving an active cron timer that
+ * prevents Jest from exiting cleanly (--forceExit masks this but
+ * it is the wrong fix — the scheduler simply should not run in test).
  */
 const cron        = require("node-cron");
 const seatService = require("./seat.services");
 const logger      = require("../config/logger");
 
 const startSeatHoldScheduler = () => {
-  // Run every minute
+  // Never start the cron in test — it keeps the Jest process alive
+  if (process.env.NODE_ENV === "test") return;
+
   cron.schedule("* * * * *", async () => {
     try {
       const released = await seatService.releaseExpiredHolds();
