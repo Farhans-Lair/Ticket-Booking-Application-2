@@ -1,5 +1,4 @@
 const bookingService = require("../services/booking.services");
-<<<<<<< HEAD
 const { User, Event } = require("../models");
 const {
   generateTicketPDF,
@@ -12,29 +11,15 @@ const {
 const { generateQrPng } = require("../services/qr.services");
 const logger = require("../config/logger");
 
-
-// GET /bookings/my-bookings — fetch logged-in user's bookings
-const getMyBookings = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    logger.info("Fetching user bookings", { userId });
-    const bookings = await bookingService.getUserBookings(userId);
-    logger.info("User bookings fetched", { userId, count: bookings.length });
-    res.json(bookings);
-  } catch (err) {
-    logger.error("Failed to fetch user bookings", {
-      userId: req.user?.id, error: err.message,
-    });
-=======
-
+// POST /bookings
 const createBooking = async (req, res, next) => {
   try {
-    const userId = req.user.id;   // from auth middleware
+    const userId = req.user.id;
     const { event_id, tickets_booked } = req.body;
 
     if (!event_id || !tickets_booked || tickets_booked <= 0) {
       return res.status(400).json({
-        error: "Valid event_id and quantity required"
+        error: "Valid event_id and quantity required",
       });
     }
 
@@ -46,153 +31,252 @@ const createBooking = async (req, res, next) => {
 
     res.status(201).json({
       message: "Booking successful",
-      booking
+      booking,
     });
-
   } catch (err) {
-    err.statusCode = 400;
+    err.statusCode = err.statusCode || 400;
     next(err);
   }
 };
 
+// GET /bookings/my-bookings
 const getMyBookings = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    logger.info("Fetching user bookings", { userId });
+
     const bookings = await bookingService.getUserBookings(userId);
 
-    res.json(bookings);
+    logger.info("User bookings fetched", {
+      userId,
+      count: bookings.length,
+    });
 
+    res.json(bookings);
   } catch (err) {
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
+    logger.error("Failed to fetch user bookings", {
+      userId: req.user?.id,
+      error: err.message,
+    });
     next(err);
   }
 };
 
-<<<<<<< HEAD
 // GET /bookings/:id/download-ticket
 const downloadTicket = async (req, res, next) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const bookingId = parseInt(req.params.id, 10);
 
-    logger.info("Ticket download requested", { userId, bookingId });
+    logger.info("Ticket download requested", {
+      userId,
+      bookingId,
+    });
 
-    const booking = await bookingService.getBookingById(bookingId, userId);
+    const booking = await bookingService.getBookingById(
+      bookingId,
+      userId
+    );
+
     if (!booking) {
-      logger.warn("Ticket download failed — booking not found", { userId, bookingId });
-      return res.status(404).json({ error: "Booking not found" });
+      logger.warn("Ticket download failed — booking not found", {
+        userId,
+        bookingId,
+      });
+
+      return res.status(404).json({
+        error: "Booking not found",
+      });
     }
 
     let pdfBuffer;
 
     if (booking.ticket_pdf_s3_key) {
-      logger.info("Serving ticket PDF from S3", { userId, bookingId, s3Key: booking.ticket_pdf_s3_key });
-      pdfBuffer = await fetchTicketFromS3(booking.ticket_pdf_s3_key);
+      logger.info("Serving ticket PDF from S3", {
+        userId,
+        bookingId,
+        s3Key: booking.ticket_pdf_s3_key,
+      });
+
+      pdfBuffer = await fetchTicketFromS3(
+        booking.ticket_pdf_s3_key
+      );
     } else {
-      logger.warn("ticket_pdf_s3_key missing — generating on-the-fly", { userId, bookingId });
-      const user  = await User.findByPk(userId);
+      logger.warn(
+        "ticket_pdf_s3_key missing — generating on-the-fly",
+        {
+          userId,
+          bookingId,
+        }
+      );
+
+      const user = await User.findByPk(userId);
       const event = await Event.findByPk(booking.event_id);
-      pdfBuffer   = await generateTicketPDF(booking, user, event);
+
+      pdfBuffer = await generateTicketPDF(
+        booking,
+        user,
+        event
+      );
     }
 
-    logger.info("Ticket PDF served", { userId, bookingId });
+    logger.info("Ticket PDF served", {
+      userId,
+      bookingId,
+    });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="ticket-${booking.id}.pdf"`);
-    res.send(pdfBuffer);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="ticket-${booking.id}.pdf"`
+    );
 
+    res.send(pdfBuffer);
   } catch (err) {
     logger.error("Ticket download failed", {
-      userId: req.user?.id, bookingId: req.params?.id, error: err.message,
+      userId: req.user?.id,
+      bookingId: req.params?.id,
+      error: err.message,
     });
+
     next(err);
   }
 };
 
-/**
- * GET /bookings/:id/download-invoice
- * Download the booking invoice PDF.
- * Streams from S3 if available, otherwise generates on-the-fly.
- */
+// GET /bookings/:id/download-invoice
 const downloadBookingInvoice = async (req, res, next) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const bookingId = parseInt(req.params.id, 10);
 
-    logger.info("Booking invoice download requested", { userId, bookingId });
+    logger.info("Booking invoice download requested", {
+      userId,
+      bookingId,
+    });
 
-    const booking = await bookingService.getBookingById(bookingId, userId);
+    const booking = await bookingService.getBookingById(
+      bookingId,
+      userId
+    );
+
     if (!booking) {
-      logger.warn("Booking invoice download failed — booking not found", { userId, bookingId });
-      return res.status(404).json({ error: "Booking not found" });
+      logger.warn(
+        "Booking invoice download failed — booking not found",
+        {
+          userId,
+          bookingId,
+        }
+      );
+
+      return res.status(404).json({
+        error: "Booking not found",
+      });
     }
 
     let pdfBuffer;
 
     if (booking.booking_invoice_s3_key) {
       logger.info("Serving booking invoice from S3", {
-        userId, bookingId, s3Key: booking.booking_invoice_s3_key,
+        userId,
+        bookingId,
+        s3Key: booking.booking_invoice_s3_key,
       });
-      pdfBuffer = await fetchInvoiceFromS3(booking.booking_invoice_s3_key);
+
+      pdfBuffer = await fetchInvoiceFromS3(
+        booking.booking_invoice_s3_key
+      );
     } else {
-      logger.warn("booking_invoice_s3_key missing — generating on-the-fly", { userId, bookingId });
-      const user  = await User.findByPk(userId);
+      logger.warn(
+        "booking_invoice_s3_key missing — generating on-the-fly",
+        {
+          userId,
+          bookingId,
+        }
+      );
+
+      const user = await User.findByPk(userId);
       const event = await Event.findByPk(booking.event_id);
-      pdfBuffer   = await generateBookingInvoicePDF(booking, user, event);
+
+      pdfBuffer = await generateBookingInvoicePDF(
+        booking,
+        user,
+        event
+      );
     }
 
-    logger.info("Booking invoice served", { userId, bookingId });
+    logger.info("Booking invoice served", {
+      userId,
+      bookingId,
+    });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="invoice-booking-${booking.id}.pdf"`);
-    res.send(pdfBuffer);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="invoice-booking-${booking.id}.pdf"`
+    );
 
+    res.send(pdfBuffer);
   } catch (err) {
     logger.error("Booking invoice download failed", {
-      userId: req.user?.id, bookingId: req.params?.id, error: err.message,
+      userId: req.user?.id,
+      bookingId: req.params?.id,
+      error: err.message,
     });
+
     next(err);
   }
 };
 
-/**
- * GET /bookings/:id/qr
- * Returns the booking's QR code as a PNG image.
- * The browser can use this directly as an <img src> URL.
- */
+// GET /bookings/:id/qr
 const getQrCode = async (req, res, next) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const bookingId = parseInt(req.params.id, 10);
 
-    const booking = await bookingService.getBookingById(bookingId, userId);
+    const booking = await bookingService.getBookingById(
+      bookingId,
+      userId
+    );
+
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-    if (!booking.qr_token) {
-      return res.status(404).json({ error: "QR code not available for this booking" });
+      return res.status(404).json({
+        error: "Booking not found",
+      });
     }
 
-    const pngBuffer = await generateQrPng(booking.qr_token);
+    if (!booking.qr_token) {
+      return res.status(404).json({
+        error: "QR code not available for this booking",
+      });
+    }
+
+    const pngBuffer = await generateQrPng(
+      booking.qr_token
+    );
 
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Cache-Control", "private, max-age=3600");
-    res.send(pngBuffer);
+    res.setHeader(
+      "Cache-Control",
+      "private, max-age=3600"
+    );
 
+    res.send(pngBuffer);
   } catch (err) {
     logger.error("QR code fetch failed", {
-      userId: req.user?.id, bookingId: req.params?.id, error: err.message,
+      userId: req.user?.id,
+      bookingId: req.params?.id,
+      error: err.message,
     });
+
     next(err);
   }
 };
-
-module.exports = { getMyBookings, downloadTicket, downloadBookingInvoice, getQrCode };
-=======
 
 module.exports = {
   createBooking,
-  getMyBookings
+  getMyBookings,
+  downloadTicket,
+  downloadBookingInvoice,
+  getQrCode,
 };
->>>>>>> d2aba71dbbc84cc25d9f6a4fb5b7b26fdcd1fbac
