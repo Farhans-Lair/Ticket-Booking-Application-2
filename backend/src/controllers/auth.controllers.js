@@ -1,5 +1,5 @@
 const authService = require("../services/auth.services");
-<<<<<<< HEAD
+HEAD
 const jwt         = require("jsonwebtoken");
 const logger      = require("../config/logger");
 
