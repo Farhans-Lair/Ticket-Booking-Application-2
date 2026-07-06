@@ -16,6 +16,8 @@
       --accent: #7c6af7; --red: #f74a6a; --card: #13131f; --green: #22c55e;
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text); min-height: 100vh; }
+    .page { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
+    @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
 
     .page-header { padding: 40px 0 8px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.1rem; }
@@ -74,7 +76,7 @@
 </div>
 </header>
 
-<div class="tv-shell-main">
+<div class="page">
   <div class="page-header">
     <h1>My <em>Wishlist</em></h1>
     <p>Events you've saved for later</p>
