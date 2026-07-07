@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 require("./models"); // Initialize DB models & associations
 
 const express      = require("express");
