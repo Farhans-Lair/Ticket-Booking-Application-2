@@ -1,4 +1,7 @@
-require("dotenv").config();
+// In production (Docker), env vars come from --env-file docker run flag.
+// dotenv.config() is kept for local dev only; { quiet: true } silences the
+// "0 vars injected" warning when running inside the container without .env.
+require("dotenv").config({ quiet: true });
 
 const fs        = require("fs");
 const http      = require("http");
