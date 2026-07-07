@@ -18,6 +18,7 @@
     body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text); min-height: 100vh; }
     .page { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
     @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
+    .tv-shell-nav { justify-content: space-between; }
 
     .page-header { margin-bottom: 36px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.1rem; }
@@ -44,14 +45,7 @@
     .btn-remove { padding: 9px 14px; background: none; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 8px; font-size: 0.82rem; cursor: pointer; transition: all .2s; font-family: inherit; }
     .btn-remove:hover { border-color: var(--red); color: var(--red); }
 
-    .empty-state {
-      width: 100%;
-      padding: 60px 48px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      box-sizing: border-box;
-    }
+    .empty-state { text-align: left; padding: 60px 0; }
     .empty-state .emoji { font-size: 3.5rem; margin-bottom: 16px; }
     .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 8px; }
     .empty-state p { color: var(--text-muted); font-size: 0.9rem; }
