@@ -1,4 +1,5 @@
 const User               = require("./User");
+const RefreshToken       = require("./RefreshToken");
 const Event              = require("./Event");
 const Booking            = require("./Booking");
 const Seat               = require("./Seat");
@@ -15,6 +16,10 @@ const Review         = require("./Review");
 const Wishlist       = require("./Wishlist");
 // Feature 7 — Waitlist
 const WaitlistEntry  = require("./WaitlistEntry");
+
+// ── Refresh token relationship
+User.hasMany(RefreshToken,   { foreignKey: "user_id", as: "RefreshTokens" });
+RefreshToken.belongsTo(User, { foreignKey: "user_id" });
 
 // ── Core booking relationships ──────────────────────────────────────────────
 Event.hasMany(Booking,   { foreignKey: "event_id" });
@@ -74,6 +79,7 @@ Event.hasMany(WaitlistEntry,   { foreignKey: "event_id", as: "WaitlistEntries" }
 WaitlistEntry.belongsTo(Event, { foreignKey: "event_id" });
 
 module.exports = {
+  RefreshToken,
   User,
   Event,
   Booking,

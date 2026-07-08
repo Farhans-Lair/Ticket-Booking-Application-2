@@ -39,7 +39,8 @@ router.post(
 );
 
 // ─── Session ──────────────────────────────────────────────────────────────────
-router.post("/logout", authenticate, authController.logout);
-router.get("/me",      authenticate, authController.me);
+router.post("/refresh", authController.refresh);   // #1 sliding refresh token
+router.post("/logout",  authenticate, authController.logout);
+router.get("/me",       authenticate, authController.me);
 
 module.exports = router;

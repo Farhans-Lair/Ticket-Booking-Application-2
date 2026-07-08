@@ -29,7 +29,7 @@ const checkinRoutes  = require("./routes/checkin.routes");
 const couponRoutes   = require("./routes/coupon.routes");
 const reviewRoutes   = require("./routes/review.routes");
 const wishlistRoutes = require("./routes/wishlist.routes");
-const waitlistRoutes = require("./routes/waitlist.routes");
+const waitlistRoutes  = require("./routes/waitlist.routes");
 
 const { startSeatHoldScheduler } = require("./services/seatHold.scheduler");
 const { startReminderScheduler } = require("./services/reminder.services");
@@ -75,7 +75,7 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
-app.use(express.json({ limit: "25mb" }));
+app.use(express.json({ limit: "10mb" }));   // #4 — reduced from 25mb; images go via S3 presigned URL
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 

@@ -1,6 +1,8 @@
 const { Op, fn, col, literal } = require("sequelize");
 const Event    = require("../models/Event");
 const { Seat, Booking } = require("../models");
+// #10: Use read replica for non-mutating queries
+const replicaDb = require("../config/database-replica");
 
 /*
 ====================================================
@@ -39,7 +41,8 @@ const createEvent = async (eventData) => {
 const getAllEvents = async (category) => {
   const where = { status: "approved" };
   if (category) where.category = category;
-  return Event.findAll({ where, order: [["event_date", "ASC"]] });
+  // #10: Read replica — no write involved
+  return Event.findAll({ where, order: [["event_date", "ASC"]], bind: { sequelize: replicaDb } });
 };
 
 // ─────────────────────────────────────────────────────────────
