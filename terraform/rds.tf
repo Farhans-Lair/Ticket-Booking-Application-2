@@ -58,10 +58,6 @@ resource "aws_db_instance" "ticket_booking_db" {
   # #9: Multi-AZ for automatic failover — ~60 second RTO on AZ failure
   multi_az = true
 
-  # Performance insights — free tier (7 days retention)
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
-
   tags = { Name = "${var.project_name}-mysql-primary" }
 }
 
