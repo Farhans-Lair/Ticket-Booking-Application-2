@@ -359,6 +359,34 @@ CREATE TABLE IF NOT EXISTS waitlist (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+
+-- ============================================================
+-- SECTION 10 — REFRESH TOKENS  (#1)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id          INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id     INT           NOT NULL,
+  token_hash  VARCHAR(64)   NOT NULL UNIQUE,
+  expires_at  DATETIME      NOT NULL,
+  created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_rt_user    (user_id),
+  INDEX idx_rt_hash    (token_hash),
+  INDEX idx_rt_expires (expires_at),
+  CONSTRAINT fk_rt_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- SECTION 11 — FULLTEXT INDEX  (#5)
+-- Safe to run multiple times: MySQL silently ignores duplicate index creation
+-- ============================================================
+SET @idx_exists = (SELECT COUNT(*) FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events'
+  AND INDEX_NAME = 'ft_events_search');
+SET @sql = IF(@idx_exists = 0,
+  'ALTER TABLE events ADD FULLTEXT KEY ft_events_search (title, description, location, city)',
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- ============================================================
 -- VERIFY — shows all tables and row counts after migration
 -- ============================================================

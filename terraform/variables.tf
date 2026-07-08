@@ -30,6 +30,15 @@ variable "public_subnet_2_cidr" {
   default = "10.0.2.0/24"
 }
 
+# #6, #8 — New private subnet CIDRs for EC2 and RDS
+variable "private_subnet_1_cidr" {
+  default = "10.0.3.0/24"
+}
+
+variable "private_subnet_2_cidr" {
+  default = "10.0.4.0/24"
+}
+
 variable "db_name" {
   default = "ticket_booking_db"
 }
@@ -79,6 +88,6 @@ variable "s3_bucket_name" {
 }
 
 variable "cert_chain_path" {
-  description = "Absolute path to the mkcert CA root certificate (rootCA.pem). Find it by running: mkcert -CAROOT"
+  description = "Absolute path to the mkcert CA root certificate (rootCA.pem)"
   type        = string
 }

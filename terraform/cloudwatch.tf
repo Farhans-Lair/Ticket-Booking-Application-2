@@ -1,19 +1,16 @@
 # =============================================================
-# cloudwatch.tf
-#
-# Observability for Spring Boot on EC2 + RDS
+# cloudwatch.tf — #9: log retention raised to 90 days
 # =============================================================
 
-# --- Log Groups ---
 resource "aws_cloudwatch_log_group" "app_logs" {
   name              = "/ticketapp/backend"
-  retention_in_days = 30
+  retention_in_days = 90   # #9 — raised from 30 (payment regulations)
   tags              = { Name = "${var.project_name}-app-logs" }
 }
 
 resource "aws_cloudwatch_log_group" "error_logs" {
   name              = "/ticketapp/errors"
-  retention_in_days = 30
+  retention_in_days = 90   # #9 — raised from 30
   tags              = { Name = "${var.project_name}-error-logs" }
 }
 
@@ -23,7 +20,8 @@ resource "aws_cloudwatch_log_group" "bootstrap_logs" {
   tags              = { Name = "${var.project_name}-bootstrap-logs" }
 }
 
-# --- SNS Alert Topic ---
+# ── SNS ───────────────────────────────────────────────────────────────────────
+
 resource "aws_sns_topic" "alerts" {
   name = "${var.project_name}-alerts"
 }
@@ -34,7 +32,8 @@ resource "aws_sns_topic_subscription" "email_alert" {
   endpoint  = var.alert_email
 }
 
-# --- CloudWatch Alarms ---
+# ── Alarms ────────────────────────────────────────────────────────────────────
+
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   alarm_name          = "${var.project_name}-alb-5xx-errors"
   alarm_description   = "High 5xx on ALB"
@@ -126,7 +125,23 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
-# --- Log Metric Filters ---
+resource "aws_cloudwatch_metric_alarm" "replica_lag" {
+  alarm_name          = "${var.project_name}-replica-lag"
+  alarm_description   = "Read replica replication lag > 30s"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "ReplicaLag"
+  namespace           = "AWS/RDS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 30
+  dimensions          = { DBInstanceIdentifier = aws_db_instance.ticket_booking_db_replica.identifier }
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  ok_actions          = [aws_sns_topic.alerts.arn]
+}
+
+# ── Log Metric Filters ────────────────────────────────────────────────────────
+
 resource "aws_cloudwatch_log_metric_filter" "payment_errors" {
   name           = "${var.project_name}-payment-errors"
   log_group_name = aws_cloudwatch_log_group.error_logs.name
@@ -177,7 +192,8 @@ resource "aws_cloudwatch_log_metric_filter" "cancellations" {
   }
 }
 
-# --- CloudWatch Dashboard ---
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "${var.project_name}-dashboard"
 
@@ -191,9 +207,9 @@ resource "aws_cloudwatch_dashboard" "main" {
           title   = "ALB — Requests & 5xx Errors"
           region  = var.aws_region
           metrics = [
-            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
+            ["AWS/ApplicationELB", "RequestCount",              "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
             ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
-            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.ticket_alb.arn_suffix]
+            ["AWS/ApplicationELB", "TargetResponseTime",        "LoadBalancer", aws_lb.ticket_alb.arn_suffix],
           ]
           period = 60
           stat   = "Sum"
@@ -205,25 +221,10 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title   = "ALB — Healthy Host Count"
-          region  = var.aws_region
-          metrics = [
-            ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", aws_lb_target_group.backend_tg.arn_suffix, "LoadBalancer", aws_lb.ticket_alb.arn_suffix]
-          ]
-          period = 60
-          stat   = "Average"
-          view   = "timeSeries"
-        }
-      },
-      {
-        type   = "metric"
-        width  = 12
-        height = 6
-        properties = {
           title   = "EC2 ASG — CPU Utilization"
           region  = var.aws_region
           metrics = [
-            ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", aws_autoscaling_group.backend_asg.name]
+            ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", aws_autoscaling_group.backend_asg.name],
           ]
           period = 60
           stat   = "Average"
@@ -235,11 +236,11 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title   = "RDS — CPU & DB Connections"
+          title   = "RDS Primary — CPU & Connections"
           region  = var.aws_region
           metrics = [
-            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier],
-            ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier]
+            ["AWS/RDS", "CPUUtilization",    "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier],
+            ["AWS/RDS", "DatabaseConnections","DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier],
           ]
           period = 60
           stat   = "Average"
@@ -251,12 +252,13 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 12
         height = 6
         properties = {
-          title   = "RDS — Free Storage Space"
+          title   = "RDS Replica — Lag & CPU"
           region  = var.aws_region
           metrics = [
-            ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db.identifier]
+            ["AWS/RDS", "ReplicaLag",     "DBInstanceIdentifier", aws_db_instance.ticket_booking_db_replica.identifier],
+            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.ticket_booking_db_replica.identifier],
           ]
-          period = 300
+          period = 60
           stat   = "Average"
           view   = "timeSeries"
         }
@@ -271,7 +273,7 @@ resource "aws_cloudwatch_dashboard" "main" {
           metrics = [
             ["${var.project_name}/App", "BookingsConfirmed"],
             ["${var.project_name}/App", "PaymentVerificationErrors"],
-            ["${var.project_name}/App", "CancellationRequests"]
+            ["${var.project_name}/App", "CancellationRequests"],
           ]
           period = 300
           stat   = "Sum"

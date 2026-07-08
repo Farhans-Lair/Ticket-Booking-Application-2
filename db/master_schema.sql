@@ -389,6 +389,22 @@ CREATE TABLE IF NOT EXISTS waitlist (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+
+-- ──────────────────────────────────────────────
+-- 13. REFRESH TOKENS  (#1)
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id          INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id     INT           NOT NULL,
+  token_hash  VARCHAR(64)   NOT NULL UNIQUE,
+  expires_at  DATETIME      NOT NULL,
+  created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_rt_user    (user_id),
+  INDEX idx_rt_hash    (token_hash),
+  INDEX idx_rt_expires (expires_at),
+  CONSTRAINT fk_rt_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ──────────────────────────────────────────────
 -- VERIFY
 -- ──────────────────────────────────────────────

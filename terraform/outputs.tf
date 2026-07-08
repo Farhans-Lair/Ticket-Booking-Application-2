@@ -20,3 +20,13 @@ output "iam_certificate_arn" {
   description = "ARN of the IAM cert attached to the ALB HTTPS listener"
   value       = aws_iam_server_certificate.self_signed.arn
 }
+
+output "rds_replica_endpoint" {
+  description = "RDS Read Replica endpoint — use for GET /events, /reviews, /search"
+  value       = aws_db_instance.ticket_booking_db_replica.endpoint
+}
+
+output "nat_gateway_ip" {
+  description = "Elastic IP of the NAT Gateway (whitelist this in external APIs)"
+  value       = aws_eip.nat_eip.public_ip
+}
