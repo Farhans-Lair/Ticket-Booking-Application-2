@@ -7,6 +7,7 @@ data "template_file" "user_data" {
     DB_NAME             = var.db_name
     DB_USER             = var.db_username
     DB_PASSWORD         = var.db_password
+    DB_HOST_REPLICA     = aws_db_instance.ticket_booking_db_replica.address
     JWT_SECRET          = var.jwt_secret
     RAZORPAY_KEY_ID     = var.razorpay_key_id
     RAZORPAY_KEY_SECRET = var.razorpay_key_secret
