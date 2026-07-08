@@ -30,7 +30,3 @@ output "nat_gateway_ip" {
   description = "Elastic IP of the NAT Gateway (whitelist this in external APIs)"
   value       = aws_eip.nat_eip.public_ip
 }
-
-output "rds_replica_endpoint" {
-  value = aws_db_instance.ticket_booking_db_replica.endpoint
-}
