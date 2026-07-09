@@ -15,7 +15,7 @@ jobs:
 
     env:
       AWS_REGION:     ap-south-1
-      AWS_ACCOUNT_ID: 453551850734
+      AWS_ACCOUNT_ID: 349744179793
       ECR_REPOSITORY: ticket-backend
 
       # ── Database ────────────────────────────────────────────
