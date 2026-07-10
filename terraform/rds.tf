@@ -88,9 +88,5 @@ resource "aws_db_instance" "ticket_booking_db_replica" {
 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
-  # Performance insights on replica too
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
-
   tags = { Name = "${var.project_name}-mysql-replica" }
 }
