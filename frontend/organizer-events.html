@@ -518,6 +518,21 @@ document.getElementById("saveTiersBtn").addEventListener("click", async () => {
     alertEl.className = "modal-alert error"; return;
   }
 
+  // Validate that ALL seat rows for this event are covered by the defined tiers.
+  // Any uncovered row would silently keep its old tier (or "General" default),
+  // which confuses organizers. We block save and show exactly which rows are missing.
+  const ev = events.find(e => e.id === parseInt(eventId));
+  if (ev) {
+    const rowCount   = Math.ceil(ev.total_tickets / 10);
+    const allRows    = ROWS.slice(0, Math.min(rowCount, 26));
+    const coveredSet = new Set(tiers.flatMap(t => t.rows));
+    const missing    = allRows.filter(r => !coveredSet.has(r));
+    if (missing.length > 0) {
+      alertEl.textContent = `Row(s) ${missing.join(", ")} are not assigned to any tier. Please assign every row before saving.`;
+      alertEl.className = "modal-alert error"; return;
+    }
+  }
+
   btn.disabled = true; btn.textContent = "Saving…";
   try {
     const r = await fetch(`/seats/${eventId}/tiers`, {

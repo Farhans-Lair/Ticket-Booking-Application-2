@@ -55,14 +55,10 @@ const assignSeatTiers = async (eventId, organizerId, tiers) => {
     if (!event) throw new Error("Event not found or you do not own this event.");
   }
 
-  // Step 1: Reset every available seat for this event to a neutral baseline.
-  // Only reset 'available' seats — never touch booked or held seats.
-  await Seat.update(
-    { seat_tier: "General", tier_price: 0 },
-    { where: { event_id: eventId, status: "available" } }
-  );
-
-  // Step 2: Apply each tier rule on top of the clean baseline.
+  // Apply each tier rule directly.
+  // Only seats whose row letters match a tier rule get updated.
+  // The frontend validates all rows are covered before calling this,
+  // so no seat should remain without a tier after a save.
   for (const tier of tiers) {
     const { name, price, rows } = tier;
     if (!name || price == null || !rows || !rows.length) continue;
