@@ -91,3 +91,18 @@ variable "cert_chain_path" {
   description = "Absolute path to the mkcert CA root certificate (rootCA.pem)"
   type        = string
 }
+
+variable "jwt_access_secret" {
+  description = "Secret for signing JWT access tokens (8h lifetime)"
+  sensitive   = true
+}
+
+variable "jwt_refresh_secret" {
+  description = "Secret for signing JWT refresh token wrappers (7d lifetime)"
+  sensitive   = true
+}
+
+variable "jwt_session_secret" {
+  description = "Secret for signing JWT session tokens (per-tab, 8h lifetime)"
+  sensitive   = true
+}
