@@ -50,9 +50,9 @@
       ctx.fillRect(0, 0, W, H);
 
       [
-        [0.1, 0.3, 280, "rgba(124,106,247,0.06)"],
-        [0.85, 0.7, 350, "rgba(245,200,66,0.04)"],
-        [0.5, 0.4, 200, "rgba(247,74,106,0.04)"],   // moved from 0.1 → 0.4 (away from header)
+        [0.1, 0.35, 280, "rgba(124,106,247,0.06)"],
+        [0.85, 0.7,  350, "rgba(245,200,66,0.04)"],
+        [0.5, 0.55,  200, "rgba(247,74,106,0.04)"],
       ].forEach(([ox, oy, r, c]) => {
         const rg = ctx.createRadialGradient(ox * W, oy * H, 0, ox * W, oy * H, r);
         rg.addColorStop(0, c);
@@ -79,9 +79,12 @@
           p.x = Math.random() * W;
           p.y = H + 10;
         }
+        // Fade particles out in the top 120px so they don't create
+        // a visible bright strip near the header in the side margins
+        const topFade = Math.min(1, Math.max(0, (p.y - 40) / 80));
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.col + p.alpha + ")";
+        ctx.fillStyle = p.col + (p.alpha * topFade) + ")";
         ctx.fill();
       });
 
