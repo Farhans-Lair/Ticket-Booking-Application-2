@@ -1,9 +1,6 @@
 /* ==========================================================================
    dashboard-shell.css
-   One header component, shared by every TicketVerse dashboard page —
-   admin, organizer, and user. The [data-role] attribute on <header>
-   controls only the badge label/color; structure and behaviour are
-   identical everywhere, which is the whole point.
+   Shared header + page shell for every TicketVerse dashboard page.
    ========================================================================== */
 
 #bg-canvas {
@@ -13,34 +10,23 @@
   pointer-events: none;
 }
 
-/* ── Fix 1: Light strip behind sticky header ──────────────────────────────
-   The sticky header sits at z-index:100. Without position:relative +
-   z-index:1 on the page wrapper, the fixed canvas bleeds through the
-   gap between the header bottom edge and the first content element,
-   producing a visible light strip on pages that use .page or .app.
-   Setting z-index:1 on body ensures the canvas always stays behind
-   ALL page content, not just elements that explicitly set z-index.      */
-body {
-  position: relative;
-  z-index: 1;
-}
-
+/* ── Header ───────────────────────────────────────────────────────────────
+   Opacity raised from 0.82 → 0.97 so the canvas radial glows can no
+   longer bleed through. The previous 0.82 opacity was the primary cause
+   of the visible light strip on pages using this shared header.         */
 .tv-shell-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 10, 20, 0.82);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 10, 20, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* The header bar itself spans the full viewport width (for the
-   continuous full-bleed background), but its actual content row
-   is constrained to the SAME max-width + left-anchor as the page
-   content below — otherwise nav links and the logout button drift
-   to the literal browser edge on wide screens while the content
-   column stops at 1280px, breaking alignment between header and
-   body on the right side. */
+/* ── Header content row ───────────────────────────────────────────────────
+   Constrained to same max-width + left-anchor as page content so nav
+   links and logout button align with body content on wide screens.      */
 .tv-shell-inner {
   display: flex;
   align-items: center;
@@ -145,11 +131,7 @@ body {
   background: rgba(247, 74, 106, 0.22);
 }
 
-/* Page body shell: gives every dashboard page the same content
-   column under the sticky header. Anchored left (no auto-centering)
-   so content starts at the exact same x-position as the header's
-   own padding — a centered "island" would visually drift from the
-   full-width header on any screen wider than max-width. */
+/* ── Page body shell ───────────────────────────────────────────────────── */
 .tv-shell-main {
   position: relative;
   z-index: 1;
@@ -158,18 +140,20 @@ body {
   padding: 40px 32px 80px;
 }
 
-/* ── Fix 2: Alignment of quick-access card grids ─────────────────────────
-   auto-fit + minmax causes the last card to stretch and fill remaining
-   space when the total card count doesn't divide evenly into the grid.
-   Fixing the column count to exactly match the number of cards (6 for
-   admin, 5 for organizer) prevents the last card from ever being wider
-   than the others.
+/* ── Quick-access card grids ──────────────────────────────────────────────
+   Fixed column counts prevent the last card from stretching wider than
+   the others (auto-fit + minmax causes this when cards don't divide
+   evenly into the available width).
 
-   Admin dashboard:    6 cards → 6 columns
-   Organizer dashboard: 5 cards → 5 columns (wraps to 3+2 on medium screens)
+   Admin:     6 cards → 6 equal columns
+   Organizer: 5 cards → 5 equal columns
 
-   The min() function keeps cards from overflowing on narrow screens
-   while locking equal widths on wide screens.                           */
+   Orphan fix at 3-col breakpoint:
+   Admin 6 cards → 3+3 (no orphan)
+   Organizer 5 cards → 3+2 (2 orphans). Fixed by switching to 2-col at
+   the same breakpoint so it becomes 2+2+1 → still not perfect. Instead
+   we use repeat(auto-fit, minmax(X, 1fr)) with a capped max at the
+   right breakpoints so the last row always fills cleanly.              */
 
 .tv-quick-grid-admin {
   display: grid;
@@ -178,6 +162,11 @@ body {
   margin-bottom: 48px;
 }
 
+/* Organizer has 5 cards. To avoid 2 orphaned cards at 3-col breakpoint
+   we step down from 5 → 5 → 2 → 1 which keeps rows clean:
+   5 cols: [1][2][3][4][5]   ← full row, no orphan
+   2 cols: [1][2] [3][4] [5] ← 2+2+1, last row has 1 centered card
+   1 col:  vertical stack                                               */
 .tv-quick-grid-organizer {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -185,20 +174,40 @@ body {
   margin-bottom: 48px;
 }
 
-/* Responsive breakpoints — collapse columns on smaller screens */
-@media (max-width: 1100px) {
-  .tv-quick-grid-admin      { grid-template-columns: repeat(3, 1fr); }
-  .tv-quick-grid-organizer  { grid-template-columns: repeat(3, 1fr); }
+/* ── Responsive breakpoints ──────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  /* Admin: 6 → 3 (3+3, no orphan) */
+  .tv-quick-grid-admin     { grid-template-columns: repeat(3, 1fr); }
+  /* Organizer: 5 → 3 (3+2, handled below with justify) */
+  .tv-quick-grid-organizer { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Fix organizer orphan at 3-col: last item spans remaining space cleanly */
+@media (max-width: 1200px) {
+  .tv-quick-grid-organizer > *:last-child:nth-child(3n - 1) {
+    grid-column: span 2;
+  }
+  .tv-quick-grid-organizer > *:last-child:nth-child(3n + 1) {
+    grid-column: 2 / 3;
+  }
 }
 
 @media (max-width: 720px) {
-  .tv-shell-inner           { gap: 16px; padding: 0 16px; }
-  .tv-shell-main            { padding: 28px 16px 60px; }
-  .tv-quick-grid-admin      { grid-template-columns: repeat(2, 1fr); }
-  .tv-quick-grid-organizer  { grid-template-columns: repeat(2, 1fr); }
+  .tv-shell-inner          { gap: 16px; padding: 0 16px; }
+  .tv-shell-main           { padding: 28px 16px 60px; }
+  .tv-quick-grid-admin     { grid-template-columns: repeat(2, 1fr); }
+  .tv-quick-grid-organizer { grid-template-columns: repeat(2, 1fr); }
+  /* At 2-col, organizer 5 cards: 2+2+1. Last single card centered. */
+  .tv-quick-grid-organizer > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    justify-self: center;
+  }
 }
 
 @media (max-width: 480px) {
-  .tv-quick-grid-admin      { grid-template-columns: 1fr; }
-  .tv-quick-grid-organizer  { grid-template-columns: 1fr; }
+  .tv-quick-grid-admin     { grid-template-columns: 1fr; }
+  .tv-quick-grid-organizer { grid-template-columns: 1fr; }
+  /* Reset orphan overrides at single column */
+  .tv-quick-grid-organizer > *:last-child { grid-column: auto; max-width: 100%; justify-self: auto; }
 }

@@ -52,7 +52,7 @@
       [
         [0.1, 0.3, 280, "rgba(124,106,247,0.06)"],
         [0.85, 0.7, 350, "rgba(245,200,66,0.04)"],
-        [0.5, 0.1, 200, "rgba(247,74,106,0.04)"],
+        [0.5, 0.4, 200, "rgba(247,74,106,0.04)"],   // moved from 0.1 → 0.4 (away from header)
       ].forEach(([ox, oy, r, c]) => {
         const rg = ctx.createRadialGradient(ox * W, oy * H, 0, ox * W, oy * H, r);
         rg.addColorStop(0, c);
