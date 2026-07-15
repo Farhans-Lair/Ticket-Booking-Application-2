@@ -13,6 +13,18 @@
   pointer-events: none;
 }
 
+/* ── Fix 1: Light strip behind sticky header ──────────────────────────────
+   The sticky header sits at z-index:100. Without position:relative +
+   z-index:1 on the page wrapper, the fixed canvas bleeds through the
+   gap between the header bottom edge and the first content element,
+   producing a visible light strip on pages that use .page or .app.
+   Setting z-index:1 on body ensures the canvas always stays behind
+   ALL page content, not just elements that explicitly set z-index.      */
+body {
+  position: relative;
+  z-index: 1;
+}
+
 .tv-shell-header {
   position: sticky;
   top: 0;
@@ -146,7 +158,47 @@
   padding: 40px 32px 80px;
 }
 
+/* ── Fix 2: Alignment of quick-access card grids ─────────────────────────
+   auto-fit + minmax causes the last card to stretch and fill remaining
+   space when the total card count doesn't divide evenly into the grid.
+   Fixing the column count to exactly match the number of cards (6 for
+   admin, 5 for organizer) prevents the last card from ever being wider
+   than the others.
+
+   Admin dashboard:    6 cards → 6 columns
+   Organizer dashboard: 5 cards → 5 columns (wraps to 3+2 on medium screens)
+
+   The min() function keeps cards from overflowing on narrow screens
+   while locking equal widths on wide screens.                           */
+
+.tv-quick-grid-admin {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.tv-quick-grid-organizer {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+/* Responsive breakpoints — collapse columns on smaller screens */
+@media (max-width: 1100px) {
+  .tv-quick-grid-admin      { grid-template-columns: repeat(3, 1fr); }
+  .tv-quick-grid-organizer  { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 720px) {
-  .tv-shell-inner { gap: 16px; padding: 0 16px; }
-  .tv-shell-main { padding: 28px 16px 60px; }
+  .tv-shell-inner           { gap: 16px; padding: 0 16px; }
+  .tv-shell-main            { padding: 28px 16px 60px; }
+  .tv-quick-grid-admin      { grid-template-columns: repeat(2, 1fr); }
+  .tv-quick-grid-organizer  { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .tv-quick-grid-admin      { grid-template-columns: 1fr; }
+  .tv-quick-grid-organizer  { grid-template-columns: 1fr; }
 }
