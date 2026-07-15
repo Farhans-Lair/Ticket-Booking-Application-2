@@ -1,9 +1,5 @@
 /* ==========================================================================
-   dashboard-shell.css
-   One header component, shared by every TicketVerse dashboard page —
-   admin, organizer, and user. The [data-role] attribute on <header>
-   controls only the badge label/color; structure and behaviour are
-   identical everywhere, which is the whole point.
+   dashboard-shell.css — shared across admin, organizer, and user dashboards
    ========================================================================== */
 
 #bg-canvas {
@@ -13,22 +9,38 @@
   pointer-events: none;
 }
 
+/* ── Light strip fix ────────────────────────────────────────────────────────
+   The canvas is position:fixed at z-index:0. Page wrappers (.page, .app
+   etc.) are position:relative at z-index:1 — they sit ABOVE the canvas but
+   are transparent by default, so the canvas shows through their padding.
+   
+   Setting background on every page wrapper to the SAME dark colour the canvas
+   itself renders (#0a0a14) blocks the canvas from bleeding through the 40px
+   top-padding area. The visual result is identical because the colours match —
+   the starfield is still visible in the side margins outside the content column
+   and on all pages with viewports narrower than max-width.               */
+
+.page,
+.app,
+.checkin-wrap,
+.main {
+  background: #0a0a14;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────────
+   Raised from 0.82 → 0.97 so any glow that reaches the header area is
+   fully blocked. At 0.82 the pink radial glow from the canvas bled through.
+   The payouts page own-nav already used 0.97, now every page matches it.  */
 .tv-shell-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 10, 20, 0.82);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 10, 20, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* The header bar itself spans the full viewport width (for the
-   continuous full-bleed background), but its actual content row
-   is constrained to the SAME max-width + left-anchor as the page
-   content below — otherwise nav links and the logout button drift
-   to the literal browser edge on wide screens while the content
-   column stops at 1280px, breaking alignment between header and
-   body on the right side. */
 .tv-shell-inner {
   display: flex;
   align-items: center;
@@ -133,11 +145,6 @@
   background: rgba(247, 74, 106, 0.22);
 }
 
-/* Page body shell: gives every dashboard page the same content
-   column under the sticky header. Anchored left (no auto-centering)
-   so content starts at the exact same x-position as the header's
-   own padding — a centered "island" would visually drift from the
-   full-width header on any screen wider than max-width. */
 .tv-shell-main {
   position: relative;
   z-index: 1;
@@ -146,7 +153,85 @@
   padding: 40px 32px 80px;
 }
 
+/* ── Admin quick-access grid (6 cards) ───────────────────────────────────────
+   6 cards → 6 equal columns. At 1200px collapses to 3+3 (balanced, no orphan)
+   At 720px collapses to 2+2+2 (balanced). At 480px goes single column.     */
+.tv-quick-grid-admin {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+/* ── Organizer quick-access grid (5 cards) ───────────────────────────────────
+   5 cards. Using flexbox so the last row can be centered, eliminating the
+   visual imbalance of 2 orphaned cards sitting left-aligned in a 3-col grid.
+
+   Wide (≥900px):   all 5 on one row, each 1/5 width — equal, no orphan
+   Medium (480-900px): flex-wrap 3 per row → last row has 2 centred cards
+   Mobile (<480px): 1 column stack                                          */
+.tv-quick-grid-organizer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.tv-quick-grid-organizer > * {
+  flex: 1 1 calc(20% - 13px);   /* 5 per row: (100% - 4*16px) / 5 ≈ 20% */
+  min-width: 160px;
+  box-sizing: border-box;
+}
+
+/* ── Responsive breakpoints ─────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .tv-quick-grid-admin {
+    grid-template-columns: repeat(3, 1fr);  /* 3+3, balanced */
+  }
+  /* Organizer: flex naturally wraps to 3 per row at this width.
+     justify-content:center centres the 2 orphaned cards in the last row. */
+  .tv-quick-grid-organizer {
+    justify-content: center;
+  }
+  .tv-quick-grid-organizer > * {
+    flex: 0 1 calc(33.333% - 11px);  /* 3 per row */
+    min-width: 160px;
+  }
+}
+
 @media (max-width: 720px) {
-  .tv-shell-inner { gap: 16px; padding: 0 16px; }
-  .tv-shell-main { padding: 28px 16px 60px; }
+  .tv-shell-inner  { gap: 16px; padding: 0 16px; }
+  .tv-shell-main   { padding: 28px 16px 60px; }
+
+  .tv-quick-grid-admin {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tv-quick-grid-organizer > * {
+    flex: 0 1 calc(50% - 8px);  /* 2 per row */
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .tv-quick-grid-admin {
+    grid-template-columns: 1fr;
+  }
+  .tv-quick-grid-organizer > * {
+    flex: 1 1 100%;
+  }
+}
+
+/* ── Check-in scanner card centering ────────────────────────────────────────
+   The scanner card has max-width:480px. Without centering it sits top-left
+   leaving a large empty area. Flex column + align-items:center centres it. */
+.checkin-wrap {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+}
+
+.checkin-wrap .page-header {
+  width: 100%;
+  max-width: 480px;
 }

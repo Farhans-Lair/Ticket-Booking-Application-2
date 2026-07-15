@@ -80,13 +80,11 @@
     .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 
     .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2.5rem;
+      /* tv-quick-grid-organizer from dashboard-shell.css handles
+         the fixed 5-column layout and responsive breakpoints */
     }
     .action-card {
-      background: var(--card);
+      background: rgba(18, 18, 32, 0.92);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.5rem;
@@ -190,7 +188,7 @@
 
   <!-- QUICK ACTIONS -->
   <div class="section-title">Quick Actions</div>
-  <div class="actions-grid">
+  <div class="actions-grid tv-quick-grid-organizer">
     <a href="/organizer-events" class="action-card">
       <div class="action-icon">📅</div>
       <div class="action-info">
