@@ -1,10 +1,6 @@
-/**
- * wishlist.services.js — Feature 6: Wishlist / save event
- */
 const { Wishlist, Event, User } = require("../models");
 const logger = require("../config/logger");
 
-/* ─── Save / update ───────────────────────────────────────────────────────── */
 const save = async (userId, eventId, notifyOnAvailability = false) => {
   await Event.findByPk(eventId)
     .then(e => { if (!e) throw new Error("Event not found."); });
@@ -22,13 +18,11 @@ const save = async (userId, eventId, notifyOnAvailability = false) => {
   return entry;
 };
 
-/* ─── Remove ──────────────────────────────────────────────────────────────── */
 const remove = async (userId, eventId) => {
   await Wishlist.destroy({ where: { user_id: userId, event_id: eventId } });
   logger.info("Wishlist removed", { userId, eventId });
 };
 
-/* ─── Get user wishlist ───────────────────────────────────────────────────── */
 const getForUser = (userId) =>
   Wishlist.findAll({
     where: { user_id: userId },
@@ -36,7 +30,6 @@ const getForUser = (userId) =>
     order: [["saved_at", "DESC"]],
   });
 
-/* ─── Notify availability subscribers (after cancellation frees a seat) ──── */
 const notifyAvailabilitySubscribers = async (eventId) => {
   const subscribers = await Wishlist.findAll({
     where: { event_id: eventId, notify_on_availability: true },
@@ -47,7 +40,6 @@ const notifyAvailabilitySubscribers = async (eventId) => {
   const event = await Event.findByPk(eventId);
   if (!event) return;
 
-  // Lazy-require email service to avoid circular deps
   const { sendSimple } = require("./email.services");
 
   for (const w of subscribers) {

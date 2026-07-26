@@ -1,6 +1,3 @@
-# =============================================================
-# cloudwatch.tf — #9: log retention raised to 90 days
-# =============================================================
 
 resource "aws_cloudwatch_log_group" "app_logs" {
   name              = "/ticketapp/backend"
@@ -20,8 +17,6 @@ resource "aws_cloudwatch_log_group" "bootstrap_logs" {
   tags              = { Name = "${var.project_name}-bootstrap-logs" }
 }
 
-# ── SNS ───────────────────────────────────────────────────────────────────────
-
 resource "aws_sns_topic" "alerts" {
   name = "${var.project_name}-alerts"
 }
@@ -31,8 +26,6 @@ resource "aws_sns_topic_subscription" "email_alert" {
   protocol  = "email"
   endpoint  = var.alert_email
 }
-
-# ── Alarms ────────────────────────────────────────────────────────────────────
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   alarm_name          = "${var.project_name}-alb-5xx-errors"
@@ -140,8 +133,6 @@ resource "aws_cloudwatch_metric_alarm" "replica_lag" {
   ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
-# ── Log Metric Filters ────────────────────────────────────────────────────────
-
 resource "aws_cloudwatch_log_metric_filter" "payment_errors" {
   name           = "${var.project_name}-payment-errors"
   log_group_name = aws_cloudwatch_log_group.error_logs.name
@@ -191,8 +182,6 @@ resource "aws_cloudwatch_log_metric_filter" "cancellations" {
     value     = "1"
   }
 }
-
-# ── Dashboard ─────────────────────────────────────────────────────────────────
 
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "${var.project_name}-dashboard"

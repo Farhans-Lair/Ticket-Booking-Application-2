@@ -11,7 +11,6 @@ const authenticate = (req, res, next) => {
   }
 
   try {
-    // Access tokens are verified with JWT_ACCESS_SECRET only
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     req.user = decoded;
     next();

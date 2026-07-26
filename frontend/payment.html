@@ -26,7 +26,6 @@
     }
     .card h2 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:20px; }
 
-    /* summary table */
     .summary-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
     .summary-table td { padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.92rem; color:var(--muted); }
     .summary-table td:last-child { text-align:right; color:var(--text); }
@@ -34,7 +33,6 @@
     .summary-table .total-row td { border-top:1px solid rgba(255,255,255,0.12); border-bottom:none; font-size:1rem; font-weight:700; padding-top:12px; color:var(--gold); }
     .summary-table .discount-row td { color:var(--green); }
 
-    /* Feature 4: Coupon section */
     .coupon-section { margin-bottom:20px; }
     .coupon-section label { display:block; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; color:var(--muted); margin-bottom:8px; }
     .coupon-row { display:flex; gap:8px; }
@@ -58,7 +56,6 @@
     .coupon-feedback.ok  { color:var(--green); }
     .coupon-feedback.err { color:var(--red); }
 
-    /* pay button */
     #pay-btn {
       width:100%; padding:15px; margin-top:4px;
       background:linear-gradient(135deg,var(--gold),var(--gold-dark));
@@ -78,7 +75,7 @@
 
     .seat-tags { display:flex; flex-wrap:wrap; gap:5px; }
     .seat-tag  { padding:3px 10px; border-radius:7px; background:rgba(124,106,247,0.12); border:1px solid rgba(124,106,247,0.22); color:var(--accent); font-size:0.78rem; font-weight:600; }
-  </style>
+</style>
 </head>
 <body>
   <div class="payment-wrap">
@@ -88,7 +85,6 @@
       <h2>🎟️ Order Summary</h2>
       <div id="summary"></div>
 
-      <!-- Feature 4: Coupon input -->
       <div class="coupon-section">
         <label>Have a coupon?</label>
         <div class="coupon-row">

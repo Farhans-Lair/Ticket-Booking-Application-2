@@ -1,15 +1,3 @@
-/**
- * reminder.services.js  —  Feature 3: Event Reminder Emails
- *
- * Schedules a daily cron job that:
- *  1. Finds all upcoming events starting within the next 24 hours.
- *  2. Finds all PAID, ACTIVE bookings for those events where
- *     reminder_sent = 0 (not yet notified).
- *  3. Sends a reminder email to each user.
- *  4. Marks the booking's reminder_sent = 1 so they aren't emailed twice.
- *
- * Import and call startReminderScheduler() once from server.js.
- */
 
 const cron        = require("node-cron");
 const nodemailer  = require("nodemailer");
@@ -17,7 +5,6 @@ const { Op }      = require("sequelize");
 const { Booking, Event, User } = require("../models");
 const logger      = require("../config/logger");
 
-// ── Mail transporter (shared with email.services.js) ─────────
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -25,10 +12,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
-// ─────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────
 
 function fmtDate(date) {
   return new Date(date).toLocaleString("en-IN", {
@@ -94,16 +77,12 @@ function buildReminderHtml(user, event, booking) {
 </html>`;
 }
 
-// ─────────────────────────────────────────────────────────────
-// CORE JOB — send reminders for events in the next 24 hours
-// ─────────────────────────────────────────────────────────────
 async function sendEventReminders() {
   logger.info("[Reminder] Starting reminder scan…");
 
   const now       = new Date();
   const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-  // Events happening in the next 24 hours
   const upcomingEvents = await Event.findAll({
     where: {
       status:     "approved",
@@ -119,7 +98,6 @@ async function sendEventReminders() {
 
   const eventIds = upcomingEvents.map((e) => e.id);
 
-  // Paid, active bookings for those events that haven't had a reminder sent
   const bookings = await Booking.findAll({
     where: {
       event_id:             { [Op.in]: eventIds },
@@ -145,7 +123,6 @@ async function sendEventReminders() {
         html:    buildReminderHtml(booking.User, booking.Event, booking),
       });
 
-      // Mark reminder sent to avoid duplicate emails
       await booking.update({ reminder_sent: 1 });
       sent++;
     } catch (emailErr) {
@@ -160,13 +137,9 @@ async function sendEventReminders() {
   logger.info(`[Reminder] Done — ${sent}/${bookings.length} reminders sent.`);
 }
 
-// ─────────────────────────────────────────────────────────────
-// SCHEDULER — run every day at 9:00 AM
-// ─────────────────────────────────────────────────────────────
 function startReminderScheduler() {
-  if (process.env.NODE_ENV === "test") return;   // skip in test environment
+  if (process.env.NODE_ENV === "test") return;
 
-  // "0 9 * * *"  → at 09:00 every day
   cron.schedule("0 9 * * *", async () => {
     try {
       await sendEventReminders();

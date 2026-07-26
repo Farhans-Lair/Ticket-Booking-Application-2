@@ -1,19 +1,7 @@
-/**
- * organizer.controllers.js
- *
- * Updated for Feature 4 (Moderation): organizer-created events now start as
- * status='pending' and are only visible publicly after admin approval.
- * Feature 5 (Payouts): organizer can view their own payout history via
- * GET /organizer/payouts (handled in admin.controllers.js, mounted in routes).
- */
 
 const organizerService = require("../services/organizer.services");
 const eventService     = require("../services/event.services");
 const logger           = require("../config/logger");
-
-// ─────────────────────────────────────────────────────────────
-// ORGANIZER — PROFILE
-// ─────────────────────────────────────────────────────────────
 
 const getProfile = async (req, res, next) => {
   try {
@@ -37,10 +25,6 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ORGANIZER — EVENTS
-// ─────────────────────────────────────────────────────────────
-
 const getMyEvents = async (req, res, next) => {
   try {
     const events = await organizerService.getOrganizerEvents(req.user.id);
@@ -52,11 +36,6 @@ const getMyEvents = async (req, res, next) => {
   }
 };
 
-/**
- * POST /organizer/events
- * Feature 4: organizer-submitted events start as status='pending'.
- * They only appear publicly after an admin approves them.
- */
 const createEvent = async (req, res, next) => {
   try {
     const {
@@ -88,7 +67,7 @@ const createEvent = async (req, res, next) => {
       category:          category || "Other",
       images:            Array.isArray(images) && images.length > 0 ? images : null,
       organizer_id:      req.user.id,
-      status:            "pending",    // Feature 4: requires admin approval before going live
+      status:            "pending",
       is_featured:       false,
     });
 
@@ -113,7 +92,7 @@ const updateEvent = async (req, res, next) => {
     const updatedEvent = await eventService.updateEvent(
       req.params.id,
       { title, description, location, event_date, price, total_tickets, category, images },
-      req.user.id   // scoped to this organizer
+      req.user.id
     );
 
     if (!updatedEvent) {
@@ -170,10 +149,6 @@ const getEventAttendees = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────
-// ADMIN — ORGANIZER APPLICATION MANAGEMENT
-// ─────────────────────────────────────────────────────────────
 
 const listOrganizers = async (req, res, next) => {
   try {

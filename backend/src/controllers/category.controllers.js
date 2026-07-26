@@ -1,14 +1,7 @@
-/**
- * category.controllers.js
- * Admin: full CRUD on event_categories
- * Public: GET active categories (used by organizer + user dashboards)
- */
 
 const EventCategory = require("../models/EventCategory");
 const logger        = require("../config/logger");
 
-// ── Public: list active categories ───────────────────────────────────────────
-// GET /categories  (no auth required)
 const listCategories = async (req, res, next) => {
   try {
     const categories = await EventCategory.findAll({
@@ -22,8 +15,6 @@ const listCategories = async (req, res, next) => {
   }
 };
 
-// ── Admin: list ALL categories (including inactive) ───────────────────────────
-// GET /admin/categories
 const adminListCategories = async (req, res, next) => {
   try {
     const categories = await EventCategory.findAll({
@@ -36,15 +27,12 @@ const adminListCategories = async (req, res, next) => {
   }
 };
 
-// ── Admin: create category ────────────────────────────────────────────────────
-// POST /admin/categories
 const createCategory = async (req, res, next) => {
   try {
     const { name, icon_emoji, image_url, sort_order } = req.body;
     if (!name || !name.trim())
       return res.status(400).json({ error: "name is required." });
 
-    // Auto-generate slug from name (PascalCase, strip spaces)
     const slug = name.trim().replace(/\s+/g, "_");
 
     const existing = await EventCategory.findOne({ where: { slug } });
@@ -68,8 +56,6 @@ const createCategory = async (req, res, next) => {
   }
 };
 
-// ── Admin: update category ────────────────────────────────────────────────────
-// PUT /admin/categories/:id
 const updateCategory = async (req, res, next) => {
   try {
     const cat = await EventCategory.findByPk(req.params.id);
@@ -95,8 +81,6 @@ const updateCategory = async (req, res, next) => {
   }
 };
 
-// ── Admin: delete category ────────────────────────────────────────────────────
-// DELETE /admin/categories/:id
 const deleteCategory = async (req, res, next) => {
   try {
     const cat = await EventCategory.findByPk(req.params.id);

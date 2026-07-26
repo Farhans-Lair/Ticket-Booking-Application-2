@@ -1,11 +1,3 @@
-/**
- * starfield.js — shared ambient background for every TicketVerse
- * dashboard page (admin / organizer / user).
- *
- * Auto-initializes on DOMContentLoaded if a <canvas id="bg-canvas">
- * is present on the page. One implementation, used everywhere, so
- * the "void" backdrop looks and moves identically across the whole app.
- */
 (function () {
   function initStarfield() {
     const canvas = document.getElementById("bg-canvas");
@@ -79,8 +71,7 @@
           p.x = Math.random() * W;
           p.y = H + 10;
         }
-        // Fade particles out in the top 120px so they don't create
-        // a visible bright strip near the header in the side margins
+
         const topFade = Math.min(1, Math.max(0, (p.y - 40) / 80));
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);

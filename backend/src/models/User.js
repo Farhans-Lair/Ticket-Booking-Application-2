@@ -25,7 +25,7 @@ const User = sequelize.define("User", {
     allowNull: false,
     defaultValue: "user",
   },
-  // ── Feature 1: User Profile ──────────────────────────────────
+
   phone: {
     type: DataTypes.STRING(20),
     defaultValue: null,

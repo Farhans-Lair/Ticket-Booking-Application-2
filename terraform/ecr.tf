@@ -1,10 +1,3 @@
-# ---------------------------
-# ECR Repository
-# ---------------------------
-# Managed by Terraform so it exists before GitHub Actions runs.
-# Phase 1: terraform apply -target=aws_ecr_repository.ticket_backend
-# Phase 2: git push (CI/CD pushes image)
-# Phase 3: terraform apply (full infra — EC2 pulls image on first boot)
 
 resource "aws_ecr_repository" "ticket_backend" {
   name                 = "ticket-backend"
@@ -19,7 +12,6 @@ resource "aws_ecr_repository" "ticket_backend" {
   }
 }
 
-# Auto-delete untagged images older than 7 days to keep storage costs low
 resource "aws_ecr_lifecycle_policy" "ticket_backend" {
   repository = aws_ecr_repository.ticket_backend.name
 

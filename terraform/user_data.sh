@@ -4,20 +4,16 @@ exec > /var/log/user-data.log 2>&1
 
 yum update -y
 
-# Remove conflicting mariadb packages first
 yum remove mariadb mariadb-libs -y || true
 
-# Add MySQL 8.0 community repo
 yum install https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm -y
 yum-config-manager --enable mysql80-community
 yum install mysql-community-client -y
 
-# Install Docker
 yum install -y docker
 systemctl enable docker
 systemctl start docker
 
-# Wait until Docker daemon is ready
 until docker info >/dev/null 2>&1; do
   sleep 5
 done
@@ -27,13 +23,6 @@ usermod -aG docker ec2-user
 APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
-# Write .env
-#
-# USE_HTTPS=false  — The ALB terminates TLS. Node.js runs plain HTTP
-#                    on port 3000 inside the VPC. No certs on EC2.
-#
-# COOKIE_SECURE=true — Cookies are sent over HTTPS (the user's browser
-#                      talks HTTPS to the ALB), so Secure flag is correct.
 cat <<'ENVEOF'> $APP_DIR/.env
 PORT=3000
 USE_HTTPS=false
@@ -60,7 +49,6 @@ ENVEOF
 chown ec2-user:ec2-user $APP_DIR/.env
 chmod 600 $APP_DIR/.env
 
-# Install and configure CloudWatch Agent
 yum install -y amazon-cloudwatch-agent
 
 mkdir -p /home/ec2-user/ticket-backend/logs
@@ -119,15 +107,11 @@ CWEOF
 
 systemctl enable amazon-cloudwatch-agent
 
-# Login to ECR
 aws ecr get-login-password --region ap-south-1 \
 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com
 
-# Remove old container if exists
 docker rm -f ticket-backend || true
 
-# Run container — plain HTTP, no cert mounts needed on EC2.
-# The mkcert cert is on the ALB (uploaded to IAM by Terraform).
 docker run -d \
   --name ticket-backend \
   --restart always \

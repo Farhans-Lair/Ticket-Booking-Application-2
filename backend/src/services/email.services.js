@@ -17,10 +17,6 @@ transporter.verify((error) => {
 });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
 function fmtDate(date) {
   return new Date(date).toLocaleDateString("en-IN", {
     weekday: "short", year: "numeric", month: "short", day: "numeric",
@@ -30,10 +26,6 @@ function fmtDate(date) {
 function fmtCurrency(amount) {
   return `Rs. ${parseFloat(amount || 0).toFixed(2)}`;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TICKET PDF  (fancy event-style — unchanged)
-// ─────────────────────────────────────────────────────────────────────────────
 
 function generateTicketPDF(booking, user, event) {
   return new Promise((resolve, reject) => {
@@ -171,11 +163,6 @@ function generateTicketPDF(booking, user, event) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BOOKING INVOICE PDF  (professional A4 billing document)
-// Triggered: on verifyPayment (booking confirmed event)
-// ─────────────────────────────────────────────────────────────────────────────
-
 function generateBookingInvoicePDF(booking, user, event) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 0, autoFirstPage: true });
@@ -199,7 +186,6 @@ function generateBookingInvoicePDF(booking, user, event) {
     const SUCCESS = "#16a34a";
     const DIVIDER = "#e5e7eb";
 
-    // Header band
     doc.rect(0, 0, W, 88).fill(DARK);
     doc.rect(0, 0, 6, 88).fill(BRAND);
     doc.fontSize(20).font("Helvetica-Bold").fillColor(BRAND)
@@ -214,7 +200,6 @@ function generateBookingInvoicePDF(booking, user, event) {
 
     let y = 108;
 
-    // Billed to + invoice meta
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("BILLED TO", M, y, { characterSpacing: 1.5 });
     doc.fontSize(12).font("Helvetica-Bold").fillColor(DARK)
@@ -240,7 +225,6 @@ function generateBookingInvoicePDF(booking, user, event) {
     doc.moveTo(M, y).lineTo(W - M, y).strokeColor(DIVIDER).lineWidth(1).stroke();
     y += 20;
 
-    // Event details
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("EVENT DETAILS", M, y, { characterSpacing: 1.5 });
     y += 14;
@@ -254,7 +238,6 @@ function generateBookingInvoicePDF(booking, user, event) {
       );
     y += 78;
 
-    // Items table
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("BILLING BREAKDOWN", M, y, { characterSpacing: 1.5 });
     y += 12;
@@ -287,7 +270,6 @@ function generateBookingInvoicePDF(booking, user, event) {
       y += rowH;
     });
 
-    // Totals
     y += 8;
     const totBlockW = 220;
     const totBlockX = W - M - totBlockW;
@@ -306,7 +288,6 @@ function generateBookingInvoicePDF(booking, user, event) {
     y += 8;
     totRow("Total Paid", fmtCurrency(booking.total_paid), true, DARK);
 
-    // Payment info chip
     y += 12;
     doc.roundedRect(M, y, CW, 44, 6).fill(LIGHT);
     doc.fontSize(7.5).font("Helvetica-Bold").fillColor(BRAND)
@@ -317,7 +298,6 @@ function generateBookingInvoicePDF(booking, user, event) {
         M + 16, y + 22, { width: CW - 32 }
       );
 
-    // Status badge
     y += 60;
     const badgeW = 160;
     const badgeX = (W - badgeW) / 2;
@@ -325,7 +305,6 @@ function generateBookingInvoicePDF(booking, user, event) {
     doc.fontSize(10).font("Helvetica-Bold").fillColor(SUCCESS)
       .text("✔  PAYMENT CONFIRMED", badgeX, y + 7, { width: badgeW, align: "center" });
 
-    // Seats + booking date
     let seatsDisplay = "N/A";
     try {
       const seats = JSON.parse(booking.selected_seats || "[]");
@@ -339,7 +318,6 @@ function generateBookingInvoicePDF(booking, user, event) {
         M, y, { width: CW, align: "center" }
       );
 
-    // Footer
     const footerY = H - 52;
     doc.rect(0, footerY, W, 52).fill(DARK);
     doc.rect(0, footerY, 6, 52).fill(BRAND);
@@ -351,11 +329,6 @@ function generateBookingInvoicePDF(booking, user, event) {
     doc.end();
   });
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CANCELLATION INVOICE PDF  (professional A4 — shows refund breakdown)
-// Triggered: on cancelBooking (cancellation confirmed event)
-// ─────────────────────────────────────────────────────────────────────────────
 
 function generateCancellationInvoicePDF(booking, user, event, cancellationResult) {
   return new Promise((resolve, reject) => {
@@ -398,7 +371,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     const totalCancCharge = parseFloat(cancellationFee || 0) + parseFloat(cancellationFeeGst || 0);
     const refund          = parseFloat(refundAmount || 0);
 
-    // Header band
     doc.rect(0, 0, W, 88).fill(DARK);
     doc.rect(0, 0, 6, 88).fill(BRAND);
     doc.fontSize(20).font("Helvetica-Bold").fillColor(BRAND)
@@ -414,7 +386,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
 
     let y = 108;
 
-    // Meta
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("BILLED TO", M, y, { characterSpacing: 1.5 });
     doc.fontSize(12).font("Helvetica-Bold").fillColor(DARK).text(user.name, M, y + 14);
@@ -438,7 +409,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     doc.moveTo(M, y).lineTo(W - M, y).strokeColor(DIVIDER).lineWidth(1).stroke();
     y += 20;
 
-    // Event details
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("ORIGINAL BOOKING — EVENT DETAILS", M, y, { characterSpacing: 1.5 });
     y += 14;
@@ -452,7 +422,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
       );
     y += 78;
 
-    // Breakdown table
     doc.fontSize(7).font("Helvetica-Bold").fillColor(BRAND)
       .text("FINANCIAL BREAKDOWN", M, y, { characterSpacing: 1.5 });
     y += 12;
@@ -485,7 +454,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
       y += rowH;
     });
 
-    // Summary totals
     y += 8;
     const totBlockW = 240;
     const totBlockX = W - M - totBlockW;
@@ -503,7 +471,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     y += 8;
     totRow("Refund to Customer", fmtCurrency(refund), true, refund > 0 ? INFO : WARN);
 
-    // Policy chip
     y += 12;
     doc.roundedRect(M, y, CW, 48, 6).fill(LIGHT);
     const tierLabel = isHighTier
@@ -514,7 +481,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     doc.fontSize(8.5).font("Helvetica").fillColor(MUTED)
       .text(tierLabel, M + 16, y + 24, { width: CW - 32 });
 
-    // Status badge
     y += 68;
     const badgeColor = refund > 0 ? "#dbeafe" : "#fee2e2";
     const badgeText  = refund > 0
@@ -527,7 +493,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     doc.fontSize(10).font("Helvetica-Bold").fillColor(badgeFont)
       .text(badgeText, badgeX, y + 8, { width: badgeW, align: "center" });
 
-    // Payment ref
     y += 46;
     doc.fontSize(8).font("Helvetica").fillColor(MUTED)
       .text(
@@ -536,7 +501,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
         M, y, { width: CW, align: "center" }
       );
 
-    // Footer
     const footerY = H - 52;
     doc.rect(0, footerY, W, 52).fill(DARK);
     doc.rect(0, footerY, 6, 52).fill(BRAND);
@@ -548,10 +512,6 @@ function generateCancellationInvoicePDF(booking, user, event, cancellationResult
     doc.end();
   });
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EMAIL SENDERS
-// ─────────────────────────────────────────────────────────────────────────────
 
 async function sendTicketEmail(user, booking, event) {
   try {
@@ -585,11 +545,6 @@ async function sendTicketEmail(user, booking, event) {
   }
 }
 
-/**
- * sendBookingInvoiceEmail
- * Triggered after booking is confirmed (verifyPayment event).
- * Sends a professional A4 billing invoice PDF via email.
- */
 async function sendBookingInvoiceEmail(user, booking, event) {
   try {
     const invoiceBuffer = await generateBookingInvoicePDF(booking, user, event);
@@ -627,11 +582,6 @@ async function sendBookingInvoiceEmail(user, booking, event) {
   }
 }
 
-/**
- * sendCancellationInvoiceEmail
- * Triggered after booking is cancelled (cancelBooking event).
- * Sends a cancellation invoice PDF via email showing refund breakdown.
- */
 async function sendCancellationInvoiceEmail(user, booking, event, cancellationResult) {
   try {
     const invoiceBuffer = await generateCancellationInvoicePDF(booking, user, event, cancellationResult);
@@ -683,10 +633,6 @@ async function sendCancellationInvoiceEmail(user, booking, event, cancellationRe
   }
 }
 
-/**
- * Send a 6-digit OTP email.
- * purpose: "signup" | "login"
- */
 async function sendOTPEmail(toEmail, otp, purpose) {
   const isSignup = purpose === "signup";
   const subject  = isSignup ? "Verify your email – Ticket Booking" : "Your login verification code – Ticket Booking";

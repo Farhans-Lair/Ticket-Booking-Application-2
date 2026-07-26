@@ -1,7 +1,5 @@
 const { body } = require("express-validator");
 
-// ─── User signup ──────────────────────────────────────────────────────────────
-
 const signupRequestValidator = [
   body("name").notEmpty().withMessage("Name is required"),
   body("email").isEmail().withMessage("Valid email is required"),
@@ -20,8 +18,6 @@ const signupVerifyValidator = [
     .withMessage("OTP must be a 6-digit number"),
 ];
 
-// ─── Login ────────────────────────────────────────────────────────────────────
-
 const loginRequestValidator = [
   body("email").isEmail().withMessage("Valid email is required"),
   body("password").notEmpty().withMessage("Password is required"),
@@ -34,9 +30,6 @@ const loginVerifyValidator = [
     .isNumeric()
     .withMessage("OTP must be a 6-digit number"),
 ];
-
-// ─── Organizer signup ─────────────────────────────────────────────────────────
-// Step 1: collect all business details upfront, then send OTP
 
 const organizerSignupRequestValidator = [
   body("name").notEmpty().withMessage("Name is required"),
@@ -63,7 +56,6 @@ const organizerSignupRequestValidator = [
     .withMessage("Address must be 500 characters or fewer"),
 ];
 
-// Step 2: same shape as regular signup-verify — just email + OTP
 const organizerSignupVerifyValidator = [
   body("email").isEmail().withMessage("Valid email is required"),
   body("otp")

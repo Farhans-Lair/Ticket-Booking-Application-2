@@ -3,36 +3,12 @@ const jwt         = require('jsonwebtoken');
 const crypto      = require('crypto');
 const logger      = require('../config/logger');
 
-// ── Token config ──────────────────────────────────────────────────────────────
-//
-// Three separate secrets — each token type is cryptographically independent:
-//
-//  JWT_ACCESS_SECRET  — signs short-lived access tokens (8h)
-//                       verified on every protected API call in auth.middleware.js
-//
-//  JWT_REFRESH_SECRET — signs the refresh token JWT wrapper that travels in
-//                       the httpOnly cookie. The inner opaque token (random hex)
-//                       is what gets stored/rotated in the DB. The JWT wrapper
-//                       adds an extra signature check before we even hit the DB.
-//
-//  JWT_SESSION_SECRET — signs a lightweight session token returned to the
-//                       frontend on login-verify. The frontend stores this in
-//                       sessionStorage (per-tab) and sends it as a secondary
-//                       header (X-Session-Token). Used to bind the session to
-//                       a specific browser tab and detect cross-tab token reuse.
-//
 const ACCESS_EXPIRY   = '8h';
 const ACCESS_MAX_MS   = 8  * 60 * 60 * 1000;
 const REFRESH_EXPIRY  = '7d';
 const REFRESH_MAX_MS  = 7  * 24 * 60 * 60 * 1000;
-const SESSION_EXPIRY  = '8h';   // matches access token lifetime
+const SESSION_EXPIRY  = '8h';
 
-// ── Token issuers ─────────────────────────────────────────────────────────────
-
-/**
- * Access token — verifiable by auth.middleware on every API call.
- * Secret: JWT_ACCESS_SECRET
- */
 const _issueAccessToken = (userId, role) =>
   jwt.sign(
     { id: userId, role },
@@ -40,11 +16,6 @@ const _issueAccessToken = (userId, role) =>
     { expiresIn: ACCESS_EXPIRY }
   );
 
-/**
- * Refresh token — opaque random hex wrapped in a signed JWT.
- * The JWT wrapper is verified before the DB lookup, adding an extra layer.
- * Secret: JWT_REFRESH_SECRET
- */
 const _issueRefreshToken = () => {
   const opaqueToken = crypto.randomBytes(64).toString('hex');
   const signedWrapper = jwt.sign(
@@ -55,11 +26,6 @@ const _issueRefreshToken = () => {
   return { opaqueToken, signedWrapper };
 };
 
-/**
- * Session token — lightweight per-tab identifier stored in sessionStorage.
- * Binds the session to a browser tab. Not used for API auth directly.
- * Secret: JWT_SESSION_SECRET
- */
 const _issueSessionToken = (userId, role) =>
   jwt.sign(
     { id: userId, role, sessionId: crypto.randomBytes(16).toString('hex') },
@@ -67,11 +33,6 @@ const _issueSessionToken = (userId, role) =>
     { expiresIn: SESSION_EXPIRY }
   );
 
-/**
- * Extract and verify the opaque token from the signed refresh JWT wrapper.
- * Returns the raw opaque token string.
- * Throws if the wrapper signature is invalid or expired.
- */
 const _unwrapRefreshToken = (signedWrapper) => {
   try {
     const payload = jwt.verify(signedWrapper, process.env.JWT_REFRESH_SECRET);
@@ -81,9 +42,6 @@ const _unwrapRefreshToken = (signedWrapper) => {
   }
 };
 
-/**
- * Set access token cookie and refresh token cookie on the response.
- */
 const _setAuthCookies = (res, accessToken, signedRefreshWrapper) => {
   const secure = process.env.COOKIE_SECURE === 'true';
 
@@ -99,12 +57,10 @@ const _setAuthCookies = (res, accessToken, signedRefreshWrapper) => {
     httpOnly: true,
     secure,
     sameSite: 'lax',
-    path:     '/auth/refresh',   // only sent to the refresh endpoint
+    path:     '/auth/refresh',
     maxAge:   REFRESH_MAX_MS,
   });
 };
-
-// ── User signup ───────────────────────────────────────────────────────────────
 
 const signupRequest = async (req, res, next) => {
   try {
@@ -132,8 +88,6 @@ const signupVerify = async (req, res, next) => {
   }
 };
 
-// ── Login ─────────────────────────────────────────────────────────────────────
-
 const loginRequest = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -153,29 +107,23 @@ const loginVerify = async (req, res, next) => {
     const { email, otp } = req.body;
     const { userId, role } = await authService.completeLogin(email, otp);
 
-    // Issue all three tokens using their respective secrets
     const accessToken            = _issueAccessToken(userId, role);
     const { opaqueToken,
             signedWrapper }      = _issueRefreshToken();
     const sessionToken           = _issueSessionToken(userId, role);
 
-    // Store hashed opaque token in DB (not the JWT wrapper)
     await authService.saveRefreshToken(userId, opaqueToken);
 
-    // Access + refresh go into httpOnly cookies
     _setAuthCookies(res, accessToken, signedWrapper);
 
     logger.info('User logged in', { userId, role, email });
 
-    // Session token returned in body — frontend stores in sessionStorage (per-tab)
     res.json({ userId, role, token: accessToken, sessionToken });
   } catch (err) {
     logger.error('Login verify failed', { email: req.body?.email, error: err.message });
     next(err);
   }
 };
-
-// ── Token refresh ─────────────────────────────────────────────────────────────
 
 const refresh = async (req, res, next) => {
   try {
@@ -184,19 +132,15 @@ const refresh = async (req, res, next) => {
       return res.status(401).json({ error: 'No refresh token. Please log in again.' });
     }
 
-    // Step 1 — verify JWT_REFRESH_SECRET signature before hitting DB
     const opaqueToken = _unwrapRefreshToken(signedWrapper);
 
-    // Step 2 — validate opaque token in DB and rotate (consume old, issue new)
     const { userId, role } = await authService.rotateRefreshToken(opaqueToken);
 
-    // Step 3 — issue fresh set of all three tokens
     const newAccessToken              = _issueAccessToken(userId, role);
     const { opaqueToken: newOpaque,
             signedWrapper: newWrapper } = _issueRefreshToken();
     const newSessionToken             = _issueSessionToken(userId, role);
 
-    // Persist new opaque token hash
     await authService.saveRefreshToken(userId, newOpaque);
 
     _setAuthCookies(res, newAccessToken, newWrapper);
@@ -211,19 +155,17 @@ const refresh = async (req, res, next) => {
   }
 };
 
-// ── Logout ────────────────────────────────────────────────────────────────────
-
 const logout = async (req, res) => {
   const secure = process.env.COOKIE_SECURE === 'true';
 
   try {
     const signedWrapper = req.cookies?.refreshToken;
     if (signedWrapper) {
-      // Unwrap to get opaque token, then revoke from DB
+
       const opaqueToken = _unwrapRefreshToken(signedWrapper);
       await authService.revokeRefreshToken(opaqueToken);
     }
-  } catch (_) { /* non-fatal */ }
+  } catch (_) {  }
 
   res.clearCookie('token',        { httpOnly: true, secure, sameSite: 'lax', path: '/' });
   res.clearCookie('refreshToken', { httpOnly: true, secure, sameSite: 'lax', path: '/auth/refresh' });
@@ -232,11 +174,7 @@ const logout = async (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
-// ── Current user ──────────────────────────────────────────────────────────────
-
 const me = (req, res) => res.json({ userId: req.user.id, role: req.user.role });
-
-// ── Organizer signup ──────────────────────────────────────────────────────────
 
 const organizerSignupRequest = async (req, res, next) => {
   try {

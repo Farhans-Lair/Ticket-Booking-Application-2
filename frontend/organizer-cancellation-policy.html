@@ -43,7 +43,6 @@
     .page-header h1 { font-size: 1.8rem; font-weight: 700; }
     .page-header p  { color: var(--muted); margin-top: .35rem; font-size: .9rem; }
 
-    /* Explainer card */
     .info-card {
       background: rgba(108,99,255,0.07); border: 1px solid rgba(108,99,255,0.2);
       border-radius: 14px; padding: 1.2rem 1.6rem; margin-bottom: 2rem;
@@ -51,7 +50,6 @@
     }
     .info-card strong { color: var(--text); }
 
-    /* Event selector */
     .section-title { font-size: 1rem; font-weight: 600; margin-bottom: .9rem; color: var(--text); }
     .event-select-row { display: flex; gap: 12px; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; }
     select, input[type="number"] {
@@ -64,7 +62,6 @@
     .btn-load { padding: .6rem 1.4rem; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: 600; font-size: .875rem; cursor: pointer; transition: background .2s; }
     .btn-load:hover { background: var(--primary-dark); }
 
-    /* Policy editor */
     .policy-editor { display: none; }
     .policy-editor.visible { display: block; }
 
@@ -77,7 +74,6 @@
     .toggle input:checked + .toggle-slider { background: var(--primary); }
     .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
 
-    /* Tier cards */
     .tiers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
     .btn-add-tier { display: inline-flex; align-items: center; gap: 6px; padding: .5rem 1rem; background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.25); color: var(--primary); border-radius: 9px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: background .2s; }
     .btn-add-tier:hover { background: rgba(108,99,255,0.22); }
@@ -96,7 +92,6 @@
     .btn-remove-tier { padding: .5rem .7rem; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: var(--danger); border-radius: 8px; cursor: pointer; font-size: .85rem; align-self: flex-end; transition: background .2s; }
     .btn-remove-tier:hover { background: rgba(239,68,68,0.1); }
 
-    /* Preview */
     .preview-section { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 1.8rem; }
     .preview-section h3 { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: .9rem; }
     .preview-timeline { display: flex; flex-direction: column; gap: 8px; }
@@ -122,7 +117,7 @@
       .event-select-row { flex-direction: column; align-items: stretch; }
       select { min-width: 100%; }
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -159,7 +154,6 @@
     <strong>most generous matching tier</strong>. If no policy is set, cancellations are not allowed.
   </div>
 
-  <!-- Event Selector -->
   <div>
     <div class="section-title">1. Select an event</div>
     <div class="event-select-row">
@@ -170,12 +164,10 @@
     </div>
   </div>
 
-  <!-- Policy Editor -->
   <div id="policy-editor" class="policy-editor">
 
     <div class="section-title">2. Configure cancellation policy</div>
 
-    <!-- Enable / Disable toggle -->
     <div class="toggle-row">
       <label class="toggle">
         <input type="checkbox" id="allow-toggle" checked onchange="toggleAllowed(this)"/>
@@ -185,7 +177,7 @@
     </div>
 
     <div id="tiers-section">
-      <!-- Tier cards -->
+
       <div class="tiers-header">
         <span class="section-title" style="margin:0">3. Refund tiers</span>
         <button class="btn-add-tier" onclick="addTier()">＋ Add Tier</button>
@@ -193,7 +185,6 @@
 
       <div id="tiers-container"></div>
 
-      <!-- Live preview -->
       <div class="preview-section" id="preview-section">
         <h3>📋 Policy Preview</h3>
         <div class="preview-timeline" id="preview-timeline"></div>
@@ -206,15 +197,12 @@
   <div id="loader" class="loader" style="display:none;">Loading policy…</div>
 </div>
 
-<!-- Toast -->
 <div id="toast" class="toast" style="display:none;"></div>
 
 <script src="/js/starfield.js"></script>
 <script src="/js/api.js"></script>
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────────────────────────────────────
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
@@ -225,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     sessionStorage.setItem("userId", String(session.userId));
     sessionStorage.setItem("role", session.role);
   } catch (err) {
-    return; // api.js redirects on 401
+    return;
   }
 
   document.getElementById("logoutBtn").addEventListener("click", logout);
@@ -233,9 +221,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadEvents();
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOAD ORGANIZER'S EVENTS
-// ─────────────────────────────────────────────────────────────────────────────
 let _events = [];
 
 async function loadEvents() {
@@ -263,9 +248,6 @@ async function loadEvents() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOAD POLICY FOR SELECTED EVENT
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadPolicy() {
   const eventId = document.getElementById("event-select").value;
   if (!eventId) { showToast("Please select an event first.", "error"); return; }
@@ -278,12 +260,10 @@ async function loadPolicy() {
   try {
     const data = await apiRequest(`/cancellations/policy/${eventId}`, "GET", null, true);
 
-    // Toggle
     const allowToggle = document.getElementById("allow-toggle");
     allowToggle.checked = data.is_cancellation_allowed !== false;
     updateToggleLabel(allowToggle.checked);
 
-    // Tiers
     document.getElementById("tiers-container").innerHTML = "";
     const tiers = (data.exists && data.tiers && data.tiers.length)
       ? data.tiers
@@ -304,9 +284,6 @@ async function loadPolicy() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TIER MANAGEMENT
-// ─────────────────────────────────────────────────────────────────────────────
 let _tierCount = 0;
 
 function addTier(hours = 48, pct = 100) {
@@ -353,9 +330,6 @@ function getTiers() {
   return tiers;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LIVE PREVIEW
-// ─────────────────────────────────────────────────────────────────────────────
 function updatePreview() {
   const tiers = getTiers();
   const timeline = document.getElementById("preview-timeline");
@@ -366,7 +340,6 @@ function updatePreview() {
     return;
   }
 
-  // Sort by hours_before descending for display
   const sorted = [...tiers].sort((a, b) => b.hours_before - a.hours_before);
 
   sorted.forEach((tier, i) => {
@@ -390,7 +363,6 @@ function updatePreview() {
     timeline.appendChild(row);
   });
 
-  // No match = no refund
   const minHours = Math.min(...sorted.map(t => t.hours_before));
   if (minHours > 0) {
     const row = document.createElement("div");
@@ -400,9 +372,6 @@ function updatePreview() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TOGGLE
-// ─────────────────────────────────────────────────────────────────────────────
 function toggleAllowed(checkbox) {
   updateToggleLabel(checkbox.checked);
   document.getElementById("tiers-section").style.opacity = checkbox.checked ? "1" : "0.4";
@@ -415,9 +384,6 @@ function updateToggleLabel(checked) {
     : "Cancellations Disabled";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SAVE
-// ─────────────────────────────────────────────────────────────────────────────
 async function savePolicy() {
   const eventId = document.getElementById("event-select").value;
   if (!eventId) { showToast("Select an event first.", "error"); return; }
@@ -430,7 +396,6 @@ async function savePolicy() {
     return;
   }
 
-  // Validate: refund_percent in 0–100
   for (const t of tiers) {
     if (t.refund_percent < 0 || t.refund_percent > 100) {
       showToast("Refund % must be between 0 and 100.", "error");
@@ -461,9 +426,6 @@ async function savePolicy() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TOAST
-// ─────────────────────────────────────────────────────────────────────────────
 function showToast(msg, type = "success") {
   const el = document.getElementById("toast");
   el.textContent = msg;
@@ -473,9 +435,6 @@ function showToast(msg, type = "success") {
   el._t = setTimeout(() => { el.style.display = "none"; }, 3500);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOGOUT
-// ─────────────────────────────────────────────────────────────────────────────
 function logout() {
   const userId = sessionStorage.getItem("userId");
   if (window._authChannel && userId) {

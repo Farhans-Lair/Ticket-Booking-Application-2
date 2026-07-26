@@ -1,10 +1,3 @@
-/**
- * wishlist.controllers.js — Feature 6: Wishlist / save event
- *
- * POST   /wishlist/:eventId   → save event (body: { "notify": true })
- * DELETE /wishlist/:eventId   → remove from wishlist
- * GET    /wishlist            → user's saved events
- */
 const wishlistService = require("../services/wishlist.services");
 const logger          = require("../config/logger");
 

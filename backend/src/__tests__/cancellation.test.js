@@ -1,8 +1,3 @@
-/**
- * cancellation.test.js
- * Fix: service reads booking.Event.event_date (Sequelize include association)
- *      so the booking mock must include an Event property.
- */
 
 let cancellationService;
 let mockBookingFindOne;
@@ -46,7 +41,6 @@ afterAll(() => jest.restoreAllMocks());
 const _futureDate = (hoursFromNow) =>
   new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
 
-// FIX: booking includes Event association — service reads booking.Event.event_date
 const _baseBooking = (eventDate) => ({
   id: 1, user_id: 1, event_id: 1,
   tickets_booked: 2, ticket_amount: 1000,

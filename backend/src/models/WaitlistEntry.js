@@ -1,10 +1,3 @@
-/**
- * WaitlistEntry model — Feature 7: Waitlist for sold-out events
- *
- * tickets_wanted → how many seats the user needs (for grouped-release matching).
- * notified_at    → stamped when the availability email is dispatched.
- * status         → waiting | notified | converted | expired
- */
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 

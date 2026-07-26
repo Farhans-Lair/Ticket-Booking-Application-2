@@ -14,32 +14,27 @@ const {
   organizerSignupVerifyValidator,
 } = require("../validators/auth.validator");
 
-// ─── User signup ──────────────────────────────────────────────────────────────
 router.post("/signup-request", ...signupRequestValidator,  validate, authController.signupRequest);
 router.post("/signup-verify",  ...signupVerifyValidator,   validate, authController.signupVerify);
 
-// ─── Login ────────────────────────────────────────────────────────────────────
 router.post("/login-request",  ...loginRequestValidator,   validate, authController.loginRequest);
 router.post("/login-verify",   ...loginVerifyValidator,    validate, authController.loginVerify);
 
-// ─── Organizer signup ─────────────────────────────────────────────────────────
-// Step 1: submit business details + send OTP
 router.post(
   "/organizer-signup-request",
-  ...organizerSignupRequestValidator,   // ← spread so Express sees individual middleware functions
+  ...organizerSignupRequestValidator,
   validate,
   authController.organizerSignupRequest
 );
-// Step 2: verify OTP → creates user (role=organizer) + profile (status=pending)
+
 router.post(
   "/organizer-signup-verify",
-  ...organizerSignupVerifyValidator,    // ← same fix
+  ...organizerSignupVerifyValidator,
   validate,
   authController.organizerSignupVerify
 );
 
-// ─── Session ──────────────────────────────────────────────────────────────────
-router.post("/refresh", authController.refresh);   // #1 sliding refresh token
+router.post("/refresh", authController.refresh);
 router.post("/logout",  authenticate, authController.logout);
 router.get("/me",       authenticate, authController.me);
 

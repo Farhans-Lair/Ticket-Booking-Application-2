@@ -22,7 +22,6 @@ const getRevenue = async (req, res, next) => {
       e => e.Bookings && e.Bookings.some(b => b.payment_status === "paid")
     );
 
-    // Attach effective revenue breakdown to each booking
     const result = eventsWithBookings.map(event => {
       const enrichedBookings = event.Bookings
         .filter(b => b.payment_status === "paid")

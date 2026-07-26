@@ -10,14 +10,6 @@ const logger = require("../config/logger");
 const { sendCancellationSMS } = require("../services/sms.services");
 const crypto = require("crypto");
 
-// ──────────────────────────────────────────────────────────────────────────────
-// USER ENDPOINTS
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * GET /cancellations/preview/:bookingId
- * Returns the refund amount the user would receive if they cancel now.
- */
 const previewCancellation = async (req, res, next) => {
   try {
     const userId    = req.user.id;
@@ -37,11 +29,6 @@ const previewCancellation = async (req, res, next) => {
   }
 };
 
-/**
- * POST /cancellations/:bookingId
- * Cancels a booking, initiates a Razorpay refund, and generates a
- * cancellation invoice PDF — triggered by the cancellation event.
- */
 const cancelBooking = async (req, res, next) => {
   try {
     const userId    = req.user.id;
@@ -51,13 +38,9 @@ const cancelBooking = async (req, res, next) => {
 
     const result = await cancellationService.cancelBooking(bookingId, userId);
 
-    // ── Fetch user + event for invoice generation ────────────────────────────
     const user  = await User.findByPk(userId);
     const event = await Event.findByPk(result.booking.event_id);
 
-    // ── Generate cancellation invoice PDF → upload to S3 ────────────────────
-    // Triggered by the booking-cancelled event (cancelBooking).
-    // Failure does NOT affect the cancellation outcome.
     try {
       logger.info("Generating cancellation invoice PDF", { userId, bookingId });
 
@@ -78,8 +61,6 @@ const cancelBooking = async (req, res, next) => {
       });
     }
 
-    // ── Send cancellation invoice email ──────────────────────────────────────
-    // Separate email with the A4 cancellation invoice — triggered by cancellation event.
     try {
       logger.info("Sending cancellation invoice email", {
         userId, email: user?.email, bookingId,
@@ -88,7 +69,7 @@ const cancelBooking = async (req, res, next) => {
       logger.info("Cancellation invoice email sent", {
         userId, email: user?.email, bookingId,
       });
-      // ── SMS cancellation notification ───────────────────────────────────
+
       sendCancellationSMS(user, result.booking, event, result.refund_amount).catch(e =>
         logger.error("Cancellation SMS failed", { bookingId, error: e.message })
       );
@@ -115,11 +96,6 @@ const cancelBooking = async (req, res, next) => {
   }
 };
 
-/**
- * GET /cancellations/:bookingId/download-invoice
- * Download the cancellation invoice PDF for a booking.
- * Streams from S3 if available, otherwise generates on-the-fly.
- */
 const downloadCancellationInvoice = async (req, res, next) => {
   try {
     const userId    = req.user.id;
@@ -170,13 +146,6 @@ const downloadCancellationInvoice = async (req, res, next) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// ORGANIZER ENDPOINTS
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * GET /cancellations/policy/:eventId
- */
 const getPolicy = async (req, res, next) => {
   try {
     const eventId = parseInt(req.params.eventId, 10);
@@ -194,9 +163,6 @@ const getPolicy = async (req, res, next) => {
   }
 };
 
-/**
- * PUT /cancellations/policy/:eventId
- */
 const upsertPolicy = async (req, res, next) => {
   try {
     const organizerId = req.user.id;
@@ -225,13 +191,6 @@ const upsertPolicy = async (req, res, next) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// RAZORPAY WEBHOOK
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * POST /cancellations/webhook/refund
- */
 const handleRefundWebhook = async (req, res, next) => {
   try {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;

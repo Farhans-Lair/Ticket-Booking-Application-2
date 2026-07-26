@@ -1,14 +1,8 @@
-/**
- * review.services.js — Feature 5: Reviews & ratings
- */
 const { Review, Booking, Event } = require("../models");
 const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const logger = require("../config/logger");
 
-/**
- * Submit a review.  User must have a paid, active booking to review.
- */
 const submitReview = async (userId, eventId, rating, reviewText) => {
   if (rating < 1 || rating > 5)
     throw new Error("Rating must be between 1 and 5.");
@@ -16,7 +10,6 @@ const submitReview = async (userId, eventId, rating, reviewText) => {
   const existing = await Review.findOne({ where: { user_id: userId, event_id: eventId } });
   if (existing) throw new Error("You have already reviewed this event.");
 
-  // Enforce verified booking
   const booking = await Booking.findOne({
     where: { user_id: userId, event_id: eventId, payment_status: "paid", cancellation_status: "active" },
   });
@@ -53,7 +46,6 @@ const getRatingSummary = async (eventId) => {
   };
 };
 
-/* ─── Private: update cached avg on Event row ────────────────────────────── */
 const _updateEventRating = async (eventId) => {
   const { average_rating, review_count } = await getRatingSummary(eventId);
   await Event.update({ average_rating, review_count }, { where: { id: eventId } });

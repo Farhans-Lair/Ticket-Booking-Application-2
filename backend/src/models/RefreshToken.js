@@ -1,10 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-/**
- * RefreshToken — stores hashed 7-day refresh tokens.
- * One row per active session. Destroyed on logout or rotation.
- */
 const RefreshToken = sequelize.define("RefreshToken", {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   user_id: {

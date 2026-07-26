@@ -16,21 +16,7 @@ const CancellationPolicy = sequelize.define("CancellationPolicy", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  /**
-   * JSON array of refund tiers, sorted by hours_before DESC.
-   * Each tier: { hours_before: number, refund_percent: number }
-   *
-   * Example:
-   * [
-   *   { hours_before: 72, refund_percent: 100 },
-   *   { hours_before: 24, refund_percent: 50  },
-   *   { hours_before: 0,  refund_percent: 0   }
-   * ]
-   *
-   * Interpretation: find the first tier where hoursUntilEvent >= hours_before.
-   * That tier's refund_percent applies.
-   */
-  tiers: {
+    tiers: {
     type: DataTypes.JSON,
     allowNull: false,
   },

@@ -1,188 +1,214 @@
-# TicketVerse — Event Ticketing Platform
-
-A full-stack, multi-role event ticketing platform. Node.js/Express backend with MySQL (Sequelize ORM), a vanilla HTML/CSS/JS frontend, Docker Compose for local containerization, and Terraform-managed AWS infrastructure (EC2 Auto Scaling Group + ALB, Multi‑AZ RDS with a read replica, S3, CloudWatch) with a GitHub Actions CI/CD pipeline.
-
+TicketVerse — Ticket Booking Application
+A full-stack event ticketing platform built with Node.js / Express (backend) and vanilla HTML/CSS/JS (frontend), backed by MySQL via Sequelize ORM.
 ---
-
-## Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Architecture](#architecture)
-3. [Tech Stack](#tech-stack)
-4. [Feature Set](#feature-set)
-5. [Getting Started](#getting-started)
-6. [Environment Variables](#environment-variables)
-7. [Database Setup](#database-setup)
-8. [API Reference](#api-reference)
-9. [Frontend Pages](#frontend-pages)
-10. [Testing](#testing)
-11. [Deployment](#deployment)
-12. [License](#license)
-
+Table of Contents
+Project Overview
+Architecture
+Features
+New Features (v2)
+Getting Started
+Environment Variables
+Database Setup
+API Reference
+Frontend Pages
+Deployment
 ---
-
-## Project Overview
-
-TicketVerse is a three-role ticketing platform:
-
-| Role | Capabilities |
-|---|---|
-| **User** | Browse/search events, hold seats, book tickets, pay via Razorpay, apply coupons, download tickets/invoices as PDF, cancel bookings for a tiered refund, review events, save events to a wishlist, join a waitlist for sold-out events, receive reminder emails/SMS |
-| **Organizer** | Register (subject to admin approval), create & manage events (subject to moderation), configure seat tiers, set a cancellation policy, view revenue/attendees, request payouts, check in attendees via QR scan |
-| **Admin** | Moderate events (approve/reject), manage organizer applications, manage dynamic event categories, feature/trend events, manage coupons, process organizer payouts, view platform-wide revenue |
-
+Project Overview
+TicketVerse is a multi-role ticketing platform supporting:
+Role	Capabilities
+User	Browse events, book tickets, manage profile, view bookings/reminders
+Organizer	Create & manage events (subject to admin approval), view revenue & payouts
+Admin	Moderate events, manage organizers, process payouts, feature events
 ---
-
-## Architecture
-
+Architecture
 ```
-Ticket-Booking-Application-2-main/
+Ticket-Booking-Application/
 ├── backend/
-│   ├── Dockerfile
-│   ├── jest.config.js / jest.setup.js
-│   ├── package.json
-│   ├── scripts/
 │   └── src/
-│       ├── app.js                    # Express app: middleware, routes, static pages
-│       ├── server.js                 # HTTP/HTTPS bootstrap + DB init
-│       ├── config/                   # database.js, database-replica.js, logger.js, s3.js
-│       ├── controllers/              # 17 route-handler modules
-│       ├── services/                 # 19 business-logic modules
-│       ├── models/                   # 13 Sequelize models + index.js (associations)
-│       ├── routes/                   # 17 Express routers
-│       ├── middleware/               # auth, authorization, correlation-id, validation, errors
-│       ├── validators/                # express-validator chains
-│       └── __tests__/                # Jest + Supertest suites
-├── frontend/                         # Vanilla HTML/CSS/JS, one HTML page per screen
-│   ├── css/  (styles.css, dashboard-shell.css)
-│   └── js/   (api.js, auth.js, events.js, starfield.js, …)
+│       ├── app.js                    # Express app, routes, middleware
+│       ├── server.js                 # HTTP/HTTPS server bootstrap
+│       ├── config/                   # DB, logger, S3 config
+│       ├── controllers/              # Route handlers
+│       │   ├── admin.controllers.js  # ✨ Moderation + Payouts
+│       │   ├── user.controllers.js   # ✨ User profile
+│       │   ├── event.controllers.js  # ✨ Featured/Trending
+│       │   ├── organizer.controllers.js
+│       │   ├── auth.controllers.js
+│       │   ├── booking.controllers.js
+│       │   ├── payment.controllers.js
+│       │   └── cancellation.controllers.js
+│       ├── services/
+│       │   ├── reminder.services.js  # ✨ Event reminder emails (cron)
+│       │   ├── payout.services.js    # ✨ Organizer settlements
+│       │   ├── event.services.js     # ✨ Featured/Trending/Moderation
+│       │   ├── email.services.js
+│       │   ├── booking.services.js
+│       │   ├── auth.services.js
+│       │   └── organizer.services.js
+│       ├── models/
+│       │   ├── User.js               # ✨ + phone, avatar_url, bio
+│       │   ├── Event.js              # ✨ + is_featured, status, moderation fields
+│       │   ├── Payout.js             # ✨ New model
+│       │   ├── Booking.js
+│       │   ├── OrganizerProfile.js
+│       │   ├── CancellationPolicy.js
+│       │   ├── Seat.js
+│       │   └── index.js              # ✨ Payout associations added
+│       ├── routes/
+│       │   ├── user.routes.js        # ✨ New — user profile endpoints
+│       │   ├── admin.routes.js       # ✨ + moderation & payout API routes
+│       │   ├── event.routes.js       # ✨ + /featured, /trending
+│       │   ├── organizer.routes.js   # ✨ + /payouts
+│       │   └── ...
+│       └── middleware/
+├── frontend/
+│   ├── user-profile.html             # ✨ New
+│   ├── admin-moderation.html         # ✨ New
+│   ├── admin-payouts.html            # ✨ New
+│   ├── organizer-payouts.html        # ✨ New
+│   ├── events.html                   # ✨ Updated — Featured & Trending
+│   ├── index.html                    # Login / Register
+│   ├── admin-dashboard.html
+│   ├── admin-revenue.html
+│   ├── admin-organizers.html
+│   ├── organizer-dashboard.html
+│   ├── organizer-events.html
+│   ├── organizer-revenue.html
+│   ├── my-bookings.html
+│   └── ...
 ├── db/
-│   ├── master_schema.sql             # Full schema — fresh installs
-│   └── migration.sql                 # Incremental ALTERs — existing databases
-├── terraform/                        # AWS infrastructure as code
-├── docker-compose.yml                # Local backend + MySQL stack
-└── .github/workflows/                # CI (test) + CD (build, push, deploy) pipeline
+│   ├── schema.sql                    # Base schema
+│   ├── features_migration.sql        # ✨ Migration for all v2 features
+│   ├── cancellation_migration.sql
+│   ├── invoice_migration.sql
+│   └── organizer_migration.sql
+└── terraform/                        # AWS infrastructure (EC2 + RDS + ALB)
 ```
-
-### Request flow (high level)
-
-```
-Browser (frontend/*.html + js/*.js)
-   │  fetch() via api.js (adds Authorization header + cookies)
-   ▼
-Express app.js
-   │  correlationId → CORS → security headers → rate limiters → routes
-   ▼
-routes/*.routes.js  →  middleware (auth / authorizeOrganizer / authorizeAdmin)
-   ▼
-controllers/*.controllers.js   (request validation, response shaping)
-   ▼
-services/*.services.js         (business logic, Sequelize transactions)
-   ▼
-models/*.js  →  Sequelize  →  MySQL (primary + optional read replica)
-```
-
 ---
-
-## Tech Stack
-
-**Backend:** Node.js ≥ 22, Express 5, Sequelize 6 (MySQL2 driver), JSON Web Tokens, bcrypt, express-validator, express-rate-limit, node-cron, Nodemailer, PDFKit, `qrcode`, Razorpay SDK, Twilio SDK, AWS SDK v3 (S3), Jest + Supertest.
-
-**Frontend:** Vanilla HTML5 / CSS3 / JavaScript (no framework) with a shared dark-theme "dashboard shell" (`css/dashboard-shell.css`, `js/starfield.js`) reused across all admin/organizer/user screens.
-
-**Data:** MySQL 8.x via Sequelize ORM, `underscored: true` (snake_case columns), a primary connection (`config/database.js`) and an optional read-replica connection (`config/database-replica.js`) that falls back to the primary when `DB_HOST_REPLICA` is unset.
-
-**Infrastructure:** Docker + Docker Compose (local), Terraform-managed AWS (VPC with public/private subnets, EC2 Auto Scaling Group behind an Application Load Balancer, Multi-AZ RDS MySQL with a read replica and automated backups, S3 for PDFs, ECR, CloudWatch log groups/alarms, IAM roles), GitHub Actions (OIDC-authenticated) for test → build → push → SSM-deploy.
-
+Features
+Core (v1)
+OTP-based authentication (email verification for signup & login)
+Multi-role system: user / organizer / admin
+Event management (CRUD by admin; organizer scope-limited)
+Seat selection with real-time seat locking
+Razorpay payment integration
+PDF ticket & invoice generation (S3 storage)
+Booking cancellation with tiered refund policies
+Organizer registration & admin approval workflow
+Revenue reporting per-organizer and platform-wide
 ---
-
-## Feature Set
-
-### Core booking flow
-- OTP-based email verification for signup and login (separate OTP purposes for user, organizer signup)
-- JWT access tokens (8 h) + rotating, hashed refresh tokens with a 7-day sliding window, delivered via `httpOnly` cookies, plus a per-tab session token for multi-user/multi-tab isolation
-- Event browsing with full-text search (`MATCH … AGAINST`, LIKE fallback), city/category/price/date filters
-- Seat map with per-tier pricing and a 10-minute seat hold (cron sweep releases expired holds every minute)
-- Razorpay order creation → signature-verified payment confirmation inside a DB transaction
-- Coupon codes (percentage or flat, usage limits, per-user limits, min order amount)
-- QR-code tickets (signed JWT) with an organizer check-in endpoint
-- PDF ticket, booking invoice, and cancellation invoice generation, stored in S3 with on-the-fly regeneration fallback
-- Tiered cancellation & refund policy (organizer-defined hour thresholds), automatic Razorpay refund initiation and webhook-confirmed completion
-- Reviews & star ratings (verified-booking only), cached average on the Event row
-- Wishlist (optional "notify on availability") and Waitlist (auto-notified in booking order when seats free up)
-- Daily 09:00 event-reminder emails (24-hour lookahead) and SMS notifications (booking confirmation, cancellation) via Twilio with an in-memory sender-affinity cache
-- Correlation-ID request tracing (`X-Correlation-ID`) end to end
-
-### Organizer & Admin
-- Organizer self-registration → admin approval workflow
-- Organizer-submitted events start `pending` and require admin moderation before going public; admin-created events are auto-approved
-- Dynamic, admin-managed event categories (emoji/image, sort order, active flag)
-- Featured & trending (30-day booking volume) events for the homepage
-- Organizer revenue/attendee dashboards and payout requests; admin settlement calculator (10% platform fee) and payout lifecycle (`pending → processing → paid` / `failed`)
-
-### Platform / security
-- Role-based authorization middleware (`authenticate`, `authorizeOrganizer`, `authorizeAdmin`)
-- Global / auth / payment rate limiters, security headers (HSTS, X-Frame-Options, nosniff, XSS protection), strict CORS allow-list
-- HTTPS in local dev (mkcert certs) with HTTP→HTTPS redirect; plain HTTP in AWS with TLS terminated at the ALB
-- Structured logging via a shared logger; correlation IDs threaded through every log line
-
+New Features (v2)
+1. 👤 User Profile Page
+Endpoint: `GET/PUT /user/profile`, `PUT /user/profile/password`, `GET /user/profile/bookings`
+Users can now:
+View and edit their name, phone number, and bio
+See a booking summary (total / active / cancelled)
+Change their password securely (bcrypt re-hash)
+Browse full booking history with event details
+Frontend: `/profile` → `frontend/user-profile.html`
+DB change: `users` table gains `phone`, `avatar_url`, `bio`, `updated_at` columns (see `features_migration.sql`).
 ---
-
-## Getting Started
-
-### Prerequisites
-- Node.js ≥ 22
-- MySQL 8.x
-- (Optional) AWS account for S3-backed PDF storage
-- (Optional) Razorpay and Twilio accounts for payments/SMS
-
-### Local installation
-
+2. ⭐ Featured / Trending Events
+Endpoints:
+`GET /events/featured` — returns admin-curated featured events (no auth required)
+`GET /events/trending` — returns events with most paid bookings in last 30 days (no auth required)
+`PUT /api/admin/events/:id/feature` — admin toggles `is_featured` flag
+Business logic:
+Featured events require admin action; they appear in the homepage carousel.
+Trending is computed dynamically from booking volume over the rolling 30-day window.
+Both queries only return approved events with future dates.
+Frontend: `events.html` now shows a scrollable featured carousel and trending grid above the full event list, with category filters and search.
+DB change: `events` gains `is_featured TINYINT(1)`.
+---
+3. ⏰ Event Reminder Emails
+Service: `backend/src/services/reminder.services.js`
+A node-cron scheduler fires every day at 09:00 and:
+Finds all approved events starting within the next 24 hours.
+Finds paid, active bookings for those events where `reminder_sent = 0`.
+Sends a styled HTML reminder email via Nodemailer.
+Sets `reminder_sent = 1` on each booking to prevent duplicate sends.
+No additional API endpoint needed — the scheduler runs automatically on server start. To trigger manually in dev, call `sendEventReminders()` directly.
+DB change: `bookings` gains `reminder_sent TINYINT(1) DEFAULT 0`.
+Dependency added: `node-cron ^3.0.3`
+---
+4. 🛡️ Event Moderation by Admin
+Endpoints:
+`GET  /api/admin/moderation/events`      — list pending events
+`GET  /api/admin/moderation/events/all`  — list all events with status
+`PUT  /api/admin/moderation/events/:id/approve` — approve event (body: `{ note? }`)
+`PUT  /api/admin/moderation/events/:id/reject`  — reject event (body: `{ note }`)
+Business logic:
+Admin-created events: `status = 'approved'` automatically (no review needed).
+Organizer-created events: `status = 'pending'` on creation — invisible to public until approved.
+Rejected events show `moderation_note` to help organizers resubmit.
+The `GET /events` public endpoint filters to `status = 'approved'` only.
+Frontend: `/admin/moderation` → `frontend/admin-moderation.html`
+Stats cards (pending / approved / rejected / total)
+Per-status filter tabs
+Approve / Reject buttons with reason modal
+Feature toggle per event
+DB change: `events` gains `status ENUM('pending','approved','rejected')`, `moderation_note`, `moderated_at`, `moderated_by`.
+---
+5. 💳 Organizer Payout / Settlement
+Admin endpoints:
+`GET  /api/admin/payouts`                           — list all payouts (filter by organizer, status)
+`GET  /api/admin/payouts/settlement/:organizerId`   — calculate outstanding settlement
+`POST /api/admin/payouts`                           — create payout record
+`PUT  /api/admin/payouts/:id/status`                — mark processing / paid / failed
+Organizer endpoint:
+`GET  /organizer/payouts` — view own payout history + summary totals
+Business logic:
+Platform fee = 10% of gross ticket revenue (configurable via `PLATFORM_FEE_RATE` constant).
+`net_amount = gross - platform_fee` stored on each payout record.
+Settlement calculator aggregates all paid, non-cancelled bookings for an organizer (optionally scoped to one event).
+Payout lifecycle: `pending → processing → paid` (or `failed`).
+Frontend:
+`/admin/payouts` → `frontend/admin-payouts.html` (admin: create + track all payouts)
+`/organizer-payouts` → `frontend/organizer-payouts.html` (organizer: read-only history)
+DB change: New `payouts` table (see `features_migration.sql`).
+---
+Getting Started
+Prerequisites
+Node.js ≥ 18
+MySQL 8+
+(Optional) AWS account for S3 PDF storage
+Installation
 ```bash
 # 1. Clone
-git clone https://github.com/Farhans-Lair/Ticket-Booking-Application-2.git
-cd Ticket-Booking-Application-2-main
+git clone <repo-url>
+cd Ticket-Booking-Application
 
 # 2. Install backend dependencies
 cd backend
 npm install
 
-# 3. Configure environment
-cp .env.example .env      # create backend/.env — see Environment Variables below
+# 3. Set up environment variables
+cp .env.example .env
+# edit .env — see Environment Variables section below
 
-# 4. Load the database schema (fresh install)
-mysql -u root -p ticket_booking_db < ../db/master_schema.sql
+# 4. Run database migrations
+mysql -u root -p your_db < db/schema.sql
+mysql -u root -p your_db < db/organizer_migration.sql
+mysql -u root -p your_db < db/cancellation_migration.sql
+mysql -u root -p your_db < db/invoice_migration.sql
+mysql -u root -p your_db < db/features_migration.sql   # ✨ v2
 
-# 5. Run
-npm run dev     # nodemon, local development
-npm start       # production
+# 5. Start the server
+npm run dev   # development (nodemon)
+npm start     # production
 ```
-
-### Docker Compose (local, HTTPS)
-
-```bash
-docker-compose up --build
-```
-Starts a MySQL container and the backend container together; visit `https://localhost` (mkcert certs mounted read-only from `./certs`). Requires a root-level `.env` with `DB_HOST=mysql`.
-
 ---
-
-## Environment Variables
-
+Environment Variables
 ```env
 # Database
-DB_HOST=127.0.0.1          # 127.0.0.1 for local npm start, "mysql" for docker-compose
+DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=ticket_booking_db
-DB_USER=ticket_user_1
-DB_PASSWORD=your_password
-DB_HOST_REPLICA=            # leave empty locally — falls back to primary
+DB_NAME=ticketverse
+DB_USER=root
+DB_PASS=your_password
 
-# JWT (three independent secrets)
-JWT_ACCESS_SECRET=
-JWT_REFRESH_SECRET=
-JWT_SESSION_SECRET=
-QR_JWT_SECRET=              # falls back to JWT_SECRET if unset
+# JWT
+JWT_SECRET=your_super_secret_jwt_key
 
 # Email (Gmail + App Password)
 EMAIL_USER=your@gmail.com
@@ -191,153 +217,110 @@ EMAIL_PASS=your_app_password
 # Razorpay
 RAZORPAY_KEY_ID=rzp_test_xxx
 RAZORPAY_KEY_SECRET=your_razorpay_secret
-RAZORPAY_WEBHOOK_SECRET=     # optional — verifies refund webhook signature
 
-# Twilio (SMS)
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_MESSAGING_SERVICE_SID=
-TWILIO_PHONE_NUMBER=
-APP_BASE_URL=                # used to build links in SMS
-
-# AWS S3 (PDF storage)
+# AWS S3 (optional)
 AWS_REGION=ap-south-1
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
+AWS_ACCESS_KEY_ID=xxx
+AWS_SECRET_ACCESS_KEY=xxx
 S3_BUCKET_NAME=ticketverse-pdfs
 
-# Frontend / networking
+# Frontend / CORS
 FRONTEND_URL=https://yourdomain.com
 HTTPS_PORT=3000
 HTTP_PORT=3001
-USE_HTTPS=true               # true = local mkcert TLS, false = AWS/ALB terminates TLS
-SSL_KEY_PATH=./certs/server.key
-SSL_CERT_PATH=./certs/server.crt
-COOKIE_SECURE=false          # true in production (HTTPS only)
+
+# Cookie security
+COOKIE_SECURE=true   # set false for local HTTP dev
 ```
-
 ---
-
-## Database Setup
-
-| File | Purpose |
-|---|---|
-| `db/master_schema.sql` | Complete schema — run once on a fresh/empty database |
-| `db/migration.sql` | Incremental `ALTER`/`CREATE` statements — run on an existing database being upgraded |
-
-Both files consolidate what were previously several feature-by-feature migration scripts. Sequelize also runs `sequelize.sync({ alter: true })` on server start as a safety net for new columns.
-
+Database Setup
+Run migrations in order:
+File	Purpose
+`db/schema.sql`	Core tables: users, events, bookings, seats
+`db/organizer_migration.sql`	organizer_profiles table
+`db/cancellation_migration.sql`	Cancellation columns on bookings
+`db/invoice_migration.sql`	S3 invoice key columns
+`db/features_migration.sql`	✨ v2 — profile, featured, status, reminders, payouts
 ---
-
-## API Reference
-
-All endpoints are mounted under their route prefix in `app.js`, e.g. `/auth`, `/events`, `/bookings`, `/payments`, `/seats`, `/cancellations`, `/user`, `/search`, `/checkin`, `/coupons`, `/reviews`, `/wishlist`, `/waitlist`, `/organizer`, `/admin`, `/api` (revenue), plus `/categories`.
-
-### Auth (`/auth`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/signup-request` | Public | Send signup OTP |
-| POST | `/signup-verify` | Public | Verify OTP & create user account |
-| POST | `/login-request` | Public | Validate credentials, send login OTP |
-| POST | `/login-verify` | Public | Verify OTP, issue access/refresh/session tokens |
-| POST | `/organizer-signup-request` | Public | Submit business details, send OTP |
-| POST | `/organizer-signup-verify` | Public | Verify OTP, create user (role=organizer) + pending profile |
-| POST | `/refresh` | Cookie | Rotate refresh token, issue new token set |
-| POST | `/logout` | Auth | Revoke refresh token, clear cookies |
-| GET | `/me` | Auth | Return `{ userId, role }` |
-
-### Events (`/events`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/featured` | Public | Admin-curated featured events |
-| GET | `/trending` | Public | Most-booked events, last 30 days |
-| GET | `/` | Auth | All approved events (optional `?category=`) |
-| POST | `/` | Admin | Create event (auto-approved) |
-| PUT | `/:id` | Admin | Update event |
-| DELETE | `/:id` | Admin | Delete event |
-
-### Search (`/search`)
-`GET /` (full-text `?q=`), `GET /events` (city/category/price/date filters), `GET /cities` (distinct city list) — all public.
-
-### Seats (`/seats`)
-`GET /:eventId`, `GET /:eventId/tiers`, `PUT /:eventId/tiers` (organizer/admin), `POST /:eventId/hold` (10-minute lock) — all auth required.
-
-### Bookings & Payments
-`POST /payments/create-order`, `POST /payments/verify`, `GET /bookings/my-bookings`, `GET /bookings/:id/download-ticket`, `GET /bookings/:id/download-invoice`, `GET /bookings/:id/qr` — all auth required.
-
-### Cancellations (`/cancellations`)
-`GET /preview/:bookingId`, `POST /:bookingId`, `GET /:bookingId/download-invoice`, `GET /policy/:eventId`, `PUT /policy/:eventId` (organizer), `POST /webhook/refund` (Razorpay, unauthenticated + HMAC verified).
-
-### Coupons, Reviews, Wishlist, Waitlist, Check-in
-Standard CRUD/action endpoints under `/coupons`, `/reviews`, `/wishlist`, `/waitlist`, `/checkin` — see inline route comments; most read endpoints are public, all write endpoints require authentication.
-
-### Organizer (`/organizer`)
-Profile, stats, events CRUD, attendees, revenue, payouts (`GET /payouts`, `POST /payouts/request`) — all `authorizeOrganizer`. Admin-only organizer management (`/admin/organizers/*`) is mounted on the same router.
-
-### Admin (`/admin`)
-Moderation (`/moderation/events*`, `/events/:id/feature`), payouts (`/payouts/*`), categories (`/categories*`) — all `authorizeAdmin`.
-
-### Revenue (`/api/revenue`)
-Platform-wide effective-revenue report (admin only), cancellation-adjusted.
-
-### User (`/user`)
-`/profile` (GET/PUT), `/profile/password` (PUT), `/profile/bookings` (GET) — all authenticated.
-
+API Reference
+Auth
+Method	Path	Auth	Description
+POST	`/auth/signup-request`	Public	Send signup OTP
+POST	`/auth/signup-verify`	Public	Verify OTP & create account
+POST	`/auth/login-request`	Public	Send login OTP
+POST	`/auth/login-verify`	Public	Verify OTP & issue JWT
+POST	`/auth/logout`	Auth	Clear session
+GET	`/auth/me`	Auth	Get current user info
+User Profile ✨
+Method	Path	Auth	Description
+GET	`/user/profile`	Auth	Get profile + booking summary
+PUT	`/user/profile`	Auth	Update name, phone, bio
+PUT	`/user/profile/password`	Auth	Change password
+GET	`/user/profile/bookings`	Auth	Booking history
+Events
+Method	Path	Auth	Description
+GET	`/events/featured`	Public	✨ Featured events carousel
+GET	`/events/trending`	Public	✨ Trending events
+GET	`/events`	Auth	All approved events
+POST	`/events`	Admin	Create platform event
+PUT	`/events/:id`	Admin	Update event
+DELETE	`/events/:id`	Admin	Delete event
+Event Moderation ✨
+Method	Path	Auth	Description
+GET	`/api/admin/moderation/events`	Admin	Pending events
+GET	`/api/admin/moderation/events/all`	Admin	All events with status
+PUT	`/api/admin/moderation/events/:id/approve`	Admin	Approve event
+PUT	`/api/admin/moderation/events/:id/reject`	Admin	Reject event
+PUT	`/api/admin/events/:id/feature`	Admin	Toggle featured flag
+Organizer
+Method	Path	Auth	Description
+GET	`/organizer/profile`	Organizer	Business profile
+PUT	`/organizer/profile`	Organizer	Update profile
+GET	`/organizer/events`	Organizer	Own events (all statuses)
+POST	`/organizer/events`	Organizer	Submit event (→ pending review)
+PUT	`/organizer/events/:id`	Organizer	Update own event
+DELETE	`/organizer/events/:id`	Organizer	Delete own event
+GET	`/organizer/revenue`	Organizer	Revenue breakdown
+GET	`/organizer/payouts`	Organizer	✨ Payout history & summary
+Payouts ✨
+Method	Path	Auth	Description
+GET	`/api/admin/payouts`	Admin	List all payouts
+GET	`/api/admin/payouts/settlement/:organizerId`	Admin	Calculate outstanding amount
+POST	`/api/admin/payouts`	Admin	Create payout record
+PUT	`/api/admin/payouts/:id/status`	Admin	Update payout status
 ---
-
-## Frontend Pages
-
-| URL | File | Role |
-|---|---|---|
-| `/` | `index.html` | Public — login/register |
-| `/events-page` | `events.html` | User — browse, search, featured/trending |
-| `/profile` | `user-profile.html` | User |
-| `/my-bookings` | `my-bookings.html` | User |
-| `/seat-selection` | `seat-selection.html` | User |
-| `/payment` | `payment.html` | User |
-| `/wishlist-page` | `wishlist.html` | User |
-| `/organizer-register` | `organizer-register.html` | Public |
-| `/organizer-dashboard` | `organizer-dashboard.html` | Organizer |
-| `/organizer-events` | `organizer-events.html` | Organizer |
-| `/organizer-revenue` | `organizer-revenue.html` | Organizer |
-| `/organizer-payouts` | `organizer-payouts.html` | Organizer |
-| `/organizer-cancellation-policy` | `organizer-cancellation-policy.html` | Organizer |
-| `/organizer/checkin` | `checkin.html` | Organizer |
-| `/admin` | `admin-dashboard.html` | Admin |
-| `/admin/organizers` | `admin-organizers.html` | Admin |
-| `/admin/moderation` | `admin-moderation.html` | Admin |
-| `/admin/payouts` | `admin-payouts.html` | Admin |
-| `/admin/revenue` | `admin-revenue.html` | Admin |
-| `/admin/categories/manage` | `admin-categories.html` | Admin |
-| `/admin/coupons` | `admin-coupons.html` | Admin |
-
+Frontend Pages
+URL	File	Role	Feature
+`/`	`index.html`	Public	Login/Register
+`/events-page`	`events.html` ✨	User	Browse events + Featured + Trending
+`/profile`	`user-profile.html` ✨	User	Profile management
+`/my-bookings`	`my-bookings.html`	User	Booking history
+`/seat-selection`	`seat-selection.html`	User	Seat picker
+`/payment`	`payment.html`	User	Checkout
+`/organizer-register`	`organizer-register.html`	Public	Organizer signup
+`/organizer-dashboard`	`organizer-dashboard.html`	Organizer	Dashboard stats
+`/organizer-events`	`organizer-events.html`	Organizer	Event management
+`/organizer-revenue`	`organizer-revenue.html`	Organizer	Revenue charts
+`/organizer-payouts`	`organizer-payouts.html` ✨	Organizer	Payout history
+`/admin`	`admin-dashboard.html`	Admin	Platform overview
+`/admin/organizers`	`admin-organizers.html`	Admin	Organizer approvals
+`/admin/moderation`	`admin-moderation.html` ✨	Admin	Event moderation
+`/admin/payouts`	`admin-payouts.html` ✨	Admin	Payout management
+`/admin/revenue`	`admin-revenue.html`	Admin	Platform revenue
 ---
-
-## Testing
-
+Deployment
+The `terraform/` directory provisions the following AWS resources:
+VPC with public/private subnets
+RDS MySQL (private subnet)
+EC2 Auto Scaling Group behind an Application Load Balancer
+S3 bucket for PDF assets (tickets, invoices)
+CloudWatch alarms and log groups
+IAM roles for EC2 ↔ S3 access
+Docker
 ```bash
-cd backend
-npm test        # Jest --runInBand --forceExit
+docker-compose up --build
 ```
-Suites live in `backend/src/__tests__/` and cover health, DB connectivity, booking, cancellation, payment, and seat business logic. Tests use `jest.isolateModules()` per file (not global `resetModules`) and run with minimal Express apps rather than the full `app.js` to avoid Sequelize instance/model caching issues across files. Background schedulers (seat-hold sweep, reminder emails) are disabled when `NODE_ENV=test`.
-
+The `docker-compose.yml` starts the backend and a MySQL container wired together.
 ---
-
-## Deployment
-
-GitHub Actions (`.github/workflows/docker-build.yml`) runs on every push to `main`/`bootstrap`:
-1. **test** job — spins up a MySQL 8 service container, loads `master_schema.sql`, runs `npm ci` + `npm test`.
-2. **deploy** job (main branch only) — OIDC-authenticates to AWS, builds the Docker image, pushes to ECR, and deploys to the running EC2 instance via AWS Systems Manager (SSM), skipping gracefully if no instance exists yet.
-
-The `terraform/` directory provisions:
-- VPC with public and private subnets, NAT Gateway
-- EC2 Auto Scaling Group (private subnets) behind an Application Load Balancer (public subnets, TLS termination)
-- Multi-AZ RDS MySQL with automated backups, deletion protection, and a read replica
-- S3 bucket for tickets/invoices
-- ECR repository, CloudWatch log groups/alarms, IAM roles (including GitHub OIDC role for CI/CD)
-
----
-
-## License
-
+License
 ISC

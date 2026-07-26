@@ -30,7 +30,6 @@
     .page-header h1 { font-size:1.7rem; font-weight:700; }
     .page-header p  { color:var(--muted); margin-top:.3rem; }
 
-    /* FILTER TABS */
     .filter-tabs { display:flex; gap:.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
     .filter-tab {
       padding:.45rem 1.1rem; border-radius:9px; border:1px solid var(--border);
@@ -40,7 +39,6 @@
     .filter-tab:hover { color:var(--text); border-color:var(--muted); }
     .filter-tab.active { background:var(--primary); border-color:var(--primary); color:#fff; }
 
-    /* CARDS */
     .organizer-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.4rem 1.6rem; margin-bottom:1rem; }
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
     .org-name  { font-size:1.05rem; font-weight:700; }
@@ -78,7 +76,7 @@
     .toast.show { opacity:1; transform:translateY(0); }
     .toast.success { border-color:var(--success); color:var(--success); }
     .toast.error   { border-color:var(--danger);  color:var(--danger); }
-  </style>
+</style>
 </head>
 <body>
 
@@ -132,7 +130,6 @@
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
   let currentStatus = "";
 
-  // ── Load organizers ────────────────────────────────────────────────────────
   async function loadOrganizers(status = "") {
     currentStatus = status;
     const url = status ? `/organizer/admin/organizers?status=${status}` : "/organizer/admin/organizers";
@@ -191,7 +188,6 @@
     }).join("");
   }
 
-  // ── Approve ────────────────────────────────────────────────────────────────
   async function approve(id, btn) {
     btn.disabled = true; btn.textContent = "Approving…";
     try {
@@ -202,7 +198,6 @@
     } catch { toast("Network error.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
   }
 
-  // ── Reject ─────────────────────────────────────────────────────────────────
   function showRejectBox(id) {
     const box = document.getElementById(`rejectBox-${id}`);
     box.classList.toggle("show");
@@ -220,7 +215,6 @@
     } catch { toast("Network error.", "error"); }
   }
 
-  // ── Filter tabs ────────────────────────────────────────────────────────────
   document.querySelectorAll(".filter-tab").forEach(tab => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
@@ -229,7 +223,6 @@
     });
   });
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
   function toast(msg, type = "success") {
     const el = document.getElementById("toast");
     el.textContent = msg;

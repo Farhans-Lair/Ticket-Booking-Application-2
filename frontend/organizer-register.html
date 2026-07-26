@@ -117,7 +117,6 @@
     .login-link a { color: var(--primary); text-decoration: none; }
     .login-link a:hover { text-decoration: underline; }
 
-    /* OTP step */
     #step2 { display: none; }
     .otp-info {
       text-align: center;
@@ -133,18 +132,16 @@
       font-weight: 700;
     }
 
-    /* Pending state */
     #pendingState { display: none; text-align: center; }
     #pendingState .icon-big { font-size: 4rem; margin-bottom: 1rem; }
     #pendingState h2 { font-size: 1.4rem; margin-bottom: .8rem; }
     #pendingState p { color: var(--muted); line-height: 1.6; }
-  </style>
+</style>
 </head>
 <body>
 
 <div class="card">
 
-  <!-- PENDING STATE (shown after successful registration) -->
   <div id="pendingState">
     <div class="icon-big">⏳</div>
     <h2>Application Submitted!</h2>
@@ -156,7 +153,6 @@
     <button class="btn btn-primary" onclick="window.location.href='/'">Back to Login</button>
   </div>
 
-  <!-- STEP 1 — Business Details -->
   <div id="step1">
     <div class="card-header">
       <div class="icon">🏢</div>
@@ -214,7 +210,6 @@
     </form>
   </div>
 
-  <!-- STEP 2 — OTP Verification -->
   <div id="step2">
     <div class="card-header">
       <div class="icon">✉️</div>
@@ -248,12 +243,11 @@
     </form>
   </div>
 
-</div><!-- /.card -->
+</div>
 
 <script>
   let submittedEmail = "";
 
-  // ── STEP 1: Submit registration details ──────────────────────────────────
   document.getElementById("regForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -297,7 +291,6 @@
       submittedEmail = payload.email;
       document.getElementById("emailDisplay").textContent = payload.email;
 
-      // Transition to step 2
       document.getElementById("step1").style.display = "none";
       document.getElementById("step2").style.display = "block";
 
@@ -308,7 +301,6 @@
     }
   });
 
-  // ── STEP 2: Verify OTP ──────────────────────────────────────────────────
   document.getElementById("otpForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -339,7 +331,6 @@
         return;
       }
 
-      // Show pending confirmation
       document.getElementById("step2").style.display      = "none";
       document.getElementById("pendingState").style.display = "block";
 
@@ -350,7 +341,6 @@
     }
   });
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
   function showAlert(id, type, msg) {
     const el = document.getElementById(id);
     el.textContent = msg;

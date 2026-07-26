@@ -1,11 +1,6 @@
-/**
- * payment.test.js
- * Tests: verifySignature (HMAC-SHA256 Razorpay check)
- */
 
 const crypto = require("crypto");
 
-// Set env before requiring the service
 process.env.RAZORPAY_KEY_ID     = "rzp_test_ci";
 process.env.RAZORPAY_KEY_SECRET = "ci_secret_key_for_testing_only";
 
@@ -13,7 +8,7 @@ let paymentService;
 
 beforeAll(() => {
   jest.isolateModules(() => {
-    // Mock razorpay constructor so no network calls happen
+
     jest.mock("razorpay", () =>
       jest.fn().mockImplementation(() => ({
         orders: { create: jest.fn().mockResolvedValue({ id: "order_test" }) },
@@ -24,8 +19,6 @@ beforeAll(() => {
 });
 
 afterAll(() => jest.restoreAllMocks());
-
-// ─── verifySignature ──────────────────────────────────────────────────────────
 
 describe("verifySignature", () => {
   const orderId   = "order_test_123";
@@ -62,14 +55,12 @@ describe("verifySignature", () => {
 
   it("is not vulnerable to timing — consistent result on repeated calls", () => {
     const sig = _makeValidSig();
-    // Same input always returns same result (deterministic HMAC)
+
     for (let i = 0; i < 5; i++) {
       expect(paymentService.verifySignature(orderId, paymentId, sig)).toBe(true);
     }
   });
 });
-
-// ─── createOrder ──────────────────────────────────────────────────────────────
 
 describe("createOrder", () => {
   it("calls Razorpay with correct paise amount", async () => {

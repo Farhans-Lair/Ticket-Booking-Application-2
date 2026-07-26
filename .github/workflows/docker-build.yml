@@ -4,13 +4,9 @@ on:
   push:
     branches:
       - main
-      - bootstrap    # bootstrap branch runs tests only — no AWS steps
+      - bootstrap
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────
-  # JOB 1: Test
-  # Runs on EVERY branch (main + bootstrap)
-  # ─────────────────────────────────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
 
@@ -76,15 +72,10 @@ jobs:
         working-directory: backend
         run: npm test
 
-  # ─────────────────────────────────────────────────────────────────────────
-  # JOB 2: Deploy
-  # Runs ONLY on main branch — requires test job to pass first
-  # AWS steps never run on bootstrap branch
-  # ─────────────────────────────────────────────────────────────────────────
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'   # ← skipped entirely on bootstrap branch
+    if: github.ref == 'refs/heads/main'
 
     permissions:
       id-token: write
@@ -107,8 +98,6 @@ jobs:
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
-      # ECR is owned by Terraform (ecr.tf — created in Phase 1).
-      # This step only verifies it exists — never creates it.
       - name: Verify ECR repository exists
         run: |
           aws ecr describe-repositories \
@@ -130,9 +119,6 @@ jobs:
 
           docker push $IMAGE_URI
 
-      # Guard: skip SSM deploy gracefully if no EC2 instance exists yet.
-      # This is expected during Phase 2 (first push to main after Phase 1 terraform).
-      # Once full terraform apply creates EC2, all future pushes deploy normally.
       - name: Deploy to EC2 via SSM
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest

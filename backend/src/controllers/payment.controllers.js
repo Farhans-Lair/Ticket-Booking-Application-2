@@ -11,14 +11,6 @@ const { uploadTicketToS3, uploadInvoiceToS3 } = require("../services/s3.services
 const logger = require("../config/logger");
 const { sendBookingConfirmationSMS } = require("../services/sms.services");
 
-
-/*
-====================================================
- POST /payments/create-order
- Step 1 of payment flow.
-====================================================
-*/
-
 const createOrder = async (req, res, next) => {
   try {
     const userId         = req.user.id;
@@ -74,20 +66,6 @@ const createOrder = async (req, res, next) => {
     next(err);
   }
 };
-
-
-/*
-====================================================
- POST /payments/verify
- Step 2 of payment flow.
- - Verifies signature
- - Confirms booking in DB
- - Generates ticket PDF → S3
- - Generates booking invoice PDF → S3          ← NEW
- - Sends ticket email
- - Sends booking invoice email                 ← NEW (separate email)
-====================================================
-*/
 
 const verifyPayment = async (req, res, next) => {
   try {
@@ -145,7 +123,6 @@ const verifyPayment = async (req, res, next) => {
     const user  = await User.findByPk(userId);
     const event = await Event.findByPk(parseInt(event_id, 10));
 
-    // ── Generate ticket PDF → upload to S3 ──────────────────────────────────
     try {
       logger.info("Generating ticket PDF for S3 upload", { userId, bookingId: booking.id });
       const pdfBuffer = await generateTicketPDF(booking, user, event);
@@ -158,9 +135,6 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // ── Generate booking invoice PDF → upload to S3 ──────────────────────────
-    // Triggered by the booking-confirmed event (verifyPayment).
-    // Failure does NOT roll back the booking.
     try {
       logger.info("Generating booking invoice PDF", { userId, bookingId: booking.id });
       const invoiceBuffer = await generateBookingInvoicePDF(booking, user, event);
@@ -173,7 +147,6 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // ── Send ticket email ────────────────────────────────────────────────────
     try {
       logger.info("Sending ticket email", { userId, email: user?.email, bookingId: booking.id });
       await sendTicketEmail(user, booking, event);
@@ -184,7 +157,6 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // ── Send booking invoice email ───────────────────────────────────────────
     try {
       logger.info("Sending booking invoice email", { userId, email: user?.email, bookingId: booking.id });
       await sendBookingInvoiceEmail(user, booking, event);
@@ -195,9 +167,6 @@ const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // ── SMS booking confirmation (independent of email — always fires) ───────
-    // Kept outside the email try/catch so an email failure never prevents SMS.
-    // Fire-and-forget: booking is already confirmed, SMS failure is non-fatal.
     if (user?.phone) {
       sendBookingConfirmationSMS(user, booking, event).catch(e =>
         logger.error("Booking SMS failed", { bookingId: booking.id, error: e.message })

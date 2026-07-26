@@ -41,12 +41,10 @@ const Booking = sequelize.define("Booking", {
   booking_invoice_s3_key:      { type: DataTypes.STRING(512), allowNull: true, defaultValue: null },
   cancellation_invoice_s3_key: { type: DataTypes.STRING(512), allowNull: true, defaultValue: null },
 
-  // Feature 3 — QR-code tickets + check-in
   qr_token:       { type: DataTypes.TEXT,    allowNull: true, defaultValue: null },
   checked_in:     { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   checked_in_at:  { type: DataTypes.DATE,    allowNull: true, defaultValue: null },
 
-  // Feature 4 — Coupon / discount
   coupon_code:     { type: DataTypes.STRING(50),    allowNull: true, defaultValue: null },
   discount_amount: { type: DataTypes.DECIMAL(10,2), allowNull: false, defaultValue: 0.00 },
 }, {

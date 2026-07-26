@@ -1,15 +1,8 @@
-/**
- * search.controllers.js — #5: FULLTEXT search using MATCH() AGAINST()
- *
- * Requires FULLTEXT index on events(title, description, location, city).
- * Falls back to LIKE search if FULLTEXT is unavailable (e.g. in CI tests).
- */
 const { Event }  = require("../models");
 const { Op, literal, fn, col } = require("sequelize");
 const sequelize  = require("../config/database");
 const logger     = require("../config/logger");
 
-/* ─── Full-text search using MATCH() AGAINST() ───────────────────────────── */
 const globalSearch = async (req, res, next) => {
   try {
     const q = (req.query.q || "").trim();
@@ -17,13 +10,10 @@ const globalSearch = async (req, res, next) => {
 
     logger.info("Full-text search", { q });
 
-    // Sanitise input — remove MySQL boolean mode special chars
     const safeQ = q.replace(/[+\-><()\~*"@]/g, " ").trim();
 
     let events;
     try {
-      // FULLTEXT MATCH AGAINST — much faster than LIKE on large datasets
-      // IN BOOLEAN MODE supports prefix search (e.g. "jazz*")
       events = await Event.findAll({
         where: {
           status: "approved",
@@ -34,13 +24,13 @@ const globalSearch = async (req, res, next) => {
           ],
         },
         order: [
-          // Relevance score: highest match first
+
           [literal(`MATCH(title, description, location, city) AGAINST(${sequelize.escape(safeQ)} IN BOOLEAN MODE)`), "DESC"],
           ["event_date", "ASC"],
         ],
       });
     } catch (ftErr) {
-      // Fallback to LIKE if FULLTEXT index doesn't exist yet (fresh deploys, CI)
+
       logger.warn("FULLTEXT search failed, falling back to LIKE", { error: ftErr.message });
       events = await Event.findAll({
         where: {
@@ -62,7 +52,6 @@ const globalSearch = async (req, res, next) => {
   }
 };
 
-/* ─── Filtered event listing (unchanged — uses indexed columns) ──────────── */
 const filteredEvents = async (req, res, next) => {
   try {
     const { city, category, minPrice, maxPrice, dateFrom, dateTo, q } = req.query;
@@ -76,7 +65,6 @@ const filteredEvents = async (req, res, next) => {
     if (dateFrom) where.event_date = { ...(where.event_date || {}), [Op.gte]: new Date(dateFrom) };
     if (dateTo)   where.event_date = { ...(where.event_date || {}), [Op.lte]: new Date(`${dateTo}T23:59:59`) };
 
-    // Optional text search within filtered results
     if (q && q.trim()) {
       where[Op.and] = where[Op.and] || [];
       where[Op.and].push({
@@ -96,7 +84,6 @@ const filteredEvents = async (req, res, next) => {
   }
 };
 
-/* ─── Distinct city list ──────────────────────────────────────────────────── */
 const cities = async (req, res, next) => {
   try {
     const rows = await Event.findAll({

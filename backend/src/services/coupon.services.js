@@ -1,11 +1,6 @@
-/**
- * coupon.services.js — Feature 4: Coupon / discount system
- */
 const { Coupon, Booking } = require("../models");
 const { Op }              = require("sequelize");
 const logger              = require("../config/logger");
-
-/* ─── Admin CRUD ──────────────────────────────────────────────────────────── */
 
 const create = async (couponData) => {
   const existing = await Coupon.findOne({
@@ -26,14 +21,6 @@ const setStatus = async (id, status) => {
   return coupon;
 };
 
-/* ─── Validate (no DB write — safe to call on keystroke) ─────────────────── */
-
-/**
- * Returns { valid, discountAmount, finalAmount } or { valid: false, reason }.
- * @param code        coupon code from user input
- * @param userId      authenticated user id (for per_user_limit check; use -1 for guests)
- * @param orderAmount total order amount BEFORE coupon (rupees)
- */
 const validate = async (code, userId, orderAmount) => {
   const coupon = await Coupon.findOne({
     where: { code: { [Op.like]: code.trim() } },
@@ -80,10 +67,6 @@ const validate = async (code, userId, orderAmount) => {
   };
 };
 
-/**
- * Atomically redeems a coupon — increments usage_count.
- * Call inside the booking transaction.  Returns the rupee discount applied.
- */
 const redeem = async (code, userId, orderAmount, transaction) => {
   const coupon = await Coupon.findOne({
     where: { code: { [Op.like]: code.trim() } },
@@ -92,11 +75,9 @@ const redeem = async (code, userId, orderAmount, transaction) => {
   });
   if (!coupon) throw new Error("Coupon not found.");
 
-  // Re-validate inside transaction (another thread may have exhausted it)
   const check = await validate(code, userId, orderAmount);
   if (!check.valid) throw new Error(check.reason);
 
-  // Atomic increment guarded by usage_limit check
   const [updated] = await Coupon.update(
     { usage_count: coupon.usage_count + 1 },
     {
@@ -115,8 +96,6 @@ const redeem = async (code, userId, orderAmount, transaction) => {
   logger.info("Coupon redeemed", { code, userId, discount });
   return Math.round(discount * 100) / 100;
 };
-
-/* ─── Private helpers ─────────────────────────────────────────────────────── */
 
 const _calculateDiscount = (coupon, orderAmount) => {
   let discount;

@@ -31,27 +31,22 @@
     .btn-primary { background: var(--accent); color: #fff; border: none; padding: 11px 24px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
     .btn-primary:hover { opacity: 0.88; }
 
-    /* TABS */
     .tab-row { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); }
     .tab-btn { padding: 10px 22px; background: none; border: none; border-bottom: 3px solid transparent; color: var(--muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; margin-bottom: -1px; }
     .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-    /* STATS */
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
     .stat-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 18px 20px; }
     .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--gold); }
     .stat-card .lbl { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 
-    /* FILTER ROW */
     .filter-row { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; align-items: center; }
     .filter-row select, .filter-row input { padding: 9px 14px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text); font-size: 0.87rem; font-family: inherit; }
 
-    /* SECTION LABEL */
     .section-label { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-left: 6px; }
     .lbl-request { background: rgba(124,106,247,0.15); color: var(--accent); }
     .lbl-admin   { background: rgba(245,200,66,0.12);  color: var(--gold); }
 
-    /* TABLE */
     .table-wrap { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; overflow: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
     th { padding: 14px 16px; text-align: left; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
@@ -73,10 +68,8 @@
     .btn-paid    { background: rgba(34,197,94,0.2);   color: var(--green); }
     .btn-fail    { background: rgba(247,74,106,0.2);  color: var(--red); }
 
-    /* NOTE BOX */
     .rejection-note { font-size: 0.78rem; color: var(--red); margin-top: 4px; font-style: italic; }
 
-    /* MODAL */
     .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; }
     .modal-backdrop.open { display: flex; }
     .modal { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
@@ -103,7 +96,7 @@
       nav { padding: 14px 18px; }
       .stats-row { grid-template-columns: 1fr 1fr; }
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -144,13 +137,11 @@
     <div class="stat-card"><div class="num" id="sTotalAmount">—</div><div class="lbl">Total Disbursed (₹)</div></div>
   </div>
 
-  <!-- Tabs: Organizer Requests | All Payouts -->
   <div class="tab-row">
     <button class="tab-btn active" data-tab="requests">💳 Organizer Requests</button>
     <button class="tab-btn" data-tab="all">📋 All Payouts</button>
   </div>
 
-  <!-- ── ORGANIZER REQUESTS TAB ── -->
   <div class="tab-panel active" id="tab-requests">
     <div class="filter-row">
       <select id="reqFilterStatus">
@@ -178,7 +169,6 @@
     </div>
   </div>
 
-  <!-- ── ALL PAYOUTS TAB ── -->
   <div class="tab-panel" id="tab-all">
     <div class="filter-row">
       <select id="filterStatus">
@@ -208,7 +198,6 @@
   </div>
 </div>
 
-<!-- Create payout modal (admin-initiated) -->
 <div class="modal-backdrop" id="createModal">
   <div class="modal">
     <h3>Create New Payout</h3>
@@ -257,7 +246,6 @@
   </div>
 </div>
 
-<!-- Status update modal (generic — for non-reject updates) -->
 <div class="modal-backdrop" id="statusModal">
   <div class="modal">
     <h3>Update Payout Status</h3>
@@ -280,7 +268,6 @@
   </div>
 </div>
 
-<!-- Reject modal — requires a reason -->
 <div class="modal-backdrop" id="rejectModal">
   <div class="modal">
     <h3>Reject Payout Request</h3>
@@ -315,7 +302,6 @@
   let requestsData      = [];
   let activeTab         = "requests";
 
-  // ── Tab switching ─────────────────────────────────────────
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -327,18 +313,17 @@
     });
   });
 
-  // ── Load organizer REQUESTS (pending + all) ──────────────
   async function loadRequests(status = "") {
     document.getElementById("requestsBody").innerHTML =
       '<tr><td colspan="11" class="loading">Loading requests…</td></tr>';
     try {
-      // Organizer requests have requested_by set — filter by that on the same endpoint
+
       let url = `/admin/payouts/data?limit=100`;
       if (status) url += `&status=${status}`;
       const r    = await fetch(url, { headers });
       const data = await r.json();
       const all  = data.payouts || [];
-      // Show only organizer-requested payouts in this tab
+
       requestsData = all.filter(p => p.requested_by != null);
       updateStats(all);
       renderRequests(requestsData);
@@ -348,7 +333,6 @@
     }
   }
 
-  // ── Load ALL payouts ──────────────────────────────────────
   async function loadAllPayouts(organizerId = "", status = "") {
     document.getElementById("payoutsBody").innerHTML =
       '<tr><td colspan="11" class="loading">Loading…</td></tr>';
@@ -390,7 +374,6 @@
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  // ── Render organizer requests ─────────────────────────────
   function renderRequests(list) {
     if (!list.length) {
       document.getElementById("requestsBody").innerHTML =
@@ -428,7 +411,6 @@
     }).join("");
   }
 
-  // ── Render all payouts ────────────────────────────────────
   function renderAllPayouts(list) {
     if (!list.length) {
       document.getElementById("payoutsBody").innerHTML =
@@ -460,7 +442,6 @@
     }).join("");
   }
 
-  // ── Filters ───────────────────────────────────────────────
   document.getElementById("applyReqFilter").addEventListener("click", () =>
     loadRequests(document.getElementById("reqFilterStatus").value)
   );
@@ -471,7 +452,6 @@
     )
   );
 
-  // ── Approve request ───────────────────────────────────────
   async function approveRequest(id) {
     if (!confirm("Approve this payout request? Status will be set to Processing.")) return;
     try {
@@ -484,7 +464,6 @@
     } catch (e) { alert("Failed to approve: " + e.message); }
   }
 
-  // ── Reject modal ──────────────────────────────────────────
   function openRejectModal(id) {
     document.getElementById("rejectPayoutId").value = id;
     document.getElementById("rejectReason").value   = "";
@@ -508,7 +487,6 @@
     } catch (e) { alert("Failed to reject: " + e.message); }
   });
 
-  // ── Create payout modal (admin-initiated) ─────────────────
   document.getElementById("newPayoutBtn").addEventListener("click", () => {
     document.getElementById("settlementBox").style.display = "none";
     document.getElementById("createModal").classList.add("open");
@@ -552,7 +530,6 @@
     } catch (e) { alert("Failed to create payout: " + e.message); }
   });
 
-  // ── Status modal (approve → processing / mark paid) ───────
   function openStatusModal(id) {
     document.getElementById("statusPayoutId").value = id;
     document.getElementById("statusRef").value      = "";
@@ -576,7 +553,6 @@
     } catch { alert("Failed to update payout status."); }
   });
 
-  // Initial load
   loadRequests();
 </script>
 </body>

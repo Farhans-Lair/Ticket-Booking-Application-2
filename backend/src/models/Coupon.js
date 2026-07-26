@@ -1,14 +1,3 @@
-/**
- * Coupon model — Feature 4: Coupon / discount system
- *
- * discount_type = "percent" → discount_value is a percentage (e.g. 15 = 15%)
- *                             max_discount caps the absolute rupee saving.
- * discount_type = "flat"    → discount_value is a fixed rupee amount off.
- *
- * usage_limit    → total redemptions allowed across all users (0 = unlimited).
- * per_user_limit → how many times one user can use this code (0 = unlimited).
- * usage_count    → current total redemptions (incremented atomically).
- */
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 

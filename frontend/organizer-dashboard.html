@@ -24,7 +24,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
-    /* ── NAV ── */
     nav {
       background: var(--card);
       border-bottom: 1px solid var(--border);
@@ -48,7 +47,6 @@
     }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-    /* ── LAYOUT ── */
     .page { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
     @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
 
@@ -56,7 +54,6 @@
     .page-header h1 { font-size: 1.8rem; font-weight: 700; }
     .page-header p  { color: var(--muted); margin-top: .3rem; }
 
-    /* ── STAT CARDS ── */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -76,12 +73,10 @@
     .stat-value.orange { color: var(--warning); }
     .stat-value.white  { color: var(--text); }
 
-    /* ── QUICK ACTIONS ── */
     .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 
     .actions-grid {
-      /* tv-quick-grid-organizer from dashboard-shell.css handles
-         the fixed 5-column layout and responsive breakpoints */
+
     }
     .action-card {
       background: rgba(18, 18, 32, 0.92);
@@ -98,7 +93,6 @@
     .action-info h3 { font-size: 1rem; font-weight: 600; }
     .action-info p  { font-size: .83rem; color: var(--muted); margin-top: .25rem; }
 
-    /* ── PROFILE CARD ── */
     .profile-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -126,7 +120,6 @@
     }
     .btn-edit:hover { opacity: .85; }
 
-    /* Skeleton loader */
     .skeleton {
       background: linear-gradient(90deg, var(--border) 25%, #3a3a5c 50%, var(--border) 75%);
       background-size: 200% 100%;
@@ -135,7 +128,7 @@
       height: 1.4rem;
     }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-  </style>
+</style>
 </head>
 <body>
 
@@ -166,7 +159,6 @@
     <p id="businessName" style="color:var(--muted)">Loading profile…</p>
   </div>
 
-  <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Total Events</div>
@@ -186,7 +178,6 @@
     </div>
   </div>
 
-  <!-- QUICK ACTIONS -->
   <div class="section-title">Quick Actions</div>
   <div class="actions-grid tv-quick-grid-organizer">
     <a href="/organizer-events" class="action-card">
@@ -226,7 +217,6 @@
     </a>
   </div>
 
-  <!-- PROFILE CARD -->
   <div class="section-title">Your Business Profile</div>
   <div class="profile-card">
     <div class="profile-row">
@@ -261,7 +251,6 @@
 
 </main>
 
-<!-- Edit Profile Modal -->
 <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:460px;margin:1rem;">
     <h2 style="margin-bottom:1.5rem;">Edit Business Profile</h2>
@@ -296,14 +285,12 @@
   const token = sessionStorage.getItem("token");
   const role  = sessionStorage.getItem("role");
 
-  // Auth guard
   if (!token || role !== "organizer") {
     window.location.href = "/";
   }
 
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
 
-  // ── Load data ──────────────────────────────────────────────────────────────
   async function loadDashboard() {
     try {
       const [profileRes, statsRes] = await Promise.all([
@@ -319,7 +306,6 @@
       const profile = await profileRes.json();
       const stats   = await statsRes.json();
 
-      // Profile section
       document.getElementById("welcomeMsg").textContent  = `Welcome back, ${profile.User?.name} 👋`;
       document.getElementById("businessName").textContent = profile.business_name;
       document.getElementById("profName").textContent     = profile.User?.name    || "—";
@@ -333,7 +319,6 @@
       statusBadge.textContent = profile.status;
       statusBadge.className   = `badge ${profile.status}`;
 
-      // Stats cards
       document.getElementById("statEvents").textContent   = stats.totalEvents       ?? "0";
       document.getElementById("statBookings").textContent = stats.totalBookings      ?? "0";
       document.getElementById("statTickets").textContent  = stats.totalTicketsSold   ?? "0";
@@ -347,7 +332,6 @@
 
   loadDashboard();
 
-  // ── Edit profile modal ─────────────────────────────────────────────────────
   document.getElementById("editProfileBtn").addEventListener("click", () => {
     document.getElementById("edit_business").value = document.getElementById("profBusiness").textContent !== "—" ? document.getElementById("profBusiness").textContent : "";
     document.getElementById("edit_phone").value    = document.getElementById("profPhone").textContent    !== "—" ? document.getElementById("profPhone").textContent    : "";
@@ -385,13 +369,12 @@
         return;
       }
       document.getElementById("editModal").style.display = "none";
-      loadDashboard(); // refresh
+      loadDashboard();
     } catch {
       btn.disabled = false; btn.textContent = "Save Changes";
     }
   });
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await fetch("/auth/logout", { method: "POST", headers });
     sessionStorage.clear();

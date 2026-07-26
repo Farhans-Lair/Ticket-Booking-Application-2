@@ -1,11 +1,9 @@
-# s3.tf
 
 resource "aws_s3_bucket" "ticket_pdfs" {
   bucket        = var.s3_bucket_name
   force_destroy = true  # set true only if you want terraform destroy to delete the bucket + contents
 }
 
-# Block all public access — tickets are private documents
 resource "aws_s3_bucket_public_access_block" "ticket_pdfs" {
   bucket = aws_s3_bucket.ticket_pdfs.id
 
@@ -15,7 +13,6 @@ resource "aws_s3_bucket_public_access_block" "ticket_pdfs" {
   restrict_public_buckets = true
 }
 
-# Enable server-side encryption by default
 resource "aws_s3_bucket_server_side_encryption_configuration" "ticket_pdfs" {
   bucket = aws_s3_bucket.ticket_pdfs.id
 
@@ -26,7 +23,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "ticket_pdfs" {
   }
 }
 
-# Lifecycle rule — auto-delete old tickets after 1 year (optional, adjust as needed)
 resource "aws_s3_bucket_lifecycle_configuration" "ticket_pdfs" {
   bucket = aws_s3_bucket.ticket_pdfs.id
 

@@ -29,7 +29,6 @@
     .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
     .page-header h1 { font-size:1.7rem; font-weight:700; }
 
-    /* SUMMARY CARDS */
     .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1.2rem; margin-bottom:2rem; }
     .sum-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.3rem 1.5rem; }
     .sum-label { font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
@@ -38,7 +37,6 @@
     .sum-value.purple { color:var(--primary); }
     .sum-value.orange { color:var(--warning); }
 
-    /* ── PAYOUT REQUEST SECTION ── */
     .payout-request-section {
       background:var(--card); border:1px solid var(--border); border-radius:16px;
       padding:1.6rem; margin-bottom:2rem;
@@ -66,7 +64,6 @@
     .payout-alert.success { background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3); color:var(--success); display:block; }
     .payout-alert.error   { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3);  color:var(--danger);  display:block; }
 
-    /* EVENT REVENUE CARDS */
     .event-card { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:1.2rem; overflow:hidden; }
     .event-card-header { display:flex; justify-content:space-between; align-items:center; padding:1.2rem 1.5rem; cursor:pointer; gap:1rem; flex-wrap:wrap; }
     .event-title { font-size:1rem; font-weight:700; }
@@ -89,7 +86,7 @@
     @media (max-width: 640px) {
       .payout-form-row { grid-template-columns: 1fr; }
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -118,7 +115,6 @@
     <h1>Revenue Report</h1>
   </div>
 
-  <!-- Summary totals -->
   <div class="summary-grid">
     <div class="sum-card"><div class="sum-label">Events with Sales</div><div class="sum-value purple" id="sumEvents">—</div></div>
     <div class="sum-card"><div class="sum-label">Total Bookings</div><div class="sum-value orange" id="sumBookings">—</div></div>
@@ -126,9 +122,6 @@
     <div class="sum-card"><div class="sum-label">Gross Revenue</div><div class="sum-value green" id="sumRevenue">—</div></div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════
-       FIX Issue 1: PAYOUT REQUEST SECTION
-  ═══════════════════════════════════════════════ -->
   <div class="payout-request-section">
     <h2>💳 Request Payout</h2>
     <p>
@@ -136,7 +129,6 @@
       Admin will review and process the transfer within 2–5 business days.
     </p>
 
-    <!-- Settlement preview loaded from API -->
     <div id="settlementPreview" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;">
       <div class="settlement-row"><span>Gross Ticket Revenue</span><span id="spGross">Loading…</span></div>
       <div class="settlement-row"><span>Platform Fee (10%)</span><span id="spFee" style="color:var(--warning)">—</span></div>
@@ -145,7 +137,6 @@
       </div>
     </div>
 
-    <!-- Select event (optional) + payment method -->
     <div class="payout-form-row">
       <div class="field">
         <label>Event (optional)</label>
@@ -170,7 +161,6 @@
     <div class="payout-alert" id="payoutAlert"></div>
   </div>
 
-  <!-- Per-event breakdown -->
   <div id="revenueList">
     <p style="color:var(--muted);text-align:center;padding:2rem;">Loading…</p>
   </div>
@@ -185,7 +175,6 @@
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
   let myEvents = [];
 
-  // ── Load revenue data ─────────────────────────────────────────────────────
   async function loadRevenue() {
     try {
       const res    = await fetch("/organizer/revenue", { headers });
@@ -201,7 +190,6 @@
         return;
       }
 
-      // Populate event dropdown for payout request
       myEvents = events;
       const sel = document.getElementById("payoutEventId");
       events.forEach(ev => {
@@ -211,7 +199,6 @@
         sel.appendChild(opt);
       });
 
-      // Summary totals
       let totalRevenue = 0, totalBookings = 0, totalTickets = 0;
       events.forEach(ev => {
         const et = ev.eventTotals || {};
@@ -224,7 +211,6 @@
       document.getElementById("sumTickets").textContent  = totalTickets;
       document.getElementById("sumRevenue").textContent  = `₹${totalRevenue.toLocaleString("en-IN",{maximumFractionDigits:2})}`;
 
-      // Per-event cards
       document.getElementById("revenueList").innerHTML = events.map((ev, i) => {
         const bookings = ev.Bookings    || [];
         const et       = ev.eventTotals || {};
@@ -280,7 +266,6 @@
     }
   }
 
-  // ── Load settlement preview ───────────────────────────────────────────────
   async function loadSettlement(eventId = "") {
     document.getElementById("spGross").textContent = "…";
     document.getElementById("spFee").textContent   = "…";
@@ -291,7 +276,6 @@
       const evs  = await r.json();
       if (!evs.length) return;
 
-      // Calculate settlement from revenue data
       let gross = 0;
       evs.forEach(ev => {
         if (!eventId || String(ev.id) === String(eventId)) {
@@ -311,12 +295,10 @@
     }
   }
 
-  // Re-calc when event changes
   document.getElementById("payoutEventId").addEventListener("change", function() {
     loadSettlement(this.value);
   });
 
-  // ── Request payout ────────────────────────────────────────────────────────
   document.getElementById("requestPayoutBtn").addEventListener("click", async () => {
     const btn       = document.getElementById("requestPayoutBtn");
     const alertEl   = document.getElementById("payoutAlert");

@@ -1,9 +1,3 @@
-/**
- * Review model — Feature 5: Reviews & ratings
- *
- * verified_booking = true  → user has a paid, active booking for this event.
- * Only verified reviews count toward the average_rating on the Event row.
- */
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 

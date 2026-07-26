@@ -1,6 +1,4 @@
-/* ==========================================================================
-   dashboard-shell.css — shared across admin, organizer, and user dashboards
-   ========================================================================== */
+
 
 #bg-canvas {
   position: fixed;
@@ -9,17 +7,6 @@
   pointer-events: none;
 }
 
-/* ── Light strip fix ────────────────────────────────────────────────────────
-   The canvas is position:fixed at z-index:0. Page wrappers (.page, .app
-   etc.) are position:relative at z-index:1 — they sit ABOVE the canvas but
-   are transparent by default, so the canvas shows through their padding.
-   
-   Setting background on every page wrapper to the SAME dark colour the canvas
-   itself renders (#0a0a14) blocks the canvas from bleeding through the 40px
-   top-padding area. The visual result is identical because the colours match —
-   the starfield is still visible in the side margins outside the content column
-   and on all pages with viewports narrower than max-width.               */
-
 .page,
 .app,
 .checkin-wrap,
@@ -27,10 +14,6 @@
   background: #0a0a14;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────────
-   Raised from 0.82 → 0.97 so any glow that reaches the header area is
-   fully blocked. At 0.82 the pink radial glow from the canvas bled through.
-   The payouts page own-nav already used 0.97, now every page matches it.  */
 .tv-shell-header {
   position: sticky;
   top: 0;
@@ -153,9 +136,6 @@
   padding: 40px 32px 80px;
 }
 
-/* ── Admin quick-access grid (6 cards) ───────────────────────────────────────
-   6 cards → 6 equal columns. At 1200px collapses to 3+3 (balanced, no orphan)
-   At 720px collapses to 2+2+2 (balanced). At 480px goes single column.     */
 .tv-quick-grid-admin {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -163,13 +143,6 @@
   margin-bottom: 48px;
 }
 
-/* ── Organizer quick-access grid (5 cards) ───────────────────────────────────
-   5 cards. Using flexbox so the last row can be centered, eliminating the
-   visual imbalance of 2 orphaned cards sitting left-aligned in a 3-col grid.
-
-   Wide (≥900px):   all 5 on one row, each 1/5 width — equal, no orphan
-   Medium (480-900px): flex-wrap 3 per row → last row has 2 centred cards
-   Mobile (<480px): 1 column stack                                          */
 .tv-quick-grid-organizer {
   display: flex;
   flex-wrap: wrap;
@@ -179,23 +152,21 @@
 }
 
 .tv-quick-grid-organizer > * {
-  flex: 1 1 calc(20% - 13px);   /* 5 per row: (100% - 4*16px) / 5 ≈ 20% */
+  flex: 1 1 calc(20% - 13px);   
   min-width: 160px;
   box-sizing: border-box;
 }
 
-/* ── Responsive breakpoints ─────────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .tv-quick-grid-admin {
-    grid-template-columns: repeat(3, 1fr);  /* 3+3, balanced */
+    grid-template-columns: repeat(3, 1fr);  
   }
-  /* Organizer: flex naturally wraps to 3 per row at this width.
-     justify-content:center centres the 2 orphaned cards in the last row. */
+  
   .tv-quick-grid-organizer {
     justify-content: center;
   }
   .tv-quick-grid-organizer > * {
-    flex: 0 1 calc(33.333% - 11px);  /* 3 per row */
+    flex: 0 1 calc(33.333% - 11px);  
     min-width: 160px;
   }
 }
@@ -208,7 +179,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .tv-quick-grid-organizer > * {
-    flex: 0 1 calc(50% - 8px);  /* 2 per row */
+    flex: 0 1 calc(50% - 8px);  
     min-width: 0;
   }
 }
@@ -222,9 +193,6 @@
   }
 }
 
-/* ── Check-in scanner card centering ────────────────────────────────────────
-   The scanner card has max-width:480px. Without centering it sits top-left
-   leaving a large empty area. Flex column + align-items:center centres it. */
 .checkin-wrap {
   display: flex !important;
   flex-direction: column;

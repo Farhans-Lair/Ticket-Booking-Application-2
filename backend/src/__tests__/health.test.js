@@ -1,12 +1,4 @@
-// ─────────────────────────────────────────────────────────────
-// health.test.js — HTTP health-check smoke test
-//
-// jest.isolateModules() gives this test its own private module
-// registry. Even when db.test.js has already connected (and
-// closed) a Sequelize instance, the app loaded here gets a
-// completely fresh Sequelize instance and all route handlers
-// (including seatController.holdSeats) are properly defined.
-// ─────────────────────────────────────────────────────────────
+
 
 const request = require("supertest");
 
@@ -25,7 +17,7 @@ afterAll(async () => {
     try {
       await sequelize.close();
     } catch (_) {
-      // Ignore
+
     }
   }
 });

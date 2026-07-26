@@ -17,19 +17,18 @@ const Payout = sequelize.define("Payout", {
     defaultValue: null,
   },
 
-  // ── Financials ─────────────────────────────────────────────
   amount: {
     type: DataTypes.DECIMAL(12, 2),
-    allowNull: false,                  // gross ticket revenue
+    allowNull: false,
   },
   platform_fee: {
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
-    defaultValue: 0.00,               // 10% of amount
+    defaultValue: 0.00,
   },
   net_amount: {
     type: DataTypes.DECIMAL(12, 2),
-    allowNull: false,                  // amount - platform_fee
+    allowNull: false,
   },
   currency: {
     type: DataTypes.STRING(10),
@@ -37,27 +36,21 @@ const Payout = sequelize.define("Payout", {
     defaultValue: "INR",
   },
 
-  // ── Status ─────────────────────────────────────────────────
-  // pending    = created / requested, not yet processed
-  // processing = transfer initiated by admin
-  // paid       = funds received by organizer
-  // failed     = transfer failed
   status: {
     type: DataTypes.ENUM("pending", "processing", "paid", "failed"),
     allowNull: false,
     defaultValue: "pending",
   },
 
-  // ── Payment details ────────────────────────────────────────
   payment_method: {
     type: DataTypes.STRING(50),
     allowNull: true,
-    defaultValue: null,               // bank_transfer | upi | razorpay | cheque
+    defaultValue: null,
   },
   reference_id: {
     type: DataTypes.STRING(255),
     allowNull: true,
-    defaultValue: null,               // UTR / UPI txn / cheque number
+    defaultValue: null,
   },
   notes: {
     type: DataTypes.TEXT,
@@ -65,18 +58,16 @@ const Payout = sequelize.define("Payout", {
     defaultValue: null,
   },
 
-  // ── Admin who processed this payout ────────────────────────
   initiated_by: {
     type: DataTypes.INTEGER,
     allowNull: true,
     defaultValue: null,
   },
 
-  // ── Organizer who requested this payout ────────────────────
   requested_by: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    defaultValue: null,               // NULL = admin-initiated
+    defaultValue: null,
   },
   request_note: {
     type: DataTypes.TEXT,

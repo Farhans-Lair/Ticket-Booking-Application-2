@@ -8,7 +8,6 @@ const OrganizerProfile = sequelize.define("OrganizerProfile", {
     primaryKey: true,
   },
 
-  // FK to users.id  (unique — one profile per organizer)
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -25,7 +24,6 @@ const OrganizerProfile = sequelize.define("OrganizerProfile", {
     defaultValue: null,
   },
 
-  // GST Identification Number (optional — required at payout stage)
   gst_number: {
     type: DataTypes.STRING(20),
     defaultValue: null,
@@ -36,10 +34,6 @@ const OrganizerProfile = sequelize.define("OrganizerProfile", {
     defaultValue: null,
   },
 
-  // Admin approval gate
-  // pending  → newly registered, awaiting review
-  // approved → can create and manage events
-  // rejected → blocked, rejection_reason will explain why
   status: {
     type: DataTypes.ENUM("pending", "approved", "rejected"),
     allowNull: false,

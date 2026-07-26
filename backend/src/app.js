@@ -1,5 +1,5 @@
 require("dotenv").config({ quiet: true });
-require("./models"); // Initialize DB models & associations
+require("./models");
 
 const express      = require("express");
 const cors         = require("cors");
@@ -38,9 +38,6 @@ const app = express();
 
 app.use(correlationId);
 
-/* =====================================================
-   CORS CONFIG
-===================================================== */
 const HTTPS_PORT = process.env.HTTPS_PORT || 3000;
 const HTTP_PORT  = process.env.HTTP_PORT  || 3001;
 
@@ -75,13 +72,10 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
-app.use(express.json({ limit: "10mb" }));   // #4 — reduced from 25mb; images go via S3 presigned URL
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
-/* =====================================================
-   RATE LIMITERS
-===================================================== */
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, max: 100,
   standardHeaders: true, legacyHeaders: false,
@@ -110,9 +104,6 @@ app.use("/css", express.static(path.join(__dirname, "../../frontend/css")));
 
 app.get("/auth/me", globalLimiter, authenticate, authController.me);
 
-/* =====================================================
-   API Routes
-===================================================== */
 app.use("/auth",          authLimiter,    authRoutes);
 app.use("/events",        globalLimiter,  eventRoutes);
 app.use("/bookings",      globalLimiter,  bookingRoutes);
@@ -128,11 +119,6 @@ app.use("/reviews",       globalLimiter,  reviewRoutes);
 app.use("/wishlist",      globalLimiter,  wishlistRoutes);
 app.use("/waitlist",      globalLimiter,  waitlistRoutes);
 
-/* =====================================================
-   HTML Page Routes
-   NOTE: /organizer must be registered AFTER all
-   /organizer API sub-routes to avoid conflicts.
-===================================================== */
 const sendPage = (file) => (req, res) =>
   res.sendFile(path.join(__dirname, `../../frontend/${file}`));
 
@@ -148,26 +134,20 @@ app.get("/organizer-events",              sendPage("organizer-events.html"));
 app.get("/organizer-revenue",             sendPage("organizer-revenue.html"));
 app.get("/organizer-cancellation-policy", sendPage("organizer-cancellation-policy.html"));
 app.get("/organizer-payouts",             sendPage("organizer-payouts.html"));
-// FIX 3: These page routes were missing — caused 404 on /organizer/checkin and /wishlist-page
+
 app.get("/organizer/checkin",             sendPage("checkin.html"));
 app.get("/wishlist-page",                 sendPage("wishlist.html"));
 
 app.get("/categories", catCtrl.listCategories);
 
-// NOTE: /organizer API routes registered here, AFTER the specific page routes above
 app.use("/organizer", globalLimiter, organizerRoutes);
 
 app.use("/admin", adminRoutes);
 
-/* =====================================================
-   404 Handler
-===================================================== */
 app.use((req, res) => res.status(404).json({ error: "Route not found." }));
 
 app.use(errorHandler);
 
-// Don't start background schedulers during tests — they keep the Jest
-// process alive and fire DB queries against an already-closed connection.
 if (process.env.NODE_ENV !== "test") {
   startSeatHoldScheduler();
   startReminderScheduler();

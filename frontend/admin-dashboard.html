@@ -20,7 +20,6 @@
     .app { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
     @media (max-width: 720px) { .app { padding: 28px 16px 60px; } }
 
-    /* TOPBAR */
     .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:44px; padding-bottom:20px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:12px; }
     .logo-wrap { display:flex; align-items:center; gap:10px; }
     .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
@@ -31,7 +30,6 @@
     .btn-ghost.danger:hover { border-color:var(--red); color:var(--red); }
     .btn-ghost.active { background:rgba(124,106,247,0.15); border-color:var(--accent); color:var(--accent); }
 
-    /* SECTION WRAPPER */
     .section-wrap { margin-bottom:56px; }
     .section-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
     .section-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; }
@@ -40,7 +38,6 @@
     .pill-gold   { background:rgba(245,200,66,0.12);  color:var(--gold);   border:1px solid rgba(245,200,66,0.25); }
     .pill-green  { background:rgba(66,230,149,0.12);  color:var(--green);  border:1px solid rgba(66,230,149,0.25); }
 
-    /* STAT CHIPS */
     .stats-strip { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
     .stat-chip { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 18px; min-width:120px; }
     .stat-chip .label { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
@@ -51,13 +48,11 @@
     .stat-chip .value.red    { color:var(--red); }
     .stat-chip .value.orange { color:var(--orange); }
 
-    /* FILTER TABS */
     .filter-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
     .filter-tab { padding:7px 18px; border-radius:9px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:0.85rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
     .filter-tab:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
     .filter-tab.active { background:var(--gold); border-color:var(--gold); color:#0a0a14; font-weight:700; }
 
-    /* ORGANIZER CARD */
     .org-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 24px; margin-bottom:12px; backdrop-filter:blur(12px); animation:card-in 0.3s ease both; }
     @keyframes card-in { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
     .org-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
@@ -71,7 +66,6 @@
     .detail-item label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; display:block; }
     .detail-item span  { font-size:0.9rem; margin-top:3px; display:block; }
 
-    /* EVENT CARD */
     .ev-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:start; animation:card-in 0.3s ease both; }
     .ev-card.status-pending  { border-left:4px solid var(--orange); }
     .ev-card.status-approved { border-left:4px solid var(--green); }
@@ -86,7 +80,6 @@
     .sb-rejected { background:rgba(247,74,106,0.12); color:var(--red); }
     .ev-actions { display:flex; flex-direction:column; gap:6px; min-width:120px; }
 
-    /* FEATURED GRID */
     .featured-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
     .feat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; animation:card-in 0.3s ease both; }
     .feat-card.is-featured { border-color:rgba(245,200,66,0.4); }
@@ -94,7 +87,6 @@
     .feat-meta  { font-size:0.78rem; color:var(--muted); margin-bottom:10px; }
     .feat-footer { display:flex; align-items:center; justify-content:space-between; }
 
-    /* BUTTONS */
     .card-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; flex-direction:column; }
     .action-row { display:flex; gap:8px; flex-wrap:wrap; }
     .btn-approve { padding:7px 16px; border-radius:8px; background:rgba(66,230,149,0.1); border:1px solid rgba(66,230,149,0.25); color:var(--green); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
@@ -114,7 +106,6 @@
     .reject-input:focus { border-color:var(--gold); }
     .btn-confirm-reject { padding:7px 14px; border-radius:8px; background:var(--red); border:none; color:#fff; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
-    /* MODAL */
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
     .modal-backdrop.open { display:flex; }
     .modal { background:#13131f; border:1px solid var(--border); border-radius:16px; padding:28px; width:100%; max-width:460px; }
@@ -129,7 +120,7 @@
     .toast.show { opacity:1; transform:translateY(0); }
     .toast.success { border-color:var(--green); color:var(--green); }
     .toast.error   { border-color:var(--red);   color:var(--red); }
-  </style>
+</style>
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
@@ -154,9 +145,7 @@
 </header>
 
 <div class="app">
-  <!-- ═══════════════════════════════════════════
-       QUICK-ACCESS CARDS
-  ═══════════════════════════════════════════ -->
+
   <div class="tv-quick-grid-admin">
     <div onclick="location.href='/admin/organizers'" style="cursor:pointer;background:rgba(18,18,32,0.92);border:1px solid var(--border);border-radius:16px;padding:24px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="font-size:2rem;margin-bottom:10px;">👥</div>
@@ -190,9 +179,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       A. ORGANIZER APPROVAL
-  ═══════════════════════════════════════════ -->
   <div class="section-wrap" id="sectionOrganizers">
     <div class="section-header">
       <h2>A. Organizer Approval</h2>
@@ -216,9 +202,6 @@
     <div id="orgList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       B. EVENT APPROVAL
-  ═══════════════════════════════════════════ -->
   <div class="section-wrap" id="sectionEvents">
     <div class="section-header">
       <h2>B. Event Approval</h2>
@@ -242,9 +225,6 @@
     <div id="evList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       C. FEATURED EVENTS
-  ═══════════════════════════════════════════ -->
   <div class="section-wrap" id="sectionFeatured">
     <div class="section-header">
       <h2>C. Featured Events</h2>
@@ -259,7 +239,6 @@
   </div>
 </div>
 
-<!-- Reject event modal -->
 <div class="modal-backdrop" id="rejectEventModal">
   <div class="modal">
     <h3>Reject Event</h3>
@@ -294,9 +273,6 @@ function toast(msg, type = "success") {
   setTimeout(() => el.className = "toast", 3000);
 }
 
-// ══════════════════════════════════════════
-//  A. ORGANIZER APPROVAL
-// ══════════════════════════════════════════
 let orgCurrentStatus = "";
 let allOrganizers    = [];
 
@@ -390,9 +366,6 @@ document.querySelectorAll("#orgFilterTabs .filter-tab").forEach(tab => {
   });
 });
 
-// ══════════════════════════════════════════
-//  B. EVENT APPROVAL
-// ══════════════════════════════════════════
 let allEvents = [];
 let evFilter  = "all";
 let pendingRejectEvId = null;
@@ -400,7 +373,7 @@ let pendingRejectEvId = null;
 async function loadEvents() {
   document.getElementById("evList").innerHTML = '<div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>';
   try {
-    // FIX: correct route path (mounted under /admin)
+
     const res = await fetch("/admin/moderation/events", { headers });
     if (!res.ok) throw new Error();
     allEvents = await res.json();
@@ -490,9 +463,6 @@ document.getElementById("confirmRejectEv").addEventListener("click", async () =>
   } else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
 });
 
-// ══════════════════════════════════════════
-//  C. FEATURED EVENTS
-// ══════════════════════════════════════════
 function renderFeatured() {
   const approved = allEvents.filter(e => e.status === "approved");
   if (!approved.length) {
@@ -527,7 +497,6 @@ async function toggleFeatured(id, makeFeature, btn) {
   btn.disabled = false;
 }
 
-// ── Logout ──────────────────────────────────────────────────
 document.getElementById("logoutBtn").addEventListener("click", () => {
   const userId = sessionStorage.getItem("userId");
   if (window._authChannel && userId) window._authChannel.postMessage({ type:"LOGOUT", userId });
@@ -535,7 +504,6 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
     .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 });
 
-// ── Boot ────────────────────────────────────────────────────
 loadOrganizers();
 loadEvents().then(() => renderFeatured());
 </script>
