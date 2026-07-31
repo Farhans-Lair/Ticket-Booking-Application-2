@@ -1,6 +1,3 @@
-# =============================================================
-#  asg.tf — EC2 moved to private subnets (#8)
-# =============================================================
 
 resource "aws_autoscaling_group" "backend_asg" {
   name = "${var.project_name}-backend-asg"
@@ -9,7 +6,6 @@ resource "aws_autoscaling_group" "backend_asg" {
   min_size         = 1
   max_size         = 3
 
-  # #8: Private subnets — EC2 has no public IP, NAT Gateway handles outbound
   vpc_zone_identifier = [
     aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id,
@@ -26,14 +22,24 @@ resource "aws_autoscaling_group" "backend_asg" {
   health_check_grace_period = 120
   default_instance_warmup   = 120
 
+  # Without this, changes to the launch template (e.g. user_data.sh edits)
+  # only apply to new instances — existing running instances keep the old
+  # user_data indefinitely until they happen to be replaced. This rolls
+  # them through automatically on every apply that changes the template.
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 120
+    }
+  }
+
   tag {
     key                 = "Name"
     value               = "${var.project_name}-backend"
     propagate_at_launch = true
   }
 }
-
-# ── CPU target-tracking ───────────────────────────────────────────────────────
 
 resource "aws_autoscaling_policy" "cpu_target_tracking" {
   name                   = "${var.project_name}-cpu-target-tracking"
@@ -49,8 +55,6 @@ resource "aws_autoscaling_policy" "cpu_target_tracking" {
 
   estimated_instance_warmup = 120
 }
-
-# ── ALB request-count tracking ────────────────────────────────────────────────
 
 resource "aws_autoscaling_policy" "alb_request_tracking" {
   name                   = "${var.project_name}-alb-request-tracking"

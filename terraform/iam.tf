@@ -1,10 +1,4 @@
-# =============================================================
-# iam.tf
-# =============================================================
 
-# ---------------------------
-# 1. EC2 Instance Role
-# ---------------------------
 resource "aws_iam_role" "backend_ec2_role" {
   name = "${var.project_name}-ec2-role"
 
@@ -40,9 +34,12 @@ resource "aws_iam_role_policy" "ec2_s3_ticket_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
-      Resource = "arn:aws:s3:::${var.s3_bucket_name}/tickets/*"
+      Effect = "Allow"
+      Action = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+      Resource = [
+        "arn:aws:s3:::${var.s3_bucket_name}/tickets/*",
+        "arn:aws:s3:::${var.s3_bucket_name}/invoices/*"
+      ]
     }]
   })
 }
@@ -72,16 +69,12 @@ resource "aws_iam_instance_profile" "backend_instance_profile" {
   role = aws_iam_role.backend_ec2_role.name
 }
 
-# ---------------------------
-# 2. GitHub Actions OIDC Provider
-# ---------------------------
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
-# --- Role A: Standard Deploy Role ---
 resource "aws_iam_role" "github_actions_role" {
   name = "${var.project_name}-GitHubActions-Deploy-Role"
 
@@ -132,7 +125,6 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
   })
 }
 
-# --- Role B: ECR Push Role ---
 resource "aws_iam_role" "github_ecr_push_role" {
   name = "GitHubActions-ECR-Push-Role"
 
