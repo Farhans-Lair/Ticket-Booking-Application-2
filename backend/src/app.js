@@ -36,6 +36,12 @@ const { startReminderScheduler } = require("./services/reminder.services");
 
 const app = express();
 
+// Trust the first hop (the ALB) so req.ip / express-rate-limit read the
+// real client IP from X-Forwarded-For instead of the ALB's internal IP.
+// Without this, every request behind the ALB looks like it comes from the
+// same address and all users share one rate-limit bucket.
+app.set("trust proxy", 1);
+
 app.use(correlationId);
 
 const HTTPS_PORT = process.env.HTTPS_PORT || 3000;

@@ -4,8 +4,14 @@ terraform/.terraform/
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+*.tfplan
+tfplan
 crash.log
 crash.*.log
+
+
+terraform/option
+terraform/options
 
 !.terraform.lock.hcl
 

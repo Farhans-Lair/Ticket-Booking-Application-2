@@ -54,9 +54,18 @@ if (USE_HTTPS) {
   try {
     await sequelize.authenticate();
     console.log("✅  Database connected");
-    await sequelize.sync({ alter: true });
-    console.log("✅  Models synchronized");
+
+    // Schema is managed via db/master_schema.sql (fresh installs) and
+    // db/migration.sql (live upgrades). Only auto-sync in local/dev for
+    // convenience — running `alter: true` in production risks clashing
+    // DDL when multiple ASG instances boot around the same time, and can
+    // silently drift the schema away from the reviewed migration files.
+    if (process.env.NODE_ENV !== "production") {
+      await sequelize.sync({ alter: true });
+      console.log("✅  Models synchronized (dev mode)");
+    }
   } catch (err) {
     console.error("❌  Database initialization failed:", err.message);
+    process.exit(1);
   }
 })();

@@ -115,6 +115,19 @@ async function sendEventReminders() {
 
   let sent = 0;
   for (const booking of bookings) {
+    // Atomically claim this booking first. If another ASG instance's cron
+    // tick already claimed it, claimedRows will be 0 and we skip it —
+    // this is what stops duplicate reminder emails when 2+ instances are
+    // running the same scheduled job at once.
+    const [claimedRows] = await Booking.update(
+      { reminder_sent: 1 },
+      { where: { id: booking.id, reminder_sent: 0 } }
+    );
+
+    if (claimedRows === 0) {
+      continue;
+    }
+
     try {
       await transporter.sendMail({
         from:    `"TicketVerse" <${process.env.EMAIL_USER}>`,
@@ -123,9 +136,12 @@ async function sendEventReminders() {
         html:    buildReminderHtml(booking.User, booking.Event, booking),
       });
 
-      await booking.update({ reminder_sent: 1 });
       sent++;
     } catch (emailErr) {
+      // Send failed — release the claim so it's retried on the next run
+      // instead of being silently skipped forever.
+      await Booking.update({ reminder_sent: 0 }, { where: { id: booking.id } });
+
       logger.error("[Reminder] Failed to send reminder", {
         bookingId: booking.id,
         userId:    booking.User?.id,
@@ -140,15 +156,19 @@ async function sendEventReminders() {
 function startReminderScheduler() {
   if (process.env.NODE_ENV === "test") return;
 
-  cron.schedule("0 9 * * *", async () => {
-    try {
-      await sendEventReminders();
-    } catch (err) {
-      logger.error("[Reminder] Scheduler job failed", { error: err.message });
-    }
-  });
+  cron.schedule(
+    "0 9 * * *",
+    async () => {
+      try {
+        await sendEventReminders();
+      } catch (err) {
+        logger.error("[Reminder] Scheduler job failed", { error: err.message });
+      }
+    },
+    { timezone: "Asia/Kolkata" }
+  );
 
-  logger.info("[Reminder] Scheduler registered — daily at 09:00.");
+  logger.info("[Reminder] Scheduler registered — daily at 09:00 IST.");
 }
 
 module.exports = { startReminderScheduler, sendEventReminders };

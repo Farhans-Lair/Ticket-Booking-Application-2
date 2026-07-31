@@ -1,0 +1,42 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored - never commit it.
+
+# --- Database ---
+db_password = "REPLACE_ME"
+
+# --- JWT signing secrets (use long random strings, e.g. `openssl rand -hex 32`) ---
+jwt_secret         = "REPLACE_ME" # legacy, kept for old token compatibility
+jwt_access_secret  = "REPLACE_ME"
+jwt_refresh_secret = "REPLACE_ME"
+jwt_session_secret = "REPLACE_ME"
+
+# --- Razorpay ---
+razorpay_key_id     = "REPLACE_ME"
+razorpay_key_secret = "REPLACE_ME"
+
+# --- Email (Gmail app password, not your account password) ---
+email_user = "REPLACE_ME@gmail.com"
+email_pass = "REPLACE_ME"
+
+# --- Alerts ---
+alert_email = "REPLACE_ME@example.com"
+
+# --- S3 bucket for generated ticket PDFs (must be globally unique) ---
+s3_bucket_name = "REPLACE_ME-ticket-pdfs"
+
+# --- TLS certificate (required before `terraform apply`) ---
+# The ALB's HTTPS listener uses a self-signed cert uploaded to IAM
+# (see iam_cert.tf). Before running terraform apply, generate one locally:
+#
+#   mkdir -p ../certs
+#   cd ../certs
+#   mkcert -install
+#   mkcert -cert-file server.crt -key-file server.key <your-alb-dns-name-or-domain>
+#
+# mkcert writes its root CA to a path you can find with `mkcert -CAROOT`.
+# Point cert_chain_path at that rootCA.pem:
+cert_chain_path = "/absolute/path/to/rootCA.pem"
+
+# Anyone opening the app in a browser will need to click through a
+# self-signed-certificate warning once, or install the mkcert root CA
+# locally, since this isn't a publicly trusted certificate authority.

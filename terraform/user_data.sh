@@ -24,6 +24,7 @@ APP_DIR=/home/ec2-user/ticket-backend
 mkdir -p $APP_DIR
 
 cat <<'ENVEOF'> $APP_DIR/.env
+NODE_ENV=production
 PORT=3000
 USE_HTTPS=false
 FRONTEND_URL=https://${ALB_DNS}
@@ -64,14 +65,14 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWEO
         "collect_list": [
           {
             "file_path": "/home/ec2-user/ticket-backend/logs/app.log",
-            "log_group_name": "/ticket-app/backend",
+            "log_group_name": "/ticketapp/backend",
             "log_stream_name": "{instance_id}/app",
             "timestamp_format": "%Y-%m-%dT%H:%M:%S",
             "multi_line_start_pattern": "^\\{"
           },
           {
             "file_path": "/home/ec2-user/ticket-backend/logs/error.log",
-            "log_group_name": "/ticket-app/errors",
+            "log_group_name": "/ticketapp/errors",
             "log_stream_name": "{instance_id}/errors",
             "timestamp_format": "%Y-%m-%dT%H:%M:%S",
             "multi_line_start_pattern": "^\\{"
