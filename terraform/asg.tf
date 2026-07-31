@@ -22,6 +22,18 @@ resource "aws_autoscaling_group" "backend_asg" {
   health_check_grace_period = 120
   default_instance_warmup   = 120
 
+  # Without this, changes to the launch template (e.g. user_data.sh edits)
+  # only apply to new instances — existing running instances keep the old
+  # user_data indefinitely until they happen to be replaced. This rolls
+  # them through automatically on every apply that changes the template.
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 120
+    }
+  }
+
   tag {
     key                 = "Name"
     value               = "${var.project_name}-backend"

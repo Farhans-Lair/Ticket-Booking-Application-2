@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+terraform/
+db/
+*.md
+.github/
+
+coverage/
+*.log
+.DS_Store

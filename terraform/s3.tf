@@ -38,4 +38,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "ticket_pdfs" {
       days = 365
     }
   }
+
+  # Invoices are financial records and typically need to be retained longer
+  # than event tickets for tax/accounting purposes. 2555 days (~7 years) is
+  # a common default for India — confirm the correct retention period for
+  # your accounting requirements before relying on this.
+  rule {
+    id     = "expire-old-invoices"
+    status = "Enabled"
+
+    filter {
+      prefix = "invoices/"
+    }
+
+    expiration {
+      days = 2555
+    }
+  }
 }
