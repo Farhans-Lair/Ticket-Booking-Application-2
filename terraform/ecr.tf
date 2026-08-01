@@ -1,6 +1,6 @@
 
 resource "aws_ecr_repository" "ticket_backend" {
-  name                 = "ticket-backend"
+  name                 = "${var.project_name}-backend"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {

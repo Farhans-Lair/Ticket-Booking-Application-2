@@ -75,58 +75,8 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
-resource "aws_iam_role" "github_actions_role" {
-  name = "${var.project_name}-GitHubActions-Deploy-Role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
-      Action    = "sts:AssumeRoleWithWebIdentity"
-      Condition = {
-        StringEquals = { "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com" }
-        StringLike   = { "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${var.github_repo}:*" }
-      }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "github_ecr_full" {
-  role       = aws_iam_role.github_actions_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
-}
-
-resource "aws_iam_role_policy" "github_actions_deploy" {
-  name = "${var.project_name}-GitHubActions-EC2-SSM-Deploy"
-  role = aws_iam_role.github_actions_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:SendCommand", "ssm:GetCommandInvocation",
-          "ssm:ListCommandInvocations", "ssm:DescribeInstanceInformation"
-        ]
-        Resource = [
-          "arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:instance/*",
-          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
-          "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:*"
-        ]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["ec2:DescribeInstances"]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
 resource "aws_iam_role" "github_ecr_push_role" {
-  name = "GitHubActions-ECR-Push-Role"
+  name = "${var.project_name}-GitHubActions-ECR-Push-Role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -148,7 +98,7 @@ resource "aws_iam_role_policy_attachment" "push_ecr_full" {
 }
 
 resource "aws_iam_role_policy" "github_ecr_push_ssm_deploy" {
-  name = "GitHubActions-ECR-Push-SSM-Deploy"
+  name = "${var.project_name}-GitHubActions-ECR-Push-SSM-Deploy"
   role = aws_iam_role.github_ecr_push_role.id
 
   policy = jsonencode({
