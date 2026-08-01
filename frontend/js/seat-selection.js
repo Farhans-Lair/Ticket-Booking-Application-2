@@ -1,16 +1,10 @@
-/**
- * seat-selection.js
- * FIX Issue 4: Loads tier data, colours seats by tier, computes
- * total from tier prices instead of fixed event.price.
- */
 
 let selectedSeats  = [];
 let requiredCount  = 0;
 let currentEventId = null;
-let tierPriceMap   = {};   // { seatNumber: price }
-let tierColorMap   = {};   // { tierName: cssColor }
+let tierPriceMap   = {};
+let tierColorMap   = {};
 
-// Tier colour palette
 const TIER_COLORS = [
   { bg: "rgba(245,200,66,0.18)",  border: "rgba(245,200,66,0.6)",  sel: "#c9a227", text: "#f5c842" },
   { bg: "rgba(124,106,247,0.18)", border: "rgba(124,106,247,0.6)", sel: "#7c6af7", text: "#b8b0ff" },
@@ -39,32 +33,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadSeatsWithTiers(currentEventId);
 });
 
-/*
-====================================================
- LOAD SEATS & TIERS
-====================================================
-*/
 async function loadSeatsWithTiers(eventId) {
   try {
-    // Try tier endpoint first (returns { seats, tiers })
+
     const data = await apiRequest(`/seats/${eventId}/tiers`, "GET", null, true);
     const { seats, tiers } = data;
 
-    // Assign colours to each tier
     tiers.forEach((t, i) => {
       tierColorMap[t.tier] = TIER_COLORS[i % TIER_COLORS.length];
     });
 
-    // Build price lookup
     seats.forEach(s => { tierPriceMap[s.seat_number] = parseFloat(s.tier_price) || 0; });
 
-    // Build legend
     buildTierLegend(tiers);
 
-    // Render grid
     renderSeatGrid(seats);
   } catch {
-    // Fallback: load seats without tier data
+
     try {
       const seats = await apiRequest(`/seats/${eventId}`, "GET", null, true);
       renderSeatGrid(seats);
@@ -75,16 +60,10 @@ async function loadSeatsWithTiers(eventId) {
   }
 }
 
-/*
-====================================================
- BUILD TIER LEGEND
-====================================================
-*/
 function buildTierLegend(tiers) {
   const legendEl = document.querySelector(".legend");
   if (!legendEl || !tiers.length) return;
 
-  // Replace legend with tier legend
   const tierItems = tiers.map(t => {
     const c = tierColorMap[t.tier] || TIER_COLORS[0];
     return `
@@ -100,18 +79,12 @@ function buildTierLegend(tiers) {
     <div class="legend-item"><div class="legend-box booked"   style="width:22px;height:22px;border-radius:5px;"></div> Booked</div>`;
 }
 
-/*
-====================================================
- RENDER SEAT GRID
-====================================================
-*/
 function renderSeatGrid(seats) {
   if (!seats || !seats.length) {
     document.getElementById("seat-grid").innerHTML = "<p>No seats found for this event.</p>";
     return;
   }
 
-  // Group by row
   const rows = {};
   seats.forEach(seat => {
     const row = seat.seat_number[0];
@@ -165,11 +138,6 @@ function renderSeatGrid(seats) {
   });
 }
 
-/*
-====================================================
- TOGGLE SEAT SELECTION
-====================================================
-*/
 function toggleSeat(btn, seatNumber, tierColor) {
   const isSelected = selectedSeats.includes(seatNumber);
 
@@ -202,11 +170,6 @@ function toggleSeat(btn, seatNumber, tierColor) {
   updatePricePreview();
 }
 
-/*
-====================================================
- UPDATE PRICE PREVIEW (tier-based total)
-====================================================
-*/
 function updatePricePreview() {
   const hasTiers = Object.keys(tierPriceMap).length > 0;
   if (!hasTiers) return;
@@ -214,7 +177,6 @@ function updatePricePreview() {
   let total = 0;
   selectedSeats.forEach(sn => { total += tierPriceMap[sn] || 0; });
 
-  // Show/create price preview element
   let previewEl = document.getElementById("tier-price-preview");
   if (!previewEl) {
     previewEl = document.createElement("div");
@@ -235,11 +197,6 @@ function updatePricePreview() {
   }
 }
 
-/*
-====================================================
- PROCEED TO PAYMENT
-====================================================
-*/
 async function proceedToPayment() {
   if (selectedSeats.length !== requiredCount) {
     alert(`Please select exactly ${requiredCount} seat(s)`); return;

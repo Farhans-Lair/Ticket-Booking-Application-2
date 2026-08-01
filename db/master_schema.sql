@@ -1,10 +1,4 @@
--- ============================================================
--- TICKETVERSE — COMPLETE MASTER SCHEMA
--- Compatible with MySQL 8.0+
--- Run this on a fresh / empty database.
--- Usage:
---   mysql -u root -p ticket_booking_db < master_schema.sql
--- ============================================================
+-- Complete schema for a fresh TicketVerse database (MySQL 8.0+).
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -23,9 +17,6 @@ DROP TABLE IF EXISTS users;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
--- ──────────────────────────────────────────────
--- 1. USERS
--- ──────────────────────────────────────────────
 CREATE TABLE users (
   id            INT           NOT NULL AUTO_INCREMENT,
   name          VARCHAR(100)  NOT NULL,
@@ -33,7 +24,6 @@ CREATE TABLE users (
   password_hash TEXT          NOT NULL,
   role          VARCHAR(20)   NOT NULL DEFAULT 'user',
 
-  -- User Profile fields
   phone         VARCHAR(20)   DEFAULT NULL,
   avatar_url    VARCHAR(512)  DEFAULT NULL,
   bio           TEXT          DEFAULT NULL,
@@ -46,12 +36,6 @@ CREATE TABLE users (
   UNIQUE KEY uq_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 2. EVENTS
---    FIX: Added city, average_rating, review_count
---         (Feature 2: Search filters; Feature 5: Ratings)
--- ──────────────────────────────────────────────
 CREATE TABLE events (
   id                 INT           NOT NULL AUTO_INCREMENT,
   organizer_id       INT           DEFAULT NULL,
@@ -70,10 +54,8 @@ CREATE TABLE events (
   moderated_by       INT           DEFAULT NULL,
   images             LONGTEXT      DEFAULT NULL,
 
-  -- Feature 2: City filter for search
   city               VARCHAR(100)  DEFAULT NULL,
 
-  -- Feature 5: Cached rating values (updated by review trigger)
   average_rating     DECIMAL(3,1)  DEFAULT NULL,
   review_count       INT           NOT NULL DEFAULT 0,
 
@@ -92,13 +74,6 @@ CREATE TABLE events (
     FOREIGN KEY (moderated_by) REFERENCES users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 3. SEATS
---    FIX: status ENUM now includes 'held'
---         held_until, held_by_user_id for 10-min lock
---         (Feature 1: Seat Hold)
--- ──────────────────────────────────────────────
 CREATE TABLE seats (
   id               INT           NOT NULL AUTO_INCREMENT,
   event_id         INT           NOT NULL,
@@ -106,10 +81,8 @@ CREATE TABLE seats (
   seat_tier        VARCHAR(50)   NOT NULL DEFAULT 'General',
   tier_price       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
-  -- FIX: Added 'held' to ENUM
   status           ENUM('available','booked','held') NOT NULL DEFAULT 'available',
 
-  -- Feature 1: Seat hold fields
   held_until       DATETIME      DEFAULT NULL,
   held_by_user_id  INT           DEFAULT NULL,
 
@@ -122,10 +95,6 @@ CREATE TABLE seats (
     FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 4. ORGANIZER PROFILES
--- ──────────────────────────────────────────────
 CREATE TABLE organizer_profiles (
   id               INT           NOT NULL AUTO_INCREMENT,
   user_id          INT           NOT NULL,
@@ -144,15 +113,6 @@ CREATE TABLE organizer_profiles (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 5. BOOKINGS
---    FIX: Added all missing columns:
---         razorpay_refund_id, applied_tier_hours,
---         cancellation_invoice_s3_key,
---         qr_token, checked_in, checked_in_at   (Feature 3: QR)
---         coupon_code, discount_amount           (Feature 4: Coupons)
--- ──────────────────────────────────────────────
 CREATE TABLE bookings (
   id                           INT           NOT NULL AUTO_INCREMENT,
   user_id                      INT           NOT NULL,
@@ -160,21 +120,17 @@ CREATE TABLE bookings (
   tickets_booked               INT           NOT NULL,
   selected_seats               TEXT          DEFAULT NULL,
 
-  -- Revenue breakdown
   ticket_amount                DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   convenience_fee              DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   gst_amount                   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   total_paid                   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
-  -- Payment
   razorpay_order_id            VARCHAR(100)  DEFAULT NULL,
   razorpay_payment_id          VARCHAR(100)  DEFAULT NULL,
   payment_status               ENUM('pending','paid','failed') NOT NULL DEFAULT 'pending',
 
-  -- Reminder
   reminder_sent                TINYINT(1)    NOT NULL DEFAULT 0,
 
-  -- Cancellation
   cancellation_status          VARCHAR(30)   NOT NULL DEFAULT 'active',
   cancellation_reason          TEXT          DEFAULT NULL,
   cancellation_fee             DECIMAL(10,2) DEFAULT NULL,
@@ -184,17 +140,14 @@ CREATE TABLE bookings (
   razorpay_refund_id           VARCHAR(255)  DEFAULT NULL,
   cancelled_at                 DATETIME      DEFAULT NULL,
 
-  -- S3 PDF keys
   ticket_pdf_s3_key            VARCHAR(512)  DEFAULT NULL,
   booking_invoice_s3_key       VARCHAR(512)  DEFAULT NULL,
   cancellation_invoice_s3_key  VARCHAR(512)  DEFAULT NULL,
 
-  -- Feature 3: QR code check-in
   qr_token                     TEXT          DEFAULT NULL,
   checked_in                   TINYINT(1)    NOT NULL DEFAULT 0,
   checked_in_at                DATETIME      DEFAULT NULL,
 
-  -- Feature 4: Coupon discount
   coupon_code                  VARCHAR(50)   DEFAULT NULL,
   discount_amount              DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
@@ -212,10 +165,6 @@ CREATE TABLE bookings (
     FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 6. CANCELLATION POLICIES
--- ──────────────────────────────────────────────
 CREATE TABLE cancellation_policies (
   id                         INT           NOT NULL AUTO_INCREMENT,
   event_id                   INT           NOT NULL,
@@ -242,10 +191,6 @@ CREATE TABLE cancellation_policies (
     FOREIGN KEY (organizer_id) REFERENCES users  (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 7. PAYOUTS
--- ──────────────────────────────────────────────
 CREATE TABLE payouts (
   id               INT            NOT NULL AUTO_INCREMENT,
   organizer_id     INT            NOT NULL,
@@ -280,10 +225,6 @@ CREATE TABLE payouts (
     FOREIGN KEY (requested_by) REFERENCES users  (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 8. EVENT CATEGORIES
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS event_categories (
   id          INT           NOT NULL AUTO_INCREMENT,
   name        VARCHAR(100)  NOT NULL,
@@ -309,10 +250,6 @@ INSERT IGNORE INTO event_categories (name, slug, icon_emoji, sort_order) VALUES
   ('Workshop',   'Workshop',   '🛠️', 7),
   ('Other',      'Other',      '🎟️', 8);
 
-
--- ──────────────────────────────────────────────
--- 9. COUPONS  (Feature 4)
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS coupons (
   id             INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
   code           VARCHAR(50)   NOT NULL UNIQUE,
@@ -331,10 +268,6 @@ CREATE TABLE IF NOT EXISTS coupons (
   INDEX idx_coupons_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 10. REVIEWS  (Feature 5)
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reviews (
   id               INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id          INT      NOT NULL,
@@ -351,10 +284,6 @@ CREATE TABLE IF NOT EXISTS reviews (
   CONSTRAINT fk_review_event FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 11. WISHLISTS  (Feature 6)
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS wishlists (
   id                      INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id                 INT      NOT NULL,
@@ -368,10 +297,6 @@ CREATE TABLE IF NOT EXISTS wishlists (
   CONSTRAINT fk_wishlist_event FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- ──────────────────────────────────────────────
--- 12. WAITLIST  (Feature 7)
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS waitlist (
   id             INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id        INT      NOT NULL,
@@ -388,11 +313,6 @@ CREATE TABLE IF NOT EXISTS waitlist (
   CONSTRAINT fk_waitlist_event FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
-
--- ──────────────────────────────────────────────
--- 13. REFRESH TOKENS  (#1)
--- ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id          INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id     INT           NOT NULL,
@@ -405,9 +325,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   CONSTRAINT fk_rt_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ──────────────────────────────────────────────
--- VERIFY
--- ──────────────────────────────────────────────
 SELECT
   TABLE_NAME                        AS `Table`,
   TABLE_ROWS                        AS `Rows`,

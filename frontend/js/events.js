@@ -1,13 +1,3 @@
-/**
- * events.js — rewritten to match the new events.html layout.
- *
- * events.html uses: #eventsGrid, #featuredCarousel, #trendingGrid,
- *                   #searchInput, #cityFilter, #minPrice, #maxPrice,
- *                   #dateFrom, #dateTo, #logoutBtn
- *
- * The old version used #events-list and #category-filters which no
- * longer exist in the updated HTML — causing the blank "Loading…" state.
- */
 
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) window.location.reload();
@@ -33,19 +23,17 @@ function fmtDate(d) {
   });
 }
 
-/* ─── init ─────────────────────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
     sessionStorage.setItem("role",   session.role);
     sessionStorage.setItem("userId", String(session.userId));
   } catch {
-    return; // api.js 401 handler redirects to "/"
+    return;
   }
 
   document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  // Wire filter inputs
   document.getElementById("searchInput")?.addEventListener("input",  applyFilters);
   document.getElementById("cityFilter")?.addEventListener("change",  applyFilters);
   document.getElementById("minPrice")?.addEventListener("input",     applyFilters);
@@ -53,7 +41,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("dateFrom")?.addEventListener("change",    applyFilters);
   document.getElementById("dateTo")?.addEventListener("change",      applyFilters);
 
-  // Wire "All" category button
   document.querySelectorAll(".filter-btn[data-cat='']").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -63,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Load everything in parallel
   await Promise.all([
     loadFeatured(),
     loadTrending(),
@@ -75,7 +61,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   ]);
 });
 
-/* ─── featured ──────────────────────────────────────────────────────────────── */
 async function loadFeatured() {
   try {
     const r    = await fetch("/events/featured");
@@ -111,7 +96,6 @@ async function loadFeatured() {
   }
 }
 
-/* ─── trending ──────────────────────────────────────────────────────────────── */
 async function loadTrending() {
   try {
     const r    = await fetch("/events/trending");
@@ -134,7 +118,6 @@ async function loadTrending() {
   }
 }
 
-/* ─── category filter buttons ───────────────────────────────────────────────── */
 async function loadCategoryFilters() {
   const bar = document.querySelector(".filter-bar");
   if (!bar) return;
@@ -156,10 +139,9 @@ async function loadCategoryFilters() {
         applyFilters();
       });
     });
-  } catch { /* keep defaults */ }
+  } catch {}
 }
 
-/* ─── city dropdown ──────────────────────────────────────────────────────────── */
 async function loadCities() {
   try {
     const r      = await fetch("/search/cities");
@@ -172,30 +154,27 @@ async function loadCities() {
       opt.textContent = city.charAt(0).toUpperCase() + city.slice(1);
       sel.appendChild(opt);
     });
-  } catch { /* city filter stays empty */ }
+  } catch {}
 }
 
-/* ─── wishlist ───────────────────────────────────────────────────────────────── */
 async function loadUserWishlist() {
   try {
     const r = await fetch("/wishlist", { headers });
     if (!r.ok) return;
     const data = await r.json();
     wishlistIds = new Set(data.map(w => w.event_id));
-  } catch { /* silent */ }
+  } catch {}
 }
 
-/* ─── waitlist ───────────────────────────────────────────────────────────────── */
 async function loadUserWaitlist() {
   try {
     const r = await fetch("/waitlist", { headers });
     if (!r.ok) return;
     const data = await r.json();
     waitlistIds = new Set(data.map(w => w.event_id));
-  } catch { /* silent */ }
+  } catch {}
 }
 
-/* ─── all events ─────────────────────────────────────────────────────────────── */
 async function loadEvents() {
   try {
     const r = await fetch("/events", { headers });
@@ -207,7 +186,6 @@ async function loadEvents() {
   }
 }
 
-/* ─── apply all active filters ───────────────────────────────────────────────── */
 async function applyFilters() {
   const search   = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
   const city     = (document.getElementById("cityFilter")?.value  || "").trim();
@@ -219,7 +197,6 @@ async function applyFilters() {
   const hasAdvanced = city || minPrice || maxPrice || dateFrom || dateTo;
 
   if (search && !hasAdvanced) {
-    // Full-text search via API
     try {
       const r = await fetch(`/search?q=${encodeURIComponent(search)}`);
       const d = await r.json();
@@ -227,11 +204,10 @@ async function applyFilters() {
       if (activeCategory) filtered = filtered.filter(e => e.category === activeCategory);
       renderEventsData(filtered);
       return;
-    } catch { /* fallback to local */ }
+    } catch {}
   }
 
   if (hasAdvanced || search) {
-    // Advanced filtered search via API
     try {
       const qs = new URLSearchParams();
       if (city)          qs.set("city",     city);
@@ -244,13 +220,12 @@ async function applyFilters() {
       const r = await fetch(`/search/events?${qs}`);
       renderEventsData(await r.json());
       return;
-    } catch { /* fallback */ }
+    } catch {}
   }
 
   renderEvents();
 }
 
-/* ─── local filter + render ──────────────────────────────────────────────────── */
 function renderEvents() {
   const search = (document.getElementById("searchInput")?.value || "").toLowerCase();
   const filtered = allEvents.filter(ev => {
@@ -264,7 +239,6 @@ function renderEvents() {
   renderEventsData(filtered);
 }
 
-/* ─── render event cards into #eventsGrid ────────────────────────────────────── */
 function renderEventsData(events) {
   const grid = document.getElementById("eventsGrid");
   if (!grid) return;
@@ -342,7 +316,6 @@ function renderEventsData(events) {
   }).join("");
 }
 
-/* ─── wishlist toggle ────────────────────────────────────────────────────────── */
 async function toggleWishlist(e, eventId) {
   e.stopPropagation();
   try {
@@ -357,7 +330,6 @@ async function toggleWishlist(e, eventId) {
   } catch (err) { alert("Could not update wishlist: " + err.message); }
 }
 
-/* ─── waitlist ───────────────────────────────────────────────────────────────── */
 async function joinWaitlist(e, eventId) {
   e.stopPropagation();
   try {
@@ -378,7 +350,6 @@ async function leaveWaitlist(e, eventId) {
   } catch (err) { alert("Could not leave waitlist: " + err.message); }
 }
 
-/* ─── navigate to booking ────────────────────────────────────────────────────── */
 function goToBooking(eventId) {
   const input          = document.getElementById("qty-" + eventId);
   const tickets_booked = input ? Math.max(1, parseInt(input.value, 10) || 1) : 1;
@@ -386,11 +357,9 @@ function goToBooking(eventId) {
   location.href = "/seat-selection";
 }
 
-// backward-compat aliases used by older HTML snippets
 function goToSeatSelection(eventId) { goToBooking(eventId); }
 function bookTicket(eventId)         { goToBooking(eventId); }
 
-/* ─── logout ──────────────────────────────────────────────────────────────────── */
 function logout() {
   const userId = sessionStorage.getItem("userId");
   if (window._authChannel && userId) {

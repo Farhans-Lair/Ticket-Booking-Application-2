@@ -1,11 +1,7 @@
-/**
- * waitlist.services.js — Feature 7: Waitlist for sold-out events
- */
 const { WaitlistEntry, Event, User } = require("../models");
 const { Op } = require("sequelize");
 const logger = require("../config/logger");
 
-/* ─── Join ────────────────────────────────────────────────────────────────── */
 const join = async (userId, eventId, ticketsWanted = 1) => {
   const event = await Event.findByPk(eventId);
   if (!event) throw new Error("Event not found.");
@@ -24,13 +20,11 @@ const join = async (userId, eventId, ticketsWanted = 1) => {
   return entry;
 };
 
-/* ─── Leave ───────────────────────────────────────────────────────────────── */
 const leave = async (userId, eventId) => {
   await WaitlistEntry.destroy({ where: { user_id: userId, event_id: eventId } });
   logger.info("Waitlist left", { userId, eventId });
 };
 
-/* ─── User's waitlist ─────────────────────────────────────────────────────── */
 const getForUser = (userId) =>
   WaitlistEntry.findAll({
     where: { user_id: userId },
@@ -38,13 +32,11 @@ const getForUser = (userId) =>
     order: [["joined_at", "DESC"]],
   });
 
-/* ─── Queue stats (public) ────────────────────────────────────────────────── */
 const getQueueStats = async (eventId) => {
   const count = await WaitlistEntry.count({ where: { event_id: eventId, status: "waiting" } });
   return { waitlist_count: count, event_id: eventId };
 };
 
-/* ─── Notify next waiter after a cancellation ─────────────────────────────── */
 const notifyNextWaiter = async (eventId, freedSeats) => {
   const eligible = await WaitlistEntry.findAll({
     where: { event_id: eventId, status: "waiting", tickets_wanted: { [Op.lte]: freedSeats } },

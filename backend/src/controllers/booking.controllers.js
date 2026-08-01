@@ -11,7 +11,6 @@ const {
 const { generateQrPng } = require("../services/qr.services");
 const logger = require("../config/logger");
 
-// POST /bookings
 const createBooking = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -39,7 +38,6 @@ const createBooking = async (req, res, next) => {
   }
 };
 
-// GET /bookings/my-bookings
 const getMyBookings = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -63,7 +61,6 @@ const getMyBookings = async (req, res, next) => {
   }
 };
 
-// GET /bookings/:id/download-ticket
 const downloadTicket = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -144,7 +141,6 @@ const downloadTicket = async (req, res, next) => {
   }
 };
 
-// GET /bookings/:id/download-invoice
 const downloadBookingInvoice = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -228,7 +224,6 @@ const downloadBookingInvoice = async (req, res, next) => {
   }
 };
 
-// GET /bookings/:id/qr
 const getQrCode = async (req, res, next) => {
   try {
     const userId = req.user.id;

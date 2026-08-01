@@ -1,11 +1,3 @@
-/**
- * waitlist.controllers.js — Feature 7: Waitlist for sold-out events
- *
- * POST   /waitlist/:eventId              → join waitlist
- * DELETE /waitlist/:eventId              → leave waitlist
- * GET    /waitlist                       → user's waitlist entries
- * GET    /waitlist/:eventId/stats        → queue depth (public)
- */
 const waitlistService = require("../services/waitlist.services");
 const logger          = require("../config/logger");
 

@@ -2,12 +2,6 @@ const { Op, fn, col, literal } = require("sequelize");
 const Event    = require("../models/Event");
 const { Seat, Booking } = require("../models");
 
-/*
-====================================================
- GENERATE SEATS FOR AN EVENT
- 10 seats per row, rows A–Z (max 260 seats)
-====================================================
-*/
 const generateSeats = (eventId, totalTickets) => {
   const seats       = [];
   const seatsPerRow = 10;
@@ -23,9 +17,6 @@ const generateSeats = (eventId, totalTickets) => {
   return seats;
 };
 
-// ─────────────────────────────────────────────────────────────
-// CREATE
-// ─────────────────────────────────────────────────────────────
 const createEvent = async (eventData) => {
   const event = await Event.create(eventData);
   const seats = generateSeats(event.id, event.total_tickets);
@@ -33,39 +24,27 @@ const createEvent = async (eventData) => {
   return event;
 };
 
-// ─────────────────────────────────────────────────────────────
-// READ — all APPROVED events (public browse)
-// ─────────────────────────────────────────────────────────────
 const getAllEvents = async (category) => {
   const where = { status: "approved" };
   if (category) where.category = category;
   return Event.findAll({ where, order: [["event_date", "ASC"]] });
 };
 
-// ─────────────────────────────────────────────────────────────
-// READ — featured events (Feature 2)
-// Returns approved + featured events for the homepage carousel
-// ─────────────────────────────────────────────────────────────
 const getFeaturedEvents = async (limit = 8) => {
   return Event.findAll({
     where: {
       status:      "approved",
       is_featured: true,
-      event_date:  { [Op.gte]: new Date() },   // only upcoming
+      event_date:  { [Op.gte]: new Date() },
     },
     order: [["event_date", "ASC"]],
     limit,
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// READ — trending events (Feature 2)
-// "Trending" = most bookings in the last 30 days
-// ─────────────────────────────────────────────────────────────
 const getTrendingEvents = async (limit = 6) => {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  // Subquery: count paid bookings per event in last 30 days
   const bookingCounts = await Booking.findAll({
     attributes: [
       "event_id",
@@ -88,18 +67,11 @@ const getTrendingEvents = async (limit = 6) => {
     where: { id: { [Op.in]: eventIds }, status: "approved" },
   });
 
-  // Re-order to match booking_count sort
   return eventIds
     .map((id) => events.find((e) => e.id === id))
     .filter(Boolean);
 };
 
-// ─────────────────────────────────────────────────────────────
-// UPDATE
-// organizerId is optional:
-//   • undefined / null → called by admin (no ownership check)
-//   • a user ID        → called by organizer (must own the event)
-// ─────────────────────────────────────────────────────────────
 const updateEvent = async (id, data, organizerId = null) => {
   const where = { id };
   if (organizerId) where.organizer_id = organizerId;
@@ -140,9 +112,6 @@ const updateEvent = async (id, data, organizerId = null) => {
   return event;
 };
 
-// ─────────────────────────────────────────────────────────────
-// DELETE
-// ─────────────────────────────────────────────────────────────
 const deleteEvent = async (id, organizerId = null) => {
   const where = { id };
   if (organizerId) where.organizer_id = organizerId;
@@ -151,11 +120,6 @@ const deleteEvent = async (id, organizerId = null) => {
   return result > 0;
 };
 
-// ─────────────────────────────────────────────────────────────
-// Feature 4: MODERATION — admin approves/rejects events
-// ─────────────────────────────────────────────────────────────
-
-// All events pending moderation (admin view)
 const getPendingEvents = async () => {
   return Event.findAll({
     where: { status: "pending" },
@@ -163,12 +127,10 @@ const getPendingEvents = async () => {
   });
 };
 
-// All events regardless of status (admin moderation list)
 const getAllEventsForAdmin = async () => {
   return Event.findAll({ order: [["created_at", "DESC"]] });
 };
 
-// Approve an event
 const approveEvent = async (eventId, adminId, note = null) => {
   const event = await Event.findByPk(eventId);
   if (!event) return null;
@@ -181,7 +143,6 @@ const approveEvent = async (eventId, adminId, note = null) => {
   return event;
 };
 
-// Reject an event
 const rejectEvent = async (eventId, adminId, note = null) => {
   const event = await Event.findByPk(eventId);
   if (!event) return null;

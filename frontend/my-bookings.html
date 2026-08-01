@@ -21,20 +21,17 @@
     @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
     .tv-shell-nav { justify-content: space-between; }
 
-    /* TOPBAR */
     .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:44px; padding-bottom:20px; border-bottom:1px solid var(--border); }
     .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
     .nav-actions { display:flex; gap:10px; }
     .btn-ghost { padding:9px 20px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.85rem; cursor:pointer; transition:all 0.2s; backdrop-filter:blur(8px); }
     .btn-ghost:hover { background:rgba(255,255,255,0.09); color:var(--text); }
 
-    /* PAGE HEADER */
     .page-header { margin-bottom:36px; }
     .page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,2.8rem); font-weight:900; margin-bottom:8px; }
     .page-header h1 em { font-style:normal; background:linear-gradient(135deg,var(--gold),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     .page-header p { font-size:0.92rem; color:var(--muted); }
 
-    /* BOOKING CARDS — no padding so image bleeds to edges */
     #bookings-list { display:flex; flex-direction:column; gap:20px; }
     .booking-card {
       background:var(--card); border:1px solid var(--border);
@@ -47,12 +44,10 @@
     .booking-card:hover { transform:translateY(-3px); box-shadow:0 16px 44px rgba(0,0,0,0.35); border-color:rgba(255,255,255,0.15); }
     @keyframes card-in { from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);} }
 
-    /* Colored left border by status */
     .booking-card.status-paid    { border-left:3px solid var(--green); }
     .booking-card.status-pending { border-left:3px solid var(--orange); }
     .booking-card.status-failed  { border-left:3px solid var(--red); }
 
-    /* ── MAIN EVENT IMAGE ── */
     .booking-main-img {
       width:100%; height:180px; overflow:hidden;
       position:relative; flex-shrink:0;
@@ -62,12 +57,12 @@
       transition:transform 0.4s ease;
     }
     .booking-card:hover .booking-main-img img { transform:scale(1.04); }
-    /* gradient fade at bottom so header text is readable */
+
     .booking-main-img::after {
       content:''; position:absolute; inset:0;
       background:linear-gradient(to bottom, transparent 40%, rgba(10,10,20,0.75) 100%);
     }
-    /* no-image placeholder */
+
     .booking-main-img .no-img {
       width:100%; height:100%;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -106,14 +101,12 @@
     .download-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:11px; background:linear-gradient(135deg,var(--green),#3bb78f); color:#0a0a14; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; text-decoration:none; cursor:pointer; border:none; transition:transform 0.15s, box-shadow 0.2s; box-shadow:0 4px 16px rgba(66,230,149,0.25); }
     .download-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(66,230,149,0.38); }
 
-    /* Cancel button */
     .cancel-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:11px; background:transparent; border:1.5px solid var(--red); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; margin-left:10px; }
     .cancel-btn:hover { background:rgba(247,74,106,0.1); transform:translateY(-2px); }
     .cancelled-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(247,74,106,0.08); border:1px solid rgba(247,74,106,0.2); color:var(--red); font-size:0.82rem; font-weight:600; }
     .refunded-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.2); color:var(--accent); font-size:0.82rem; font-weight:600; }
     .refund-pending-badge { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:11px; background:rgba(255,159,67,0.1); border:1px solid rgba(255,159,67,0.2); color:var(--orange); font-size:0.82rem; font-weight:600; }
 
-    /* Feature 3: QR code display */
     .qr-section { margin-top:14px; padding:14px 18px; background:rgba(66,230,149,0.06); border:1px solid rgba(66,230,149,0.18); border-radius:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
     .qr-section img { width:100px; height:100px; border-radius:8px; background:#fff; padding:4px; }
     .qr-info { font-size:0.82rem; color:var(--muted); }
@@ -121,7 +114,6 @@
     .btn-qr-download { padding:7px 16px; border-radius:8px; background:rgba(66,230,149,0.12); border:1px solid rgba(66,230,149,0.3); color:var(--green); font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s; text-decoration:none; display:inline-block; }
     .btn-qr-download:hover { background:rgba(66,230,149,0.2); }
 
-    /* Feature 5: Review form */
     .review-section { margin-top:14px; padding:14px 18px; background:rgba(245,200,66,0.05); border:1px solid rgba(245,200,66,0.15); border-radius:12px; }
     .review-section h4 { font-size:0.88rem; font-weight:700; margin-bottom:10px; color:var(--text); }
     .star-row { display:flex; gap:6px; margin-bottom:10px; }
@@ -133,7 +125,6 @@
     .btn-submit-review:hover { transform:translateY(-1px); }
     .review-done { font-size:0.85rem; color:var(--green); font-weight:600; }
 
-    /* Cancel modal */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
     .modal-box { background:#13132a; border:1px solid var(--border); border-radius:20px; padding:32px; max-width:440px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.5); animation:modal-in 0.25s cubic-bezier(0.16,1,0.3,1); }
     @keyframes modal-in { from{opacity:0;transform:scale(0.94)translateY(12px);}to{opacity:1;transform:scale(1)translateY(0);} }
@@ -159,7 +150,7 @@
     .empty-state p { color:var(--muted); font-size:0.9rem; }
 
     @media(max-width:500px){ .info-grid{grid-template-columns:1fr 1fr;} }
-  </style>
+</style>
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
@@ -199,21 +190,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const session = await apiRequest("/auth/me", "GET");
 
-    // Always store userId from the server — required by auth-channel.js
-    // to match logout broadcasts on tabs opened without the login form.
     sessionStorage.setItem("userId", String(session.userId));
 
     const myUserId = sessionStorage.getItem("userId");
 
     if (myUserId && String(session.userId) !== myUserId) {
-      // Cookie overwritten by another user on a different tab.
-      // Do NOT redirect — serve from sessionStorage cache instead.
+
       cookieConflict = true;
     } else {
       sessionStorage.setItem("role", session.role);
     }
   } catch (err) {
-    return; // api.js 401 handler redirects to "/"
+    return;
   }
   document.getElementById("logoutBtn").addEventListener("click", logout);
   loadBookings(cookieConflict);
@@ -270,7 +258,7 @@ async function loadBookings(fromCache = false) {
 
   try {
     const bookings = await apiRequest("/bookings/my-bookings", "GET", null, true);
-    // Cache for this tab — cleared on logout via sessionStorage.clear()
+
     sessionStorage.setItem(cacheKey, JSON.stringify(bookings));
     renderBookings(bookings, container);
     loadQrThumbnails(bookings);
@@ -309,7 +297,6 @@ function renderBookings(bookings, container) {
       ? `<div class="booking-main-img"><img src="${mainImg}" alt="${b.Event.title}" loading="lazy"/></div>`
       : `<div class="booking-main-img"><div class="no-img"><span>🎟️</span>No event image</div></div>`;
 
-    // ── Cancellation status footer ───────────────────────────────────────────
     const cancStatus = b.cancellation_status || "active";
 
     let actionHTML = "";
@@ -393,9 +380,7 @@ function renderBookings(bookings, container) {
 async function downloadTicket(e, bookingId) {
   e.preventDefault();
   try {
-    // Direct fetch — must manually attach Authorization header so the backend
-    // middleware uses this tab's own JWT, not the shared cookie (which may
-    // belong to a different user logged in on another tab).
+
     const tabToken = sessionStorage.getItem("token");
     const response = await fetch(`/bookings/${bookingId}/download-ticket`, {
       credentials: "include",
@@ -422,7 +407,7 @@ function logout() {
     .finally(() => { sessionStorage.clear(); window.location.replace("/"); });
 }
 </script>
-<!-- ═══════════════════════════════════════════════════════ CANCEL MODAL -->
+
 <div id="cancel-modal" style="display:none;" class="modal-backdrop" onclick="closeCancelModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
     <h2>Cancel Booking</h2>
@@ -499,7 +484,6 @@ async function openCancelModal(bookingId, eventTitle) {
       document.getElementById("modal-refund-section").style.display = "block";
       document.getElementById("modal-confirm-btn").style.display = "block";
 
-      // Populate policy tiers
       const tiersEl = document.getElementById("modal-policy-tiers");
       tiersEl.innerHTML = "";
       if (data.policy && data.policy.length) {
@@ -519,13 +503,11 @@ async function openCancelModal(bookingId, eventTitle) {
 
       document.getElementById("modal-total-paid").textContent  = `₹${parseFloat(data.totalPaid).toFixed(2)}`;
 
-      // Tier label
       const tierLabel = data.isHighTier
         ? `72h+ tier (full ticket refund)`
         : `${data.appliedTierHours}h tier (${data.refundPercent}% ticket refund)`;
       document.getElementById("modal-tier-label").textContent = tierLabel;
 
-      // Convenience fee row
       const convEl = document.getElementById("modal-conv-status");
       if (data.convenienceRetained) {
         convEl.innerHTML = `<span style="color:var(--orange)">₹${parseFloat(data.convenienceFee).toFixed(2)} retained</span>`;
@@ -571,7 +553,6 @@ async function confirmCancellation() {
 
     document.getElementById("cancel-modal").style.display = "none";
 
-    // Update the card in-place without full page reload
     const card = document.getElementById(`booking-card-${_cancelBookingId}`);
     if (card) {
       const actionsEl = card.querySelector(".card-actions");
@@ -584,7 +565,6 @@ async function confirmCancellation() {
       }
     }
 
-    // Invalidate cache so next load is fresh
     const cacheKey = 'bookingsCache_' + (sessionStorage.getItem('userId') || 'unknown');
     sessionStorage.removeItem(cacheKey);
 
@@ -600,9 +580,8 @@ async function confirmCancellation() {
 
 <script src="/js/auth-channel.js"></script>
 
-<!-- Feature 5: Review JS -->
 <script>
-const _ratings = {};  // { bookingId: rating }
+const _ratings = {};
 
 function setRating(bookingId, val) {
   _ratings[bookingId] = val;
@@ -631,7 +610,6 @@ async function submitReview(bookingId, eventId) {
   }
 }
 
-/* Feature 3: show QR in a lightbox */
 async function showQr(bookingId) {
   const tabToken = sessionStorage.getItem("token");
   const headers  = tabToken ? { Authorization: `Bearer ${tabToken}` } : {};
@@ -661,7 +639,6 @@ async function showQr(bookingId) {
   }
 }
 
-/* Load QR thumbnail images with auth header after cards are rendered */
 async function loadQrThumbnails(bookings) {
   const tabToken = sessionStorage.getItem("token");
   if (!tabToken) return;
@@ -675,10 +652,10 @@ async function loadQrThumbnails(bookings) {
       if (!resp.ok) continue;
       const blob = await resp.blob();
       img.src = URL.createObjectURL(blob);
-    } catch { /* silently skip broken QRs */ }
+    } catch {  }
   }
 }
 </script>
 </body>
 </html>
-  
+

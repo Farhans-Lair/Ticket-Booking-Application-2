@@ -4,8 +4,6 @@ const { User, OrganizerProfile, RefreshToken } = require("../models");
 const { generateOTP, verifyOTP } = require("./otp.services");
 const { sendOTPEmail }           = require("./email.services");
 
-// ── User signup ───────────────────────────────────────────────────────────────
-
 const initiateSignup = async (name, email, password) => {
   const existing = await User.findOne({ where: { email } });
   if (existing) throw new Error("An account with this email already exists.");
@@ -21,8 +19,6 @@ const completeSignup = async (email, otp) => {
   return User.create({ name, email, password_hash: passwordHash });
 };
 
-// ── Login ─────────────────────────────────────────────────────────────────────
-
 const initiateLogin = async (email, password) => {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("Invalid credentials");
@@ -33,8 +29,6 @@ const initiateLogin = async (email, password) => {
 };
 
 const completeLogin = async (email, otp) => verifyOTP(email, otp, "login");
-
-// ── Organizer signup ──────────────────────────────────────────────────────────
 
 const initiateOrganizerSignup = async (name, email, password,
   { business_name, contact_phone, gst_number, address }
@@ -63,33 +57,19 @@ const completeOrganizerSignup = async (email, otp) => {
   return { user, profile };
 };
 
-// ── Refresh token management (#1) ─────────────────────────────────────────────
-
 const REFRESH_TTL_DAYS = 7;
 
-/**
- * Hash the token before storing — so a DB leak can't be replayed.
- */
 const _hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
-/**
- * Store (or replace) the refresh token for a user.
- * One active refresh token per user — old ones are revoked on new login.
- */
 const saveRefreshToken = async (userId, rawToken) => {
   const tokenHash = _hashToken(rawToken);
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
 
-  // Revoke all existing refresh tokens for this user (single-session policy)
   await RefreshToken.destroy({ where: { user_id: userId } });
   await RefreshToken.create({ user_id: userId, token_hash: tokenHash, expires_at: expiresAt });
 };
 
-/**
- * Validate the incoming refresh token, return { userId, role }.
- * Throws on invalid / expired.
- */
 const rotateRefreshToken = async (rawToken) => {
   const tokenHash = _hashToken(rawToken);
   const record = await RefreshToken.findOne({ where: { token_hash: tokenHash } });
@@ -103,15 +83,11 @@ const rotateRefreshToken = async (rawToken) => {
   const user = await User.findByPk(record.user_id);
   if (!user) throw new Error("User not found.");
 
-  // Consume the token immediately (rotation — prevents replay)
   await record.destroy();
 
   return { userId: user.id, role: user.role };
 };
 
-/**
- * Revoke a specific refresh token (on logout).
- */
 const revokeRefreshToken = async (rawToken) => {
   const tokenHash = _hashToken(rawToken);
   await RefreshToken.destroy({ where: { token_hash: tokenHash } });

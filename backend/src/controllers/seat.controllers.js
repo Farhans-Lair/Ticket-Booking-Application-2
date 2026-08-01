@@ -1,11 +1,6 @@
 const seatService = require("../services/seat.services");
 const logger      = require("../config/logger");
 
-/*
-====================================================
- GET /seats/:eventId
-====================================================
-*/
 const getSeats = async (req, res, next) => {
   try {
     const { eventId } = req.params;
@@ -19,11 +14,6 @@ const getSeats = async (req, res, next) => {
   }
 };
 
-/*
-====================================================
- GET /seats/:eventId/tiers
-====================================================
-*/
 const getSeatTiers = async (req, res, next) => {
   try {
     const { eventId } = req.params;
@@ -35,11 +25,6 @@ const getSeatTiers = async (req, res, next) => {
   }
 };
 
-/*
-====================================================
- PUT /seats/:eventId/tiers
-====================================================
-*/
 const assignSeatTiers = async (req, res, next) => {
   try {
     const { eventId } = req.params;
@@ -61,13 +46,6 @@ const assignSeatTiers = async (req, res, next) => {
   }
 };
 
-/*
-====================================================
- POST /seats/:eventId/hold  — Feature 1
- Body: { seatNumbers: ["A1", "A2"] }
- Locks seats for 10 minutes for the authenticated user.
-====================================================
-*/
 const holdSeats = async (req, res, next) => {
   try {
     const { eventId }     = req.params;

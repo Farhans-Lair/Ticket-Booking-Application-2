@@ -1,6 +1,5 @@
 const { Sequelize } = require("sequelize");
 
-// ── Validate required environment variables before connecting ────────────────
 const required = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD"];
 const missing  = required.filter(k => !process.env[k]);
 
@@ -16,7 +15,7 @@ if (missing.length > 0) {
   console.error("   DB_USER=root");
   console.error("   DB_PASSWORD=your_mysql_password");
   console.error("\n   See backend/.env for the full template.\n");
-  process.exit(1);   // Hard stop — no point running with no DB config
+  process.exit(1);
 }
 
 const sequelize = new Sequelize(
@@ -28,7 +27,6 @@ const sequelize = new Sequelize(
     port:    parseInt(process.env.DB_PORT || "3306", 10),
     dialect: "mysql",
 
-    // Only log SQL queries in development
     logging: process.env.NODE_ENV === "development" ? console.log : false,
 
     pool: {
@@ -39,13 +37,13 @@ const sequelize = new Sequelize(
     },
 
     dialectOptions: {
-      // Prevents "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" on lost connections
+
       connectTimeout: 20000,
     },
 
     define: {
-      underscored:    true,   // map camelCase to snake_case automatically
-      freezeTableName: true,  // don't pluralise table names
+      underscored:    true,
+      freezeTableName: true,
     },
   }
 );

@@ -1,9 +1,3 @@
-/**
- * Wishlist model — Feature 6: Wishlist / save event
- *
- * notify_on_availability = true → send email when a ticket opens up
- * (after a cancellation frees capacity on a sold-out event).
- */
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 

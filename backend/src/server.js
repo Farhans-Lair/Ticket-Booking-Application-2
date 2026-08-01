@@ -1,6 +1,5 @@
-// In production (Docker), env vars come from --env-file docker run flag.
-// dotenv.config() is kept for local dev only; { quiet: true } silences the
-// "0 vars injected" warning when running inside the container without .env.
+
+
 require("dotenv").config({ quiet: true });
 
 const fs        = require("fs");
@@ -9,26 +8,13 @@ const https     = require("https");
 const app       = require("./app");
 const sequelize = require("./config/database");
 
-/* =====================================================
-   HTTPS vs HTTP mode — controlled by USE_HTTPS env var
-
-   USE_HTTPS=true  → Local dev: Node.js handles TLS with
-                     mkcert certs (docker-compose + certs/)
-
-   USE_HTTPS=false → AWS production: Node.js runs plain HTTP.
-                     The ALB holds the cert (uploaded to IAM by
-                     Terraform) and terminates TLS. The ALB health
-                     check probes GET /health over HTTP on PORT,
-                     gets a 200, and the instance stays Healthy.
-===================================================== */
 const USE_HTTPS  = process.env.USE_HTTPS === "true";
 const HTTPS_PORT = parseInt(process.env.HTTPS_PORT || "3000", 10);
 const HTTP_PORT  = parseInt(process.env.HTTP_PORT  || "3001", 10);
 const PORT       = parseInt(process.env.PORT       || "3000", 10);
 
 if (USE_HTTPS) {
-  /* ── LOCAL DEV: mkcert self-signed TLS ───────────────────────────────── */
-  let sslOptions;
+    let sslOptions;
   try {
     sslOptions = {
       key:  fs.readFileSync(process.env.SSL_KEY_PATH  || "./certs/server.key"),
@@ -43,12 +29,10 @@ if (USE_HTTPS) {
     process.exit(1);
   }
 
-  // Primary HTTPS server
   https.createServer(sslOptions, app).listen(HTTPS_PORT, "0.0.0.0", () => {
     console.log(`✅  HTTPS server  → https://localhost:${HTTPS_PORT}`);
   });
 
-  // HTTP → HTTPS redirect so plain http:// links still work locally
   http
     .createServer((req, res) => {
       const host   = (req.headers.host || "localhost").replace(/:\d+$/, "");
@@ -61,22 +45,27 @@ if (USE_HTTPS) {
     });
 
 } else {
-  /* ── AWS PRODUCTION: plain HTTP, TLS terminated at ALB ───────────────── */
-  app.listen(PORT, "0.0.0.0", () => {
+    app.listen(PORT, "0.0.0.0", () => {
     console.log(`✅  HTTP server   → port ${PORT}  (TLS terminated at ALB)`);
   });
 }
 
-/* =====================================================
-   Initialize Database
-===================================================== */
 (async () => {
   try {
     await sequelize.authenticate();
     console.log("✅  Database connected");
-    await sequelize.sync({ alter: true });
-    console.log("✅  Models synchronized");
+
+    // Schema is managed via db/master_schema.sql (fresh installs) and
+    // db/migration.sql (live upgrades). Only auto-sync in local/dev for
+    // convenience — running `alter: true` in production risks clashing
+    // DDL when multiple ASG instances boot around the same time, and can
+    // silently drift the schema away from the reviewed migration files.
+    if (process.env.NODE_ENV !== "production") {
+      await sequelize.sync({ alter: true });
+      console.log("✅  Models synchronized (dev mode)");
+    }
   } catch (err) {
     console.error("❌  Database initialization failed:", err.message);
+    process.exit(1);
   }
 })();

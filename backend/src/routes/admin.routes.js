@@ -6,32 +6,27 @@ const authorizeAdmin = require("../middleware/authorizeadmin");
 const adminCtrl    = require("../controllers/admin.controllers");
 const catCtrl      = require("../controllers/category.controllers");
 
-// ── HTML Pages ────────────────────────────────────────────────────────────────
 router.get("/",           (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-dashboard.html")));
 router.get("/revenue",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-revenue.html")));
 router.get("/categories/manage", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-categories.html")));
 router.get("/organizers", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-organizers.html")));
 router.get("/moderation", (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-moderation.html")));
 router.get("/payouts",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-payouts.html")));
-// FIX 1: Coupon management page was missing — caused 404 on /admin/coupons
+
 router.get("/coupons",    (req, res) => res.sendFile(path.join(__dirname, "../../../frontend/admin-coupons.html")));
 
-// ── Event Moderation API ──────────────────────────────────────────────────────
 router.get("/moderation/events",           authenticate, authorizeAdmin, adminCtrl.getAllEventsForAdmin);
 router.get("/moderation/events/pending",   authenticate, authorizeAdmin, adminCtrl.getPendingEvents);
 router.put("/moderation/events/:id/approve", authenticate, authorizeAdmin, adminCtrl.approveEvent);
 router.put("/moderation/events/:id/reject",  authenticate, authorizeAdmin, adminCtrl.rejectEvent);
 
-// ── Toggle featured ───────────────────────────────────────────────────────────
 router.put("/events/:id/feature", authenticate, authorizeAdmin, adminCtrl.toggleFeatured);
 
-// ── Payout API ────────────────────────────────────────────────────────────────
 router.get( "/payouts/data",                  authenticate, authorizeAdmin, adminCtrl.listPayouts);
 router.get( "/payouts/settlement/:organizerId", authenticate, authorizeAdmin, adminCtrl.getSettlement);
 router.post("/payouts/create",                authenticate, authorizeAdmin, adminCtrl.createPayout);
 router.put( "/payouts/:id/status",            authenticate, authorizeAdmin, adminCtrl.updatePayoutStatus);
 
-// ── Event Categories (admin CRUD) ────────────────────────────────────────────
 router.get(   "/categories",     authenticate, authorizeAdmin, catCtrl.adminListCategories);
 router.post(  "/categories",     authenticate, authorizeAdmin, catCtrl.createCategory);
 router.put(   "/categories/:id", authenticate, authorizeAdmin, catCtrl.updateCategory);

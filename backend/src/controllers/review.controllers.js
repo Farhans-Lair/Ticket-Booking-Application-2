@@ -1,10 +1,3 @@
-/**
- * review.controllers.js — Feature 5: Reviews & ratings
- *
- * POST /reviews/events/:eventId         → submit review (auth required)
- * GET  /reviews/events/:eventId         → all reviews for an event (public)
- * GET  /reviews/events/:eventId/summary → avg rating + count (public)
- */
 const reviewService = require("../services/review.services");
 const logger        = require("../config/logger");
 

@@ -1,13 +1,12 @@
 document.addEventListener("DOMContentLoaded", async() => {
-  // ── Verify session with server via cookie ─────────────────────────────────
+
   try {
     const session = await apiRequest("/auth/me", "GET");
-    // Store userId so auth-channel.js can match logout broadcasts from other
-    // tabs of the same user. Without this, this tab stays open after logout.
+
     sessionStorage.setItem("userId", String(session.userId));
 
   } catch (err) {
-    return; // api.js 401 handler redirects to "/"
+    return;
   }
 
   const raw = sessionStorage.getItem("razorpay_order");
@@ -21,11 +20,6 @@ document.addEventListener("DOMContentLoaded", async() => {
   renderPayButton(orderData);
 });
 
-/*
-====================================================
- RENDER ORDER SUMMARY
-====================================================
-*/
 function renderSummary(breakdown) {
 
   const seatsHtml = breakdown.selected_seats && breakdown.selected_seats.length > 0
@@ -44,28 +38,23 @@ function renderSummary(breakdown) {
   `;
 }
 
-/*
-====================================================
- OPEN RAZORPAY CHECKOUT
-====================================================
-*/
 function renderPayButton(orderData) {
   document.getElementById("pay-btn").addEventListener("click", () => {
     const options = {
       key:          orderData.key_id,
-      amount:       orderData.amount,       // paise
+      amount:       orderData.amount,
       currency:     orderData.currency,
       name:         "Ticket Booking App",
       description:  orderData.breakdown.event_title,
       order_id:     orderData.order_id,
 
       handler: async function (response) {
-        // Called by Razorpay on successful payment
+
         await verifyAndConfirm(response, orderData.meta);
       },
 
       prefill: {
-        // Optional: pre-fill user email/phone if available
+
         name:  "",
         email: "",
       },
@@ -89,11 +78,6 @@ function renderPayButton(orderData) {
   });
 }
 
-/*
-====================================================
- VERIFY SIGNATURE + CONFIRM BOOKING
-====================================================
-*/
 async function verifyAndConfirm(response, meta) {
   const statusMsg = document.getElementById("status-msg");
   statusMsg.textContent = "Verifying payment...";
@@ -108,7 +92,6 @@ async function verifyAndConfirm(response, meta) {
       selected_seats:      meta.selected_seats || [],
     }, true);
 
-    // Clean up session
     sessionStorage.removeItem("razorpay_order");
 
     statusMsg.innerHTML = `

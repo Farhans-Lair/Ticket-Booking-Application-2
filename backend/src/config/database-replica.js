@@ -1,7 +1,3 @@
-/**
- * database-replica.js — #10: Read replica Sequelize connection
- * Falls back to primary if DB_HOST_REPLICA is not set (local dev, CI).
- */
 const { Sequelize } = require("sequelize");
 
 const replicaHost = process.env.DB_HOST_REPLICA || process.env.DB_HOST;

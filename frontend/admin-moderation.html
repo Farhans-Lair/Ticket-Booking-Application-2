@@ -17,26 +17,22 @@
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* NAV */
     nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 40px; background: rgba(10,10,20,0.97); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 50; }
     .nav-logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.3rem; text-decoration: none; }
     .nav-links { display: flex; gap: 24px; }
     .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.88rem; transition: color .2s; }
     .nav-links a:hover, .nav-links a.active { color: var(--gold); }
 
-    /* LAYOUT */
     .page { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
     @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
     .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; }
     .page-header p  { color: var(--muted); margin-top: 4px; font-size: 0.9rem; }
 
-    /* FILTER TABS */
     .filter-tabs { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
     .filter-tab { padding: 8px 20px; border: 1px solid var(--glass-border); background: var(--glass); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all .2s; }
     .filter-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* STATS ROW */
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
     .stat-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 18px 20px; }
     .stat-card .num { font-size: 1.8rem; font-weight: 700; }
@@ -45,7 +41,6 @@
     .stat-card.approved .num { color: var(--green); }
     .stat-card.rejected .num { color: var(--red); }
 
-    /* EVENT CARDS */
     .events-grid { display: flex; flex-direction: column; gap: 14px; }
     .event-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 14px; padding: 20px 24px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
     .event-card.status-pending  { border-left: 4px solid var(--orange); }
@@ -73,7 +68,6 @@
     .btn-feature { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
     .btn-feature.featured { background: var(--gold); color: #000; border-color: var(--gold); }
 
-    /* MODAL */
     .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
     .modal-backdrop.open { display: flex; }
     .modal { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; }
@@ -91,7 +85,7 @@
       .event-card { grid-template-columns: 1fr; }
       .action-col { flex-direction: row; flex-wrap: wrap; }
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -143,7 +137,6 @@
   </div>
 </div>
 
-<!-- Reject modal -->
 <div class="modal-backdrop" id="rejectModal">
   <div class="modal">
     <h3>Reject Event</h3>
@@ -172,7 +165,6 @@
   let activeFilter = "all";
   let pendingRejectId = null;
 
-  // ── Load all events ───────────────────────────────────────
   async function loadEvents() {
     document.getElementById("eventsList").innerHTML = '<div class="loading">Loading events…</div>';
     try {
@@ -238,7 +230,6 @@
     }).join("");
   }
 
-  // ── Filter tabs ───────────────────────────────────────────
   document.querySelectorAll(".filter-tab").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active"));
@@ -248,7 +239,6 @@
     });
   });
 
-  // ── Approve ───────────────────────────────────────────────
   async function approveEvent(id) {
     try {
       const r = await fetch(`/admin/moderation/events/${id}/approve`, { method: "PUT", headers });
@@ -259,7 +249,6 @@
     } catch { alert("Failed to approve event."); }
   }
 
-  // ── Reject ────────────────────────────────────────────────
   function openReject(id) {
     pendingRejectId = id;
     document.getElementById("rejectNote").value = "";
@@ -285,7 +274,6 @@
     } catch { alert("Failed to reject event."); }
   });
 
-  // ── Toggle Feature ────────────────────────────────────────
   async function toggleFeature(id, makeFeature, btn) {
     try {
       const r = await fetch(`/admin/events/${id}/feature`, {

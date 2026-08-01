@@ -1,18 +1,8 @@
-/**
- * admin.controllers.js
- * FIX Issues 2, 3, 5:
- *  - Event moderation endpoints work correctly
- *  - Featured toggle included
- *  - Admin payout approval (approve organizer payout requests)
- *  - Organizer payout request viewed by admin
- */
 
 const eventService  = require("../services/event.services");
 const payoutService = require("../services/payout.services");
 const logger        = require("../config/logger");
 const { User, OrganizerProfile, Event, Booking } = require("../models");
-
-// ── Feature 4: Event Moderation ──────────────────────────────────────────────
 
 const getPendingEvents = async (req, res, next) => {
   try {
@@ -49,8 +39,6 @@ const rejectEvent = async (req, res, next) => {
   } catch (err) { logger.error("rejectEvent failed", { error: err.message }); next(err); }
 };
 
-// ── Feature 2: Toggle Featured ───────────────────────────────────────────────
-
 const toggleFeatured = async (req, res, next) => {
   try {
     const { is_featured } = req.body;
@@ -64,9 +52,6 @@ const toggleFeatured = async (req, res, next) => {
   } catch (err) { logger.error("toggleFeatured failed", { error: err.message }); next(err); }
 };
 
-// ── Feature 5: Payout Management ─────────────────────────────────────────────
-
-// GET /api/admin/payouts — list all payouts, including organizer requests
 const listPayouts = async (req, res, next) => {
   try {
     const { organizerId, status, page = 1, limit = 20 } = req.query;
@@ -80,7 +65,6 @@ const listPayouts = async (req, res, next) => {
   } catch (err) { logger.error("listPayouts failed", { error: err.message }); next(err); }
 };
 
-// GET /api/admin/payouts/settlement/:organizerId
 const getSettlement = async (req, res, next) => {
   try {
     const { eventId } = req.query;
@@ -92,7 +76,6 @@ const getSettlement = async (req, res, next) => {
   } catch (err) { logger.error("getSettlement failed", { error: err.message }); next(err); }
 };
 
-// POST /api/admin/payouts — admin manually creates payout
 const createPayout = async (req, res, next) => {
   try {
     const { organizer_id, event_id, amount, payment_method, reference_id, notes } = req.body;
@@ -106,7 +89,6 @@ const createPayout = async (req, res, next) => {
   } catch (err) { logger.error("createPayout failed", { error: err.message }); next(err); }
 };
 
-// PUT /api/admin/payouts/:id/status — update status (approve = 'processing' or 'paid')
 const updatePayoutStatus = async (req, res, next) => {
   try {
     const { status, reference_id, rejection_reason } = req.body;
@@ -122,9 +104,6 @@ const updatePayoutStatus = async (req, res, next) => {
   } catch (err) { logger.error("updatePayoutStatus failed", { error: err.message }); next(err); }
 };
 
-// ── Organizer payout endpoints ────────────────────────────────────────────────
-
-// GET /organizer/payouts — organizer sees own payout history
 const getOrganizerPayouts = async (req, res, next) => {
   try {
     const payouts = await payoutService.getOrganizerPayouts(req.user.id);
@@ -133,7 +112,6 @@ const getOrganizerPayouts = async (req, res, next) => {
   } catch (err) { logger.error("getOrganizerPayouts failed", { error: err.message }); next(err); }
 };
 
-// POST /organizer/payouts/request — FIX Issue 1: organizer requests payout
 const requestPayout = async (req, res, next) => {
   try {
     const { event_id, payment_method, request_note } = req.body;

@@ -1,6 +1,3 @@
-# =============================================================
-#  alb.tf
-# =============================================================
 
 resource "aws_lb" "ticket_alb" {
   name               = "${var.project_name}-alb"
@@ -16,9 +13,6 @@ resource "aws_lb" "ticket_alb" {
   tags = { Name = "${var.project_name}-alb" }
 }
 
-# ---------------------------
-# Target Group
-# ---------------------------
 resource "aws_lb_target_group" "backend_tg" {
   name        = "${var.project_name}-backend-tg"
   port        = 3000
@@ -41,9 +35,6 @@ resource "aws_lb_target_group" "backend_tg" {
   tags = { Name = "${var.project_name}-backend-tg" }
 }
 
-# ---------------------------
-# Listener: HTTPS 443 (primary)
-# ---------------------------
 resource "aws_lb_listener" "https_listener" {
   load_balancer_arn = aws_lb.ticket_alb.arn
   port              = 443
@@ -57,9 +48,6 @@ resource "aws_lb_listener" "https_listener" {
   }
 }
 
-# ---------------------------
-# Listener: HTTP 80 → 301 redirect to HTTPS
-# ---------------------------
 resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.ticket_alb.arn
   port              = 80

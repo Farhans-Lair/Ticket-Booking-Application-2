@@ -34,7 +34,7 @@
     .back{display:block;text-align:center;color:var(--muted);font-size:0.85rem;text-decoration:none;margin-top:16px;}
     .back:hover{color:var(--text);}
     @media (max-width: 720px) { .checkin-wrap { padding: 28px 16px 60px; } }
-  </style>
+</style>
 </head>
 <body>
 
@@ -92,7 +92,6 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
   window.location.href = "/";
 });
 
-
 async function checkIn() {
   const qrToken = (document.getElementById("tokenInput").value || "").trim();
   const resultEl = document.getElementById("result");
@@ -135,7 +134,6 @@ async function checkIn() {
   }
 }
 
-// Allow Ctrl+Enter to submit
 document.getElementById("tokenInput").addEventListener("keydown", e => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) checkIn();
 });

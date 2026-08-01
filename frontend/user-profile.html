@@ -17,7 +17,6 @@
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text); min-height: 100vh; }
 
-    /* NAV */
     nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 48px; background: rgba(10,10,20,0.95); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; }
     .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--gold); text-decoration: none; }
     .nav-links { display: flex; gap: 28px; align-items: center; }
@@ -27,7 +26,6 @@
     .btn-logout { background: none; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all .2s; }
     .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-    /* LAYOUT */
     .page { position:relative; z-index:1; max-width:1280px; margin:0; padding:40px 32px 80px; }
     @media (max-width: 720px) { .page { padding: 28px 16px 60px; } }
     .page-header { margin-bottom: 36px; }
@@ -36,7 +34,6 @@
 
     .profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: 28px; }
 
-    /* SIDEBAR */
     .sidebar-card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 32px 24px; text-align: center; }
     .avatar-wrap { position: relative; display: inline-block; margin-bottom: 20px; }
     .avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: #fff; overflow: hidden; }
@@ -51,12 +48,10 @@
     .stat-box .lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
     .member-since { color: var(--text-muted); font-size: 0.8rem; margin-top: 16px; }
 
-    /* TABS */
     .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--glass); border-radius: 12px; padding: 4px; }
     .tab-btn { flex: 1; padding: 10px; border: none; background: none; color: var(--text-muted); font-size: 0.88rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all .2s; }
     .tab-btn.active { background: var(--accent); color: #fff; }
 
-    /* PANEL */
     .panel { display: none; }
     .panel.active { display: block; }
     .card { background: var(--card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
@@ -73,7 +68,6 @@
     .success-msg { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--green); padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; margin-top: 14px; display: none; }
     .error-msg   { background: rgba(247,74,106,0.12); border: 1px solid rgba(247,74,106,0.3); color: var(--red); padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; margin-top: 14px; display: none; }
 
-    /* BOOKING HISTORY */
     .booking-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--glass-border); }
     .booking-item:last-child { border-bottom: none; }
     .booking-thumb { width: 64px; height: 64px; border-radius: 10px; background: linear-gradient(135deg, #1a1a3e, #2a2a5e); flex-shrink: 0; object-fit: cover; }
@@ -90,7 +84,6 @@
     .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
     .loading { text-align: center; padding: 32px; color: var(--text-muted); }
 
-    /* Feature 6 & 7 list items */
     .wl-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); flex-wrap:wrap; }
     .wl-item:last-child { border-bottom:none; }
     .wl-item-info .wl-title { font-weight:600; font-size:0.95rem; margin-bottom:3px; }
@@ -106,7 +99,7 @@
       .profile-grid { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -135,7 +128,6 @@
 
   <div class="profile-grid">
 
-    <!-- SIDEBAR -->
     <div>
       <div class="sidebar-card">
         <div class="avatar-wrap">
@@ -154,7 +146,6 @@
       </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div>
       <div class="tabs">
         <button class="tab-btn active" data-tab="info">Account Info</button>
@@ -164,7 +155,6 @@
         <button class="tab-btn" data-tab="waitlist">🔔 Waitlist</button>
       </div>
 
-      <!-- ACCOUNT INFO -->
       <div class="panel active" id="panel-info">
         <div class="card">
           <h2>Personal Details</h2>
@@ -192,7 +182,6 @@
         </div>
       </div>
 
-      <!-- CHANGE PASSWORD -->
       <div class="panel" id="panel-password">
         <div class="card">
           <h2>Change Password</h2>
@@ -214,7 +203,6 @@
         </div>
       </div>
 
-      <!-- BOOKING HISTORY -->
       <div class="panel" id="panel-bookings">
         <div class="card">
           <h2>Booking History</h2>
@@ -222,7 +210,6 @@
         </div>
       </div>
 
-      <!-- WISHLIST PANEL — Feature 6 -->
       <div class="panel" id="panel-wishlist">
         <div class="card">
           <h2>❤️ Saved Events</h2>
@@ -230,7 +217,6 @@
         </div>
       </div>
 
-      <!-- WAITLIST PANEL — Feature 7 -->
       <div class="panel" id="panel-waitlist">
         <div class="card">
           <h2>🔔 Waitlist Entries</h2>
@@ -246,7 +232,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
 <script>
-  // ── Auth guard ────────────────────────────────────────────
+
   const token = sessionStorage.getItem("token");
   if (!token) { location.href = "/"; }
 
@@ -254,7 +240,6 @@
     return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
   }
 
-  // ── Tabs ─────────────────────────────────────────────────
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -267,7 +252,6 @@
     });
   });
 
-  // ── Load profile ─────────────────────────────────────────
   async function loadProfile() {
     try {
       const r    = await fetch("/user/profile", { headers: authHeaders() });
@@ -288,7 +272,6 @@
           "Member since " + new Date(data.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long" });
       }
 
-      // Pre-fill form
       document.getElementById("fieldName").value  = data.name  || "";
       document.getElementById("fieldEmail").value = data.email || "";
       document.getElementById("fieldPhone").value = data.phone || "";
@@ -296,7 +279,6 @@
     } catch (e) { console.error(e); }
   }
 
-  // ── Save profile ─────────────────────────────────────────
   document.getElementById("saveProfileBtn").addEventListener("click", async () => {
     const btn = document.getElementById("saveProfileBtn");
     btn.disabled = true; btn.textContent = "Saving…";
@@ -327,7 +309,6 @@
     }
   });
 
-  // ── Change password ───────────────────────────────────────
   document.getElementById("changePassBtn").addEventListener("click", async () => {
     const btn = document.getElementById("changePassBtn");
     document.getElementById("passSuccess").style.display = "none";
@@ -365,7 +346,6 @@
     }
   });
 
-  // ── Booking history ───────────────────────────────────────
   let bookingsLoaded = false;
   async function loadBookings() {
     if (bookingsLoaded) return;
@@ -403,14 +383,12 @@
     }
   }
 
-  // ── Logout ───────────────────────────────────────────────
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await fetch("/auth/logout", { method: "POST", headers: authHeaders() });
     sessionStorage.clear();
     location.href = "/";
   });
 
-  // ── Feature 6: Wishlist ──────────────────────────────────
   let _wishlistLoaded = false;
   async function loadWishlist() {
     if (_wishlistLoaded) return;
@@ -449,7 +427,6 @@
     } catch(e) { alert("Could not remove: " + e.message); }
   }
 
-  // ── Feature 7: Waitlist ──────────────────────────────────
   let _waitlistLoaded = false;
   async function loadWaitlist() {
     if (_waitlistLoaded) return;

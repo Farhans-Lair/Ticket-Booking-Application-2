@@ -26,6 +26,11 @@ output "rds_replica_endpoint" {
   value       = aws_db_instance.ticket_booking_db_replica.endpoint
 }
 
+output "github_ecr_push_role_arn" {
+  description = "ARN GitHub Actions assumes via OIDC to push images and deploy. Must match terraform.tfvars-derived value used in docker-build.yml."
+  value       = aws_iam_role.github_ecr_push_role.arn
+}
+
 output "nat_gateway_ip" {
   description = "Elastic IP of the NAT Gateway (whitelist this in external APIs)"
   value       = aws_eip.nat_eip.public_ip

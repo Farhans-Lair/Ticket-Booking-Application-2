@@ -11,7 +11,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-    healthcheck:                      # 🔹 NEW
+    healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
@@ -19,8 +19,8 @@ services:
 
   backend:
     build:
-      context: .                      # project root — gives Dockerfile access to frontend/
-      dockerfile: backend/Dockerfile  # Dockerfile still lives inside backend/
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: ticket-backend
     restart: always
     depends_on:
@@ -28,20 +28,19 @@ services:
         condition: service_healthy
 
     ports:
-      - "443:3000"   # HTTPS  — visit https://localhost
-      - "80:3001"    # HTTP redirect → HTTPS automatically
+      - "443:3000"
+      - "80:3001"
 
     env_file:
       - .env
     environment:
       DB_HOST: mysql
-      HTTPS_PORT: 3000          # port INSIDE the container
-      HTTP_PORT: 3001           # redirect port INSIDE the container
+      HTTPS_PORT: 3000
+      HTTP_PORT: 3001
       SSL_KEY_PATH: /app/certs/server.key
       SSL_CERT_PATH: /app/certs/server.crt
 
     volumes:
-      # Mount certs as read-only; never bake secrets into an image
       - ./certs:/app/certs:ro
 
     command: ["node", "src/server.js"]

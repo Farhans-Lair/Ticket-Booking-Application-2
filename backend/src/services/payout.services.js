@@ -1,10 +1,3 @@
-/**
- * payout.services.js
- * FIX Issues 1 & 5:
- *  - Organizer can REQUEST a payout from their revenue dashboard
- *  - Admin sees pending requests and can approve (process → paid) or reject
- *  - Platform fee = 10%
- */
 
 const { Op }    = require("sequelize");
 const sequelize = require("../config/database");
@@ -12,7 +5,6 @@ const { Payout, Booking, Event, User, OrganizerProfile } = require("../models");
 
 const PLATFORM_FEE_RATE = 0.10;
 
-// ── Calculate outstanding settlement for an organizer ────────────────────────
 const calculateSettlement = async (organizerId, eventId = null) => {
   const bookingWhere = {
     payment_status:      "paid",
@@ -44,9 +36,8 @@ const calculateSettlement = async (organizerId, eventId = null) => {
   return { gross, platform_fee: platformFee, net, bookings: parseInt(result?.booking_count || 0) };
 };
 
-// ── FIX Issue 1: Organizer requests a payout from revenue dashboard ──────────
 const requestPayout = async ({ organizer_id, event_id = null, payment_method, request_note }) => {
-  // Calculate what's available
+
   const settlement = await calculateSettlement(organizer_id, event_id);
   if (settlement.net <= 0) {
     throw new Error("No eligible revenue available for payout.");
@@ -71,7 +62,6 @@ const requestPayout = async ({ organizer_id, event_id = null, payment_method, re
   return { payout, settlement };
 };
 
-// ── Admin: create payout manually ───────────────────────────────────────────
 const createPayout = async ({ organizer_id, event_id = null, amount, payment_method, reference_id, notes, adminId }) => {
   const platform_fee = parseFloat((amount * PLATFORM_FEE_RATE).toFixed(2));
   const net_amount   = parseFloat((amount - platform_fee).toFixed(2));
@@ -84,7 +74,6 @@ const createPayout = async ({ organizer_id, event_id = null, amount, payment_met
   });
 };
 
-// ── Admin: update payout status ──────────────────────────────────────────────
 const updatePayoutStatus = async (payoutId, status, reference_id = null, adminId, rejection_reason = null) => {
   const payout = await Payout.findByPk(payoutId);
   if (!payout) return null;
@@ -92,14 +81,13 @@ const updatePayoutStatus = async (payoutId, status, reference_id = null, adminId
   const updates = { status, initiated_by: adminId };
   if (reference_id)    updates.reference_id = reference_id;
   if (status === "paid")    updates.paid_at = new Date();
-  // Store admin rejection reason in notes so organizer can see why
+
   if (status === "failed" && rejection_reason) updates.notes = rejection_reason;
 
   await payout.update(updates);
   return payout;
 };
 
-// ── Admin: list all payouts ──────────────────────────────────────────────────
 const getAllPayouts = async ({ organizerId, status, page = 1, limit = 20 } = {}) => {
   const where = {};
   if (organizerId) where.organizer_id = organizerId;
@@ -123,7 +111,6 @@ const getAllPayouts = async ({ organizerId, status, page = 1, limit = 20 } = {})
   return { total: count, pages: Math.ceil(count / limit), page, payouts: rows };
 };
 
-// ── Organizer: view own payouts ──────────────────────────────────────────────
 const getOrganizerPayouts = async (organizerId) => {
   return Payout.findAll({
     where: { organizer_id: organizerId },
@@ -132,14 +119,13 @@ const getOrganizerPayouts = async (organizerId) => {
   });
 };
 
-// ── Organizer: payout summary totals ────────────────────────────────────────
 const getOrganizerPayoutSummary = async (organizerId) => {
   const result = await Payout.findOne({
     where: { organizer_id: organizerId },
     attributes: [
       [sequelize.fn("SUM", sequelize.col("net_amount")),                             "total_paid"],
       [sequelize.fn("SUM", sequelize.literal("CASE WHEN status='paid' THEN net_amount ELSE 0 END")), "received"],
-      // 'processing' = admin approved but not yet paid — show in pending so organizer can see it
+
       [sequelize.fn("SUM", sequelize.literal("CASE WHEN status IN ('pending','processing') THEN net_amount ELSE 0 END")), "pending"],
       [sequelize.fn("COUNT", sequelize.col("id")),                                   "count"],
     ],

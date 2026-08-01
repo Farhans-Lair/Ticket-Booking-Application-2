@@ -20,7 +20,7 @@
     .page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-bottom:32px;}
     .two-col{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start;}
     @media(max-width:900px){.two-col{grid-template-columns:1fr;}}
-    /* form card */
+
     .form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;}
     .form-card h3{font-size:1.1rem;font-weight:700;margin-bottom:20px;}
     .field{margin-bottom:14px;}
@@ -31,7 +31,7 @@
     .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .btn-create{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#d4a520);border:none;border-radius:10px;color:#0a0a14;font-family:inherit;font-size:0.92rem;font-weight:700;cursor:pointer;transition:transform .15s;margin-top:6px;}
     .btn-create:hover{transform:translateY(-1px);}
-    /* table */
+
     .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
     .table-card h3{font-size:1.1rem;font-weight:700;padding:20px 24px;border-bottom:1px solid var(--border);}
     table{width:100%;border-collapse:collapse;}
@@ -49,7 +49,7 @@
     .msg.ok{color:var(--green);}
     .msg.err{color:var(--red);}
     .loading{padding:32px;text-align:center;color:var(--muted);}
-  </style>
+</style>
 </head>
 <body>
 
@@ -78,7 +78,7 @@
   <div class="page-title">🎟️ Coupon Management</div>
 
   <div class="two-col">
-    <!-- Create form -->
+
     <div class="form-card">
       <h3>Create Coupon</h3>
       <div class="field">
@@ -132,7 +132,6 @@
       <div class="msg" id="createMsg"></div>
     </div>
 
-    <!-- Coupon list -->
     <div class="table-card">
       <h3>All Coupons</h3>
       <div id="couponTable"><div class="loading">Loading…</div></div>

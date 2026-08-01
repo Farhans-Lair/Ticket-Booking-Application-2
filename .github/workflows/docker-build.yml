@@ -6,12 +6,6 @@ on:
       - main
       - bootstrap
 
-# Prevent two deploys from racing each other on the same EC2 instances via
-# SSM. Runs queue instead of overlapping; nothing gets cancelled mid-deploy.
-concurrency:
-  group: production-deploy
-  cancel-in-progress: false
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -87,18 +81,31 @@ jobs:
       id-token: write
       contents: read
 
-    env:
-      AWS_REGION:     ap-south-1
-      AWS_ACCOUNT_ID: 349744179793
-      ECR_REPOSITORY: ticket-backend
-
     steps:
       - uses: actions/checkout@v4
+
+      # Reads non-sensitive bootstrap config from terraform/terraform.tfvars
+      # instead of hardcoding it here, so Terraform and CI can never drift
+      # out of sync on account ID / region / role naming. Written to
+      # $GITHUB_ENV so every later step in this job can use $AWS_REGION /
+      # $AWS_ACCOUNT_ID / $ECR_REPOSITORY as plain shell variables, same
+      # as before.
+      - name: Load config from terraform.tfvars
+        run: |
+          TFVARS=terraform/terraform.tfvars
+          get() { grep -E "^\s*$1\s*=" "$TFVARS" | sed -E 's/^[^=]+=\s*"?([^"]*)"?\s*$/\1/'; }
+
+          PROJECT_NAME=$(get project_name)
+
+          echo "AWS_REGION=$(get aws_region)"         >> "$GITHUB_ENV"
+          echo "AWS_ACCOUNT_ID=$(get aws_account_id)" >> "$GITHUB_ENV"
+          echo "PROJECT_NAME=$PROJECT_NAME"            >> "$GITHUB_ENV"
+          echo "ECR_REPOSITORY=${PROJECT_NAME}-backend" >> "$GITHUB_ENV"
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::349744179793:role/GitHubActions-ECR-Push-Role
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT_NAME }}-GitHubActions-ECR-Push-Role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Verify AWS Identity

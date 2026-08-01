@@ -37,7 +37,6 @@
       grid-template-columns: 1fr 1fr;
     }
 
-    /* ── LEFT HERO ── */
     .hero {
       display: flex; flex-direction: column;
       justify-content: center; padding: 60px 50px;
@@ -107,7 +106,6 @@
       to{opacity:1;transform:translateY(0);}
     }
 
-    /* ── RIGHT FORMS ── */
     .forms-panel {
       display: flex; align-items: center; justify-content: center;
       padding: 40px 50px; position: relative;
@@ -240,7 +238,7 @@
       .hero{padding:36px 24px 20px;}
       .forms-panel{padding:20px 24px 40px;}
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -248,7 +246,6 @@
 
 <div class="page-wrap">
 
-  <!-- LEFT HERO -->
   <div class="hero">
     <div class="logo-mark">
       <div class="dot-grid">
@@ -278,7 +275,6 @@
     </div>
   </div>
 
-  <!-- RIGHT FORMS -->
   <div class="forms-panel">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
@@ -289,7 +285,6 @@
         <button class="tab-btn"        id="tab-register" onclick="switchTab('register')">Create Account</button>
       </div>
 
-      <!-- LOGIN -->
       <div class="form-section active" id="loginSection">
         <div class="form-card">
           <h2>Welcome back</h2>
@@ -325,7 +320,6 @@
         </div>
       </div>
 
-      <!-- REGISTER -->
       <div class="form-section" id="registerSection">
         <div class="form-card">
           <h2>Join TicketVerse</h2>
@@ -370,10 +364,10 @@
         </div>
       </div>
 
-    </div><!-- /card-container -->
-  </div><!-- /forms-panel -->
+    </div>
+  </div>
 
-</div><!-- /page-wrap -->
+</div>
 
 <script>
 function switchTab(tab) {
@@ -383,7 +377,6 @@ function switchTab(tab) {
   });
 }
 
-/* ── CANVAS ANIMATION ── */
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 let W, H;
@@ -424,22 +417,19 @@ function draw() {
   g.addColorStop(0,'#0a0a14'); g.addColorStop(1,'#0e0e28');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
-  /* glow orbs */
-  [[0.15,0.25,350,'rgba(124,106,247,0.07)'],[0.78,0.7,420,'rgba(245,200,66,0.05)'],[0.85,0.1,260,'rgba(247,74,106,0.05)']].forEach(([ox,oy,r,c])=>{
+    [[0.15,0.25,350,'rgba(124,106,247,0.07)'],[0.78,0.7,420,'rgba(245,200,66,0.05)'],[0.85,0.1,260,'rgba(247,74,106,0.05)']].forEach(([ox,oy,r,c])=>{
     const rg=ctx.createRadialGradient(ox*W,oy*H,0,ox*W,oy*H,r);
     rg.addColorStop(0,c); rg.addColorStop(1,'transparent');
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
   });
 
-  /* stars */
-  stars.forEach(s=>{
+    stars.forEach(s=>{
     s.a+=s.da; if(s.a>1||s.a<0)s.da*=-1;
     ctx.beginPath(); ctx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);
     ctx.fillStyle=`rgba(255,255,255,${Math.max(0,s.a)*0.55})`; ctx.fill();
   });
 
-  /* floating dots */
-  particles.forEach(p=>{
+    particles.forEach(p=>{
     p.y-=p.speed; p.x+=p.dx;
     p.alpha+=0.003*p.fadeDir;
     if(p.alpha>0.65||p.alpha<0.08)p.fadeDir*=-1;
@@ -448,8 +438,7 @@ function draw() {
     ctx.fillStyle=p.color+p.alpha+')'; ctx.fill();
   });
 
-  /* subtle grid */
-  ctx.strokeStyle='rgba(255,255,255,0.018)'; ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(255,255,255,0.018)'; ctx.lineWidth=1;
   for(let x=0;x<W;x+=64){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=0;y<H;y+=64){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 

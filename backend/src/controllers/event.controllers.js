@@ -21,14 +21,13 @@ const createEvent = async (req, res, next) => {
       return res.status(400).json({ error: "Event date must be today or a future date." });
     }
 
-    // Admin-created events are pre-approved and not featured by default
     const event = await eventService.createEvent({
       title, description, location, event_date, price, total_tickets,
       available_tickets: total_tickets,
       category: category || "Other",
       images: Array.isArray(images) && images.length > 0 ? images : null,
       organizer_id: null,
-      status: "approved",         // admin events skip moderation
+      status: "approved",
       is_featured: false,
     });
 
@@ -40,7 +39,6 @@ const createEvent = async (req, res, next) => {
   }
 };
 
-// GET /events — only approved events (public)
 const getEvents = async (req, res, next) => {
   try {
     const { category } = req.query;
@@ -51,7 +49,6 @@ const getEvents = async (req, res, next) => {
   }
 };
 
-// GET /events/featured — Feature 2: featured events for homepage
 const getFeaturedEvents = async (req, res, next) => {
   try {
     const limit  = parseInt(req.query.limit) || 8;
@@ -62,7 +59,6 @@ const getFeaturedEvents = async (req, res, next) => {
   }
 };
 
-// GET /events/trending — Feature 2: trending events by booking volume
 const getTrendingEvents = async (req, res, next) => {
   try {
     const limit  = parseInt(req.query.limit) || 6;
@@ -84,7 +80,7 @@ const updateEvent = async (req, res, next) => {
     const updatedEvent = await eventService.updateEvent(
       eventId,
       { title, description, location, event_date, price, total_tickets, category, images },
-      null   // null = admin, bypasses ownership check
+      null
     );
 
     if (!updatedEvent) return res.status(404).json({ error: "Event not found." });

@@ -1,15 +1,6 @@
-/**
- * coupon.controllers.js — Feature 4: Coupon / discount system
- *
- * POST /coupons/validate      → preview discount (no DB write, no auth required)
- * POST /coupons               → admin: create coupon
- * GET  /coupons               → admin: list all coupons
- * PATCH /coupons/:id/status   → admin: toggle active / inactive
- */
 const couponService = require("../services/coupon.services");
 const logger        = require("../config/logger");
 
-/* ─── Validate (user-facing, safe to call on keystroke) ──────────────────── */
 const validateCoupon = async (req, res, next) => {
   try {
     const { code, orderAmount } = req.body || {};
@@ -21,7 +12,6 @@ const validateCoupon = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-/* ─── Admin: create ───────────────────────────────────────────────────────── */
 const createCoupon = async (req, res, next) => {
   try {
     const coupon = await couponService.create(req.body);
@@ -32,14 +22,12 @@ const createCoupon = async (req, res, next) => {
   }
 };
 
-/* ─── Admin: list ─────────────────────────────────────────────────────────── */
 const getAllCoupons = async (req, res, next) => {
   try {
     res.json(await couponService.getAll());
   } catch (err) { next(err); }
 };
 
-/* ─── Admin: set status ───────────────────────────────────────────────────── */
 const setCouponStatus = async (req, res, next) => {
   try {
     const { status } = req.body || {};

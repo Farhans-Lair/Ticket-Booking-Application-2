@@ -2,9 +2,6 @@ const { User, Booking, Event } = require("../models");
 const bcrypt  = require("bcrypt");
 const logger  = require("../config/logger");
 
-// ─────────────────────────────────────────────────────────────
-// GET /user/profile  —  return the authenticated user's profile
-// ─────────────────────────────────────────────────────────────
 const getProfile = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -12,7 +9,6 @@ const getProfile = async (req, res, next) => {
     });
     if (!user) return res.status(404).json({ error: "User not found." });
 
-    // Booking summary counts
     const [total, active, cancelled] = await Promise.all([
       Booking.count({ where: { user_id: req.user.id } }),
       Booking.count({ where: { user_id: req.user.id, cancellation_status: "active", payment_status: "paid" } }),
@@ -26,9 +22,6 @@ const getProfile = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// PUT /user/profile  —  update name, phone, bio, avatar_url
-// ─────────────────────────────────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
     const { name, phone, bio, avatar_url, bank_details } = req.body;
@@ -55,9 +48,6 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// PUT /user/profile/password  —  change password
-// ─────────────────────────────────────────────────────────────
 const changePassword = async (req, res, next) => {
   try {
     const { current_password, new_password } = req.body;
@@ -83,9 +73,6 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET /user/profile/bookings  —  booking history with event info
-// ─────────────────────────────────────────────────────────────
 const getBookingHistory = async (req, res, next) => {
   try {
     const bookings = await Booking.findAll({

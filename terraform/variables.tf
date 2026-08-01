@@ -30,7 +30,6 @@ variable "public_subnet_2_cidr" {
   default = "10.0.2.0/24"
 }
 
-# #6, #8 — New private subnet CIDRs for EC2 and RDS
 variable "private_subnet_1_cidr" {
   default = "10.0.3.0/24"
 }

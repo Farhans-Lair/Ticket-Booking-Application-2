@@ -16,13 +16,10 @@ async function loadRevenue() {
   container.innerHTML = '<div class="loading">Loading revenue data…</div>';
 
   try {
-    // API returns { events: [...], grandTotals: {...} }
-    // Previously the code did  events.forEach(...)  on the whole response
-    // object, which threw "events.forEach is not a function" and fell into catch.
+
     const data = await apiRequest("/api/revenue", "GET", null, true);
     const { events, grandTotals } = data;
 
-    // ── KPI cards ─────────────────────────────────────────────────────────
     const totalBookings = events.reduce(
       (sum, e) => sum + (e.Bookings ? e.Bookings.length : 0), 0
     );
@@ -42,7 +39,6 @@ async function loadRevenue() {
       return;
     }
 
-    // ── Per-event breakdown table ──────────────────────────────────────────
     const rows = events.map(ev => {
       const t = ev.eventTotals;
       return `

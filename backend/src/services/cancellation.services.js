@@ -4,20 +4,14 @@ const { Booking, Event, CancellationPolicy } = require("../models");
 const seatService = require("./seat.services");
 const logger = require("../config/logger");
 
-
 const CANCELLATION_FEE_RATE     = 0.05;
 const CANCELLATION_FEE_GST_RATE = 0.05;
 const HIGH_TIER_CUTOFF_HOURS    = 72;
 
-
-// ──────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ──────────────────────────────────────────────────────────────────────────────
-
 const getRazorpayInstance = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     throw new Error("Razorpay credentials missing.");
-    
+
   }
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID.trim(),
@@ -93,7 +87,6 @@ const getEffectiveRevenue = (b) => {
   };
 };
 
-// ── Policy CRUD ──────────────────────────────────────────────────────────────
 const upsertCancellationPolicy = async (organizerId, eventId, tiers, isCancellationAllowed = true) => {
   const event = await Event.findOne({ where: { id: eventId, organizer_id: organizerId } });
   if (!event) throw Object.assign(new Error("Event not found or you do not own this event."), { statusCode: 404 });
@@ -118,7 +111,6 @@ const upsertCancellationPolicy = async (organizerId, eventId, tiers, isCancellat
 const getCancellationPolicy = async (eventId) =>
   await CancellationPolicy.findOne({ where: { event_id: eventId } });
 
-// ── Preview ──────────────────────────────────────────────────────────────────
 const previewCancellation = async (bookingId, userId) => {
   const booking = await Booking.findOne({
     where: { id: bookingId, user_id: userId },
@@ -163,7 +155,6 @@ const previewCancellation = async (bookingId, userId) => {
   };
 };
 
-// ── Cancel + Refund ──────────────────────────────────────────────────────────
 const cancelBooking = async (bookingId, userId) => {
   const preview = await previewCancellation(bookingId, userId);
   if (!preview.cancellationAllowed)
@@ -221,8 +212,6 @@ const cancelBooking = async (bookingId, userId) => {
       isHighTier: preview.isHighTier, cancellationStatus: finalCancellationStatus, razorpay_refund_id,
     };
 
-    // Feature 7 + Feature 6: notify waitlist + wishlist subscribers after
-    // tickets are restored. Run after transaction commits (fire-and-forget).
     const freedEventId = booking.event_id;
     const freedSeats   = booking.tickets_booked;
     setImmediate(async () => {

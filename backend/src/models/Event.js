@@ -42,10 +42,8 @@ const Event = sequelize.define("Event", {
     },
   },
 
-  // Feature 2 — City selector for search filters
   city: { type: DataTypes.STRING(100), allowNull: true, defaultValue: null },
 
-  // Feature 5 — Reviews & ratings cache
   average_rating: { type: DataTypes.DECIMAL(3,1), allowNull: true, defaultValue: null },
   review_count:   { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, {

@@ -12,7 +12,7 @@
       --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.09);
       --text:#f0eee8; --muted:rgba(240,238,232,0.5);
       --accent:#7c6af7; --red:#f74a6a; --green:#42e695;
-      /* Seat colors */
+
       --seat-avail-bg: rgba(124,106,247,0.12);
       --seat-avail-border: rgba(124,106,247,0.4);
       --seat-avail-text: #b8b0ff;
@@ -26,19 +26,16 @@
     #bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
     .app { position:relative; z-index:1; max-width:780px; margin:0 auto; padding:36px 28px 100px; }
 
-    /* TOPBAR */
     .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:36px; padding-bottom:18px; border-bottom:1px solid var(--border); }
     .logo { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--gold); }
     .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:0.85rem; text-decoration:none; padding:8px 16px; border:1px solid var(--border); border-radius:10px; background:var(--card); transition:all 0.2s; backdrop-filter:blur(8px); }
     .back-link:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
 
-    /* HEADER */
     .seat-header { margin-bottom:28px; }
     .seat-header h2 { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,3vw,2.2rem); font-weight:900; margin-bottom:6px; }
     .seat-info { font-size:0.9rem; color:var(--muted); }
     .seat-info strong { color:var(--gold); }
 
-    /* STAGE */
     .stage {
       text-align:center; margin-bottom:28px;
       padding:12px 20px; border-radius:12px;
@@ -55,7 +52,6 @@
     }
     @keyframes stage-sweep { 0%,100%{transform:translateX(-100%);}50%{transform:translateX(100%);} }
 
-    /* LEGEND */
     .legend { display:flex; gap:20px; margin-bottom:24px; flex-wrap:wrap; }
     .legend-item { display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--muted); }
     .legend-box { width:22px; height:22px; border-radius:5px; }
@@ -64,7 +60,6 @@
     .legend-box.booked    { background:var(--seat-booked-bg); border:2px solid var(--seat-booked-border); }
     .legend-box.held      { background:rgba(255,159,67,0.2); border:2px solid rgba(255,159,67,0.6); }
 
-    /* SEAT GRID */
     #seat-grid { margin-bottom:20px; }
     .seat-row { display:flex; align-items:center; gap:7px; margin-bottom:8px; flex-wrap:wrap; }
     .row-label { font-weight:700; font-size:0.75rem; color:var(--muted); min-width:18px; text-align:center; }
@@ -99,7 +94,6 @@
       cursor:not-allowed;
     }
 
-    /* STICKY BOTTOM BAR */
     .selection-bar {
       position:fixed; bottom:0; left:0; right:0; z-index:10;
       background:rgba(10,10,20,0.85);
@@ -124,13 +118,12 @@
     #proceed-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 28px rgba(245,200,66,0.4); }
     #proceed-btn:disabled { background:rgba(255,255,255,0.1); color:var(--muted); cursor:not-allowed; box-shadow:none; border:1px solid var(--border); }
 
-    /* seat grid wrapper card */
     .seat-grid-wrap {
       background:var(--card); border:1px solid var(--border);
       border-radius:18px; padding:28px;
       backdrop-filter:blur(16px);
     }
-  </style>
+</style>
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
@@ -160,7 +153,6 @@
   </div>
 </div>
 
-<!-- Sticky bottom bar -->
 <div class="selection-bar">
   <div class="selection-count">
     Selected: <span id="selected-count">0</span> / <span id="required-count">0</span>
@@ -169,7 +161,6 @@
 </div>
 
 <script>
-/* Canvas BG */
 const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
 let W,H;
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
@@ -190,7 +181,6 @@ function draw(){
 draw();
 </script>
 
-<!-- ALL ORIGINAL seat-selection.js logic loaded unchanged -->
 <script src="/js/api.js"></script>
 <script src="/js/auth-channel.js"></script>
 <script src="/js/seat-selection.js"></script>
