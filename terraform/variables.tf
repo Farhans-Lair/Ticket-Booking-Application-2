@@ -105,3 +105,18 @@ variable "jwt_session_secret" {
   description = "Secret for signing JWT session tokens (per-tab, 8h lifetime)"
   sensitive   = true
 }
+
+variable "twilio_account_sid" {
+  description = "Twilio Account SID"
+  sensitive   = true
+}
+
+variable "twilio_auth_token" {
+  description = "Twilio Auth Token"
+  sensitive   = true
+}
+
+variable "twilio_messaging_service_sid" {
+  description = "Twilio Messaging Service SID"
+  sensitive   = true
+}

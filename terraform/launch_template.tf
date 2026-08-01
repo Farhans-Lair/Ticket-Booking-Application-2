@@ -19,6 +19,10 @@ data "template_file" "user_data" {
     AWS_REGION          = var.aws_region
     S3_BUCKET_NAME      = var.s3_bucket_name
     ALB_DNS             = aws_lb.ticket_alb.dns_name
+    ECR_REPOSITORY      = aws_ecr_repository.ticket_backend.name
+    TWILIO_ACCOUNT_SID             = var.twilio_account_sid
+    TWILIO_AUTH_TOKEN               = var.twilio_auth_token
+    TWILIO_MESSAGING_SERVICE_SID    = var.twilio_messaging_service_sid
   }
 }
 

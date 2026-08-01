@@ -44,6 +44,9 @@ EMAIL_USER=${EMAIL_USER}
 EMAIL_PASS=${EMAIL_PASS}
 AWS_REGION=${AWS_REGION}
 S3_BUCKET_NAME=${S3_BUCKET_NAME}
+TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+TWILIO_MESSAGING_SERVICE_SID=${TWILIO_MESSAGING_SERVICE_SID}
 COOKIE_SECURE=true
 ENVEOF
 
@@ -108,8 +111,8 @@ CWEOF
 
 systemctl enable amazon-cloudwatch-agent
 
-aws ecr get-login-password --region ap-south-1 \
-| docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com
+aws ecr get-login-password --region ${AWS_REGION} \
+| docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
 docker rm -f ticket-backend || true
 
@@ -119,4 +122,4 @@ docker run -d \
   --env-file $APP_DIR/.env \
   -p 3000:3000 \
   -v /home/ec2-user/ticket-backend/logs:/app/logs \
-  ${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com/ticket-backend:latest
+  ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
