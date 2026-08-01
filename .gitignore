@@ -13,7 +13,7 @@ crash.*.log
 terraform/option
 terraform/options
 
-.terraform.lock.hcl
+!.terraform.lock.hcl
 
 rzp-key.csv
 
@@ -39,7 +39,7 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
-.vscode/
+.vscode/1
 .idea/
 *.iml
 
