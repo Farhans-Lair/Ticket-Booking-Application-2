@@ -4,10 +4,34 @@ on:
   push:
     branches:
       - main
-      - bootstrap
+    paths-ignore:
+      - 'terraform/**'
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch: {}
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Catches unresolved merge conflict markers (<<<<<<<, =======, >>>>>>>)
+      # before they can reach a migration, schema file, or any other
+      # committed content. This runs first and blocks test/deploy entirely
+      # if it fails, rather than letting a bad merge silently ship and
+      # crash-loop in production.
+      - name: Check for unresolved merge conflict markers
+        run: |
+          if grep -rn "^<<<<<<<\|^=======\|^>>>>>>>" \
+              --exclude-dir=node_modules --exclude-dir=.git .; then
+            echo "::error::Unresolved merge conflict markers found. Fix before continuing."
+            exit 1
+          fi
+          echo "No conflict markers found."
+
   test:
+    needs: checks
     runs-on: ubuntu-latest
 
     env:
@@ -75,7 +99,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
 
     permissions:
       id-token: write

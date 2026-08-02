@@ -28,8 +28,5 @@ async function down({ context: sequelize }) {
   // migration rollback.
 }
 
-<<<<<<< HEAD
 module.exports = { up, down };
-=======
 module.exports = { up, down };
->>>>>>> bootstrap

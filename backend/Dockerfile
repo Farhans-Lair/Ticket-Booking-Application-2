@@ -9,6 +9,7 @@ RUN npm ci --omit=dev
 COPY backend/src ./src
 
 COPY frontend /app/frontend
+COPY db /app/db
 
 EXPOSE 3000 3001
 
