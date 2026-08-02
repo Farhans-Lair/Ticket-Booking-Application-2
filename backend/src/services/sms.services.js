@@ -3,7 +3,21 @@ const logger = require("../config/logger");
 
 let twilioClient = null;
 
+// senderCache maps a phone number to the Twilio sender that successfully
+// delivered to it (Sticky Sender workaround for trial accounts). Entries
+// expire after SENDER_CACHE_TTL_MS so this doesn't grow unbounded for the
+// lifetime of the process as the user base grows — same pattern as
+// otp.services.js's otpStore.
 const senderCache = new Map();
+const SENDER_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function cacheSender(phone, sender) {
+  senderCache.set(phone, sender);
+  setTimeout(() => {
+    const current = senderCache.get(phone);
+    if (current === sender) senderCache.delete(phone);
+  }, SENDER_CACHE_TTL_MS).unref();
+}
 
 const INDIA_BLOCK_CODES = ["30044", "21606", "21408"];
 
@@ -57,7 +71,7 @@ async function sendSMS(toPhone, body) {
     const msg = await client.messages.create(attempt1);
 
     if (msg.from && !senderCache.has(normalised)) {
-      senderCache.set(normalised, msg.from);
+      cacheSender(normalised, msg.from);
       logger.info("Sender cached", { to: normalised, sender: msg.from });
     }
 
@@ -93,7 +107,7 @@ async function sendSMS(toPhone, body) {
       });
 
       if (msg2.from) {
-        senderCache.set(normalised, msg2.from);
+        cacheSender(normalised, msg2.from);
         logger.info("Sender cached after retry", {
           to: normalised, sender: msg2.from,
         });

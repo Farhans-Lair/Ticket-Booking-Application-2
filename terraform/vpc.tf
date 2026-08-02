@@ -1,4 +1,8 @@
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 resource "aws_vpc" "ticket_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -14,7 +18,7 @@ resource "aws_internet_gateway" "ticket_igw" {
 resource "aws_subnet" "public_subnet_1" {
   vpc_id                  = aws_vpc.ticket_vpc.id
   cidr_block              = var.public_subnet_1_cidr
-  availability_zone       = "ap-south-1a"
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
   tags = { Name = "${var.project_name}-public-subnet-1" }
 }
@@ -22,7 +26,7 @@ resource "aws_subnet" "public_subnet_1" {
 resource "aws_subnet" "public_subnet_2" {
   vpc_id                  = aws_vpc.ticket_vpc.id
   cidr_block              = var.public_subnet_2_cidr
-  availability_zone       = "ap-south-1b"
+  availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = true
   tags = { Name = "${var.project_name}-public-subnet-2" }
 }
@@ -30,7 +34,7 @@ resource "aws_subnet" "public_subnet_2" {
 resource "aws_subnet" "private_subnet_1" {
   vpc_id                  = aws_vpc.ticket_vpc.id
   cidr_block              = var.private_subnet_1_cidr
-  availability_zone       = "ap-south-1a"
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = false   # no public IPs — eliminates attack surface
   tags = { Name = "${var.project_name}-private-subnet-1" }
 }
@@ -38,7 +42,7 @@ resource "aws_subnet" "private_subnet_1" {
 resource "aws_subnet" "private_subnet_2" {
   vpc_id                  = aws_vpc.ticket_vpc.id
   cidr_block              = var.private_subnet_2_cidr
-  availability_zone       = "ap-south-1b"
+  availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = false
   tags = { Name = "${var.project_name}-private-subnet-2" }
 }

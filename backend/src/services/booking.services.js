@@ -4,8 +4,10 @@ const seatService  = require("./seat.services");
 const qrService    = require("./qr.services");
 const couponService = require("./coupon.services");
 
-const CONVENIENCE_FEE_RATE = 0.10;
-const GST_RATE             = 0.09;
+// Configurable via env vars so fee/tax rates can change without a code
+// deploy — same pattern as PLATFORM_FEE_RATE in payout.services.js.
+const CONVENIENCE_FEE_RATE = parseFloat(process.env.CONVENIENCE_FEE_RATE || "0.10");
+const GST_RATE             = parseFloat(process.env.GST_RATE || "0.09");
 
 const _computePrice = (ticketAmount) => {
   const convenienceFee = ticketAmount * CONVENIENCE_FEE_RATE;

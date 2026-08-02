@@ -4,9 +4,11 @@ const { Booking, Event, CancellationPolicy } = require("../models");
 const seatService = require("./seat.services");
 const logger = require("../config/logger");
 
-const CANCELLATION_FEE_RATE     = 0.05;
-const CANCELLATION_FEE_GST_RATE = 0.05;
-const HIGH_TIER_CUTOFF_HOURS    = 72;
+// Configurable via env vars, same pattern as PLATFORM_FEE_RATE and
+// CONVENIENCE_FEE_RATE/GST_RATE in booking.services.js.
+const CANCELLATION_FEE_RATE     = parseFloat(process.env.CANCELLATION_FEE_RATE || "0.05");
+const CANCELLATION_FEE_GST_RATE = parseFloat(process.env.CANCELLATION_FEE_GST_RATE || "0.05");
+const HIGH_TIER_CUTOFF_HOURS    = parseInt(process.env.CANCELLATION_HIGH_TIER_CUTOFF_HOURS || "72", 10);
 
 const getRazorpayInstance = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
