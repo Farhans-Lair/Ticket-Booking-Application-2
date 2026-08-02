@@ -3,7 +3,10 @@ const { Op }    = require("sequelize");
 const sequelize = require("../config/database");
 const { Payout, Booking, Event, User, OrganizerProfile } = require("../models");
 
-const PLATFORM_FEE_RATE = 0.10;
+// Configurable via PLATFORM_FEE_RATE env var (e.g. "0.10" for 10%) so the
+// commission rate can change without a code deploy. Falls back to the
+// original 10% default if unset.
+const PLATFORM_FEE_RATE = parseFloat(process.env.PLATFORM_FEE_RATE || "0.10");
 
 const calculateSettlement = async (organizerId, eventId = null) => {
   const bookingWhere = {

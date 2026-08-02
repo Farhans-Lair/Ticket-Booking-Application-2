@@ -485,33 +485,34 @@ document.getElementById("saveTiersBtn").addEventListener("click", async () => {
   const eventId = document.getElementById("tierEventId").value;
   alertEl.className = "modal-alert";
 
-  const tiers = tierRows.map(t => {
-    const name  = t.name.trim();
-    const price = parseFloat(t.price);
-    if (!name || isNaN(price) || price < 0 || !t.rows.trim()) return null;
-    const rowsArr = expandRows(t.rows.trim());
-    return { name, price, rows: rowsArr };
-  }).filter(Boolean);
+  try {
+    const tiers = tierRows.map(t => {
+      const name  = t.name.trim();
+      const price = parseFloat(t.price);
+      if (!name || isNaN(price) || price < 0 || !t.rows.trim()) return null;
+      const rowsArr = expandRows(t.rows.trim());
+      return { name, price, rows: rowsArr };
+    }).filter(Boolean);
 
-  if (!tiers.length) {
-    alertEl.textContent = "Please add at least one valid tier with a name, price, and rows.";
-    alertEl.className = "modal-alert error"; return;
-  }
-
-  const ev = events.find(e => e.id === parseInt(eventId));
-  if (ev) {
-    const rowCount   = Math.ceil(ev.total_tickets / 10);
-    const allRows    = ROWS.slice(0, Math.min(rowCount, 26));
-    const coveredSet = new Set(tiers.flatMap(t => t.rows));
-    const missing    = allRows.filter(r => !coveredSet.has(r));
-    if (missing.length > 0) {
-      alertEl.textContent = `Row(s) ${missing.join(", ")} are not assigned to any tier. Please assign every row before saving.`;
+    if (!tiers.length) {
+      alertEl.textContent = "Please add at least one valid tier with a name, price, and rows.";
       alertEl.className = "modal-alert error"; return;
     }
-  }
 
-  btn.disabled = true; btn.textContent = "Saving…";
-  try {
+    const ev = events.find(e => e.id === parseInt(eventId));
+    if (ev) {
+      const rowCount   = Math.ceil(ev.total_tickets / 10);
+      const allRows    = ROWS.slice(0, Math.min(rowCount, 26));
+      const coveredSet = new Set(tiers.flatMap(t => t.rows));
+      const missing    = allRows.filter(r => !coveredSet.has(r));
+      if (missing.length > 0) {
+        alertEl.textContent = `Row(s) ${missing.join(", ")} are not assigned to any tier. Please assign every row before saving.`;
+        alertEl.className = "modal-alert error"; return;
+      }
+    }
+
+    btn.disabled = true; btn.textContent = "Saving…";
+
     const r = await fetch(`/seats/${eventId}/tiers`, {
       method: "PUT", headers, body: JSON.stringify({ tiers }),
     });
@@ -521,10 +522,11 @@ document.getElementById("saveTiersBtn").addEventListener("click", async () => {
     alertEl.className   = "modal-alert success";
     btn.textContent     = "Saved ✓";
     loadCategoryOptions();
-  loadEvents();
+    loadEvents();
     setTimeout(() => document.getElementById("tierModal").classList.remove("open"), 1500);
   } catch (e) {
-    alertEl.textContent = e.message; alertEl.className = "modal-alert error";
+    alertEl.textContent = e.message || "Something went wrong. Please try again.";
+    alertEl.className = "modal-alert error";
     btn.disabled = false; btn.textContent = "Save Tiers";
   }
 });
@@ -601,9 +603,9 @@ function escHtml(str) {
   return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await fetch("/auth/logout", { method:"POST", headers });
-  sessionStorage.clear(); window.location.href = "/";
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  fetch("/auth/logout", { method:"POST", headers })
+    .finally(() => { sessionStorage.clear(); window.location.href = "/"; });
 });
 
 loadEvents();

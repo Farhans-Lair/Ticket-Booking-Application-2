@@ -341,22 +341,35 @@ function renderOrgs(list) {
 
 async function approveOrg(id, btn) {
   btn.disabled = true; btn.textContent = "…";
-  const res = await fetch(`/organizer/admin/organizers/${id}/approve`, { method:"PUT", headers });
-  if (res.ok) { toast("Organizer approved ✓", "success"); loadOrganizers(orgCurrentStatus); }
-  else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
+  try {
+    const res = await fetch(`/organizer/admin/organizers/${id}/approve`, { method:"PUT", headers });
+    if (res.ok) { toast("Organizer approved ✓", "success"); loadOrganizers(orgCurrentStatus); }
+    else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled = false; btn.textContent = "✓ Approve"; }
+  } catch {
+    toast("Network error. Please try again.", "error");
+    btn.disabled = false; btn.textContent = "✓ Approve";
+  }
 }
 function toggleOrgReject(id) { document.getElementById(`rejectBox-${id}`).classList.toggle("show"); }
 async function confirmOrgReject(id) {
   const reason = document.getElementById(`rejectReason-${id}`).value.trim() || null;
-  const res = await fetch(`/organizer/admin/organizers/${id}/reject`, { method:"PUT", headers, body:JSON.stringify({reason}) });
-  if (res.ok) { toast("Organizer rejected.", "success"); loadOrganizers(orgCurrentStatus); }
-  else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+  try {
+    const res = await fetch(`/organizer/admin/organizers/${id}/reject`, { method:"PUT", headers, body:JSON.stringify({reason}) });
+    if (res.ok) { toast("Organizer rejected.", "success"); loadOrganizers(orgCurrentStatus); }
+    else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+  } catch {
+    toast("Network error. Please try again.", "error");
+  }
 }
 async function deleteOrg(id, name) {
   if (!confirm(`Permanently delete "${name}"?`)) return;
-  const res = await fetch(`/organizer/admin/organizers/${id}`, { method:"DELETE", headers });
-  if (res.ok) { toast("Organizer deleted.", "success"); loadOrganizers(orgCurrentStatus); }
-  else { const d = await res.json(); toast(d.error||"Delete failed.", "error"); }
+  try {
+    const res = await fetch(`/organizer/admin/organizers/${id}`, { method:"DELETE", headers });
+    if (res.ok) { toast("Organizer deleted.", "success"); loadOrganizers(orgCurrentStatus); }
+    else { const d = await res.json(); toast(d.error||"Delete failed.", "error"); }
+  } catch {
+    toast("Network error. Please try again.", "error");
+  }
 }
 document.querySelectorAll("#orgFilterTabs .filter-tab").forEach(tab => {
   tab.addEventListener("click", () => {
@@ -433,13 +446,18 @@ document.querySelectorAll("#evFilterTabs .filter-tab").forEach(tab => {
 
 async function approveEv(id, btn) {
   btn.disabled = true; btn.textContent = "…";
-  const res = await fetch(`/admin/moderation/events/${id}/approve`, { method:"PUT", headers, body:JSON.stringify({}) });
-  if (res.ok) {
-    toast("Event approved ✓", "success");
-    const idx = allEvents.findIndex(e => e.id === id);
-    if (idx !== -1) allEvents[idx].status = "approved";
-    updateEvStats(); renderEvents(); renderFeatured();
-  } else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled=false; btn.textContent="✓ Approve"; }
+  try {
+    const res = await fetch(`/admin/moderation/events/${id}/approve`, { method:"PUT", headers, body:JSON.stringify({}) });
+    if (res.ok) {
+      toast("Event approved ✓", "success");
+      const idx = allEvents.findIndex(e => e.id === id);
+      if (idx !== -1) allEvents[idx].status = "approved";
+      updateEvStats(); renderEvents(); renderFeatured();
+    } else { const d = await res.json(); toast(d.error||"Failed.", "error"); btn.disabled=false; btn.textContent="✓ Approve"; }
+  } catch {
+    toast("Network error. Please try again.", "error");
+    btn.disabled = false; btn.textContent = "✓ Approve";
+  }
 }
 
 function openRejectEv(id) {
@@ -453,14 +471,18 @@ document.getElementById("cancelRejectEv").addEventListener("click", () =>
 document.getElementById("confirmRejectEv").addEventListener("click", async () => {
   const note = document.getElementById("rejectEventNote").value.trim();
   if (!note) { alert("Rejection reason is required."); return; }
-  const res = await fetch(`/admin/moderation/events/${pendingRejectEvId}/reject`, { method:"PUT", headers, body:JSON.stringify({note}) });
-  if (res.ok) {
-    toast("Event rejected.", "success");
-    const idx = allEvents.findIndex(e => e.id === pendingRejectEvId);
-    if (idx !== -1) { allEvents[idx].status = "rejected"; allEvents[idx].moderation_note = note; }
-    document.getElementById("rejectEventModal").classList.remove("open");
-    updateEvStats(); renderEvents();
-  } else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+  try {
+    const res = await fetch(`/admin/moderation/events/${pendingRejectEvId}/reject`, { method:"PUT", headers, body:JSON.stringify({note}) });
+    if (res.ok) {
+      toast("Event rejected.", "success");
+      const idx = allEvents.findIndex(e => e.id === pendingRejectEvId);
+      if (idx !== -1) { allEvents[idx].status = "rejected"; allEvents[idx].moderation_note = note; }
+      document.getElementById("rejectEventModal").classList.remove("open");
+      updateEvStats(); renderEvents();
+    } else { const d = await res.json(); toast(d.error||"Failed.", "error"); }
+  } catch {
+    toast("Network error. Please try again.", "error");
+  }
 });
 
 function renderFeatured() {
@@ -487,13 +509,17 @@ function renderFeatured() {
 
 async function toggleFeatured(id, makeFeature, btn) {
   btn.disabled = true;
-  const res = await fetch(`/admin/events/${id}/feature`, { method:"PUT", headers, body:JSON.stringify({is_featured:makeFeature}) });
-  if (res.ok) {
-    const idx = allEvents.findIndex(e => e.id === id);
-    if (idx !== -1) allEvents[idx].is_featured = makeFeature;
-    toast(makeFeature ? "Event featured ★" : "Removed from featured", "success");
-    renderFeatured();
-  } else { toast("Failed to update.", "error"); }
+  try {
+    const res = await fetch(`/admin/events/${id}/feature`, { method:"PUT", headers, body:JSON.stringify({is_featured:makeFeature}) });
+    if (res.ok) {
+      const idx = allEvents.findIndex(e => e.id === id);
+      if (idx !== -1) allEvents[idx].is_featured = makeFeature;
+      toast(makeFeature ? "Event featured ★" : "Removed from featured", "success");
+      renderFeatured();
+    } else { toast("Failed to update.", "error"); }
+  } catch {
+    toast("Network error. Please try again.", "error");
+  }
   btn.disabled = false;
 }
 

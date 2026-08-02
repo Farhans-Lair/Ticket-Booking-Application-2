@@ -6,6 +6,30 @@ const https     = require("https");
 const app       = require("./app");
 const sequelize = require("./config/database");
 const migrator  = require("./config/migrator");
+const logger    = require("./config/logger");
+
+// Safety net for async errors that fall outside Express's request/response
+// cycle (e.g. a future cron job or background task missing its own
+// try/catch). On Node 22+, an unhandled promise rejection terminates the
+// process by default — logging it here at least leaves a clear record of
+// what happened before that termination, instead of the process just
+// vanishing with no trace. uncaughtException is caught for the same reason
+// but is not recovered from, since continuing after a truly unknown
+// synchronous error is unsafe.
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled promise rejection", {
+    message: reason?.message || String(reason),
+    stack:   process.env.NODE_ENV !== "production" ? reason?.stack : undefined,
+  });
+});
+
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught exception — process will exit", {
+    message: err.message,
+    stack:   err.stack,
+  });
+  process.exit(1);
+});
 
 const USE_HTTPS  = process.env.USE_HTTPS === "true";
 const HTTPS_PORT = parseInt(process.env.HTTPS_PORT || "3000", 10);

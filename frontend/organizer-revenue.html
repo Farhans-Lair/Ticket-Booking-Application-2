@@ -339,10 +339,9 @@
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await fetch("/auth/logout", { method:"POST", headers });
-    sessionStorage.clear();
-    window.location.href = "/";
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    fetch("/auth/logout", { method:"POST", headers })
+      .finally(() => { sessionStorage.clear(); window.location.href = "/"; });
   });
 
   loadRevenue().then(() => loadSettlement());

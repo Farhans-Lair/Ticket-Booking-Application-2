@@ -86,10 +86,9 @@
 const token = sessionStorage.getItem("token");
 if (!token) location.href = "/";
 
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-  await fetch("/auth/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-  sessionStorage.clear();
-  window.location.href = "/";
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  fetch("/auth/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } })
+    .finally(() => { sessionStorage.clear(); window.location.href = "/"; });
 });
 
 async function checkIn() {

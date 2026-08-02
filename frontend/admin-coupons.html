@@ -218,9 +218,9 @@ async function toggleStatus(id, current) {
   } catch(e) { alert("Could not update status: " + e.message); }
 }
 
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-  await fetch("/auth/logout", { method:"POST", headers });
-  sessionStorage.clear(); location.href = "/";
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  fetch("/auth/logout", { method:"POST", headers })
+    .finally(() => { sessionStorage.clear(); location.href = "/"; });
 });
 
 loadCoupons();
