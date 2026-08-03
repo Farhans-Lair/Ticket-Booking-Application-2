@@ -502,7 +502,7 @@ document.getElementById("saveTiersBtn").addEventListener("click", async () => {
     const ev = events.find(e => e.id === parseInt(eventId));
     if (ev) {
       const rowCount   = Math.ceil(ev.total_tickets / 10);
-      const allRows    = ROWS.slice(0, Math.min(rowCount, 26));
+      const allRows    = ROWS.slice(0, Math.min(rowCount, 26)).split("");
       const coveredSet = new Set(tiers.flatMap(t => t.rows));
       const missing    = allRows.filter(r => !coveredSet.has(r));
       if (missing.length > 0) {
