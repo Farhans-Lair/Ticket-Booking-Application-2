@@ -62,7 +62,13 @@ const createOrder = async (req, res, next) => {
     logger.error("Razorpay order creation failed", {
       userId: req.user?.id, event_id: req.body?.event_id, error: err.message,
     });
-    err.statusCode = 400;
+    // Only known client-actionable failures are 400s. Anything else
+    // (Razorpay API errors, DB issues, credential misconfiguration) is a
+    // genuine server-side failure and should fall through to the error
+    // middleware's default 500 — forcing every error to 400 here was
+    // hiding the real cause behind a misleading "Bad Request" status.
+    const CLIENT_ERRORS = ["Event not found", "Not enough tickets available"];
+    if (CLIENT_ERRORS.includes(err.message)) err.statusCode = 400;
     next(err);
   }
 };
