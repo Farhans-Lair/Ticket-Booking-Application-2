@@ -192,12 +192,14 @@ jobs:
           # lines.
           cat > /tmp/ssm-params.json << EOF
           {
-            "commands": [
-              "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com",
-              "docker pull ${IMAGE_URI}",
-              "docker rm -f ticket-backend || true",
-              "docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 -v /home/ec2-user/ticket-backend/logs:/app/logs ${IMAGE_URI}"
-            ]
+            "Parameters": {
+              "commands": [
+                "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com",
+                "docker pull ${IMAGE_URI}",
+                "docker rm -f ticket-backend || true",
+                "docker run -d --name ticket-backend --restart always --env-file /home/ec2-user/ticket-backend/.env -p 3000:3000 -v /home/ec2-user/ticket-backend/logs:/app/logs ${IMAGE_URI}"
+              ]
+            }
           }
           EOF
 
