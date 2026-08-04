@@ -21,8 +21,23 @@ const createOrder = async (amount, currency = "INR", receipt) => {
     payment_capture: 1,
   };
 
-  const order = await getRazorpayInstance().orders.create(options);
-  return order;
+  try {
+    const order = await getRazorpayInstance().orders.create(options);
+    return order;
+  } catch (err) {
+    // The razorpay SDK rejects with a plain object shaped like
+    // { statusCode, error: { description, code, reason, ... } } — not a
+    // real Error instance — so err.message is undefined and the generic
+    // "Internal Server Error" fallback fires instead of Razorpay's actual
+    // reason. Re-throw as a proper Error carrying that real description.
+    const description = err?.error?.description || err?.message;
+    const wrapped = new Error(
+      description ? `Razorpay error: ${description}` : "Razorpay order creation failed"
+    );
+    wrapped.razorpayCode = err?.error?.code;
+    wrapped.razorpayReason = err?.error?.reason;
+    throw wrapped;
+  }
 };
 
 const verifySignature = (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {

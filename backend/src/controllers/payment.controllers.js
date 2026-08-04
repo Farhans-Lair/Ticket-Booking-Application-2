@@ -61,6 +61,7 @@ const createOrder = async (req, res, next) => {
   } catch (err) {
     logger.error("Razorpay order creation failed", {
       userId: req.user?.id, event_id: req.body?.event_id, error: err.message,
+      razorpayCode: err.razorpayCode, razorpayReason: err.razorpayReason,
     });
     // Only known client-actionable failures are 400s. Anything else
     // (Razorpay API errors, DB issues, credential misconfiguration) is a
