@@ -1,5 +1,6 @@
 const Razorpay  = require("razorpay");
 const crypto    = require("crypto");
+const logger    = require("../config/logger");
 
 const getRazorpayInstance = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -20,6 +21,9 @@ const createOrder = async (amount, currency = "INR", receipt) => {
     receipt,
     payment_capture: 1,
   };
+
+  // Temporary diagnostic — remove once resolved.
+  logger.info("Razorpay order options", options);
 
   try {
     const order = await getRazorpayInstance().orders.create(options);

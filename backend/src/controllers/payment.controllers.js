@@ -35,6 +35,15 @@ const createOrder = async (req, res, next) => {
     const { event, ticketAmount, convenienceFee, gstAmount, totalPaid } =
       await bookingService.calculateBookingAmount(event_id, tickets_booked, selected_seats);
 
+    // Temporary diagnostic — remove once the "Order amount less than
+    // minimum amount allowed" issue is resolved. Logs the exact computed
+    // values right before they reach Razorpay, since static code review
+    // couldn't identify where the amount goes wrong.
+    logger.info("Booking amount computed", {
+      userId, event_id, ticketAmount, convenienceFee, gstAmount, totalPaid,
+      typeofTotalPaid: typeof totalPaid,
+    });
+
     const receipt = `rcpt_u${userId}_e${event_id}_${Date.now()}`;
     const order   = await paymentService.createOrder(totalPaid, "INR", receipt);
 
