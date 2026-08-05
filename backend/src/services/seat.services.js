@@ -1,6 +1,7 @@
 const { Seat } = require("../models");
 const { Op }   = require("sequelize");
 const sequelize = require("../config/database");
+const logger    = require("../config/logger");
 
 const HOLD_MINUTES = 10;
 
@@ -78,6 +79,15 @@ const bookSeats = async (eventId, seatNumbers, transaction) => {
 };
 
 const calculateTierPrice = async (eventId, seatNumbers) => {
+  // Temporary diagnostic — remove once resolved. DB data is confirmed
+  // correct (verified via direct SQL query); this checks whether the
+  // mismatch is in what's actually received/matched at runtime.
+  logger.info("calculateTierPrice called", {
+    eventId, typeofEventId: typeof eventId,
+    seatNumbers, typeofSeatNumbers: typeof seatNumbers,
+    isArray: Array.isArray(seatNumbers),
+  });
+
   const seats = await Seat.findAll({
     where: {
       event_id:    eventId,
@@ -85,6 +95,15 @@ const calculateTierPrice = async (eventId, seatNumbers) => {
       status:      { [Op.in]: ["available", "held"] },
     },
     attributes: ["seat_number", "seat_tier", "tier_price"],
+  });
+
+  logger.info("calculateTierPrice matched seats", {
+    matchedCount: seats.length,
+    seats: seats.map(s => ({
+      seat_number: s.seat_number,
+      tier_price: s.tier_price,
+      typeofTierPrice: typeof s.tier_price,
+    })),
   });
 
   if (seats.length !== seatNumbers.length) {
