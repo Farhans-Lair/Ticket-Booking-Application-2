@@ -23,9 +23,10 @@ const calculateBookingAmount = async (
   if (!event) throw new Error("Event not found");
   if (event.available_tickets < tickets_booked) throw new Error("Not enough tickets available");
 
-  const ticketAmount = (event.price === 0 && selected_seats.length > 0)
+  const eventPrice = parseFloat(event.price);
+  const ticketAmount = (eventPrice === 0 && selected_seats.length > 0)
     ? (await seatService.calculateTierPrice(eventId, selected_seats)).total
-    : event.price * tickets_booked;
+    : eventPrice * tickets_booked;
 
   const { convenienceFee, gstAmount, subtotal } = _computePrice(ticketAmount);
 
