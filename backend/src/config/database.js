@@ -39,6 +39,12 @@ const sequelize = new Sequelize(
     dialectOptions: {
 
       connectTimeout: 20000,
+
+      // MySQL/mysql2 returns DECIMAL columns as strings by default (to avoid
+      // float rounding issues). Our models declare these fields as FLOAT and
+      // the frontend calls .toFixed() on them expecting real numbers, so we
+      // opt in to numeric decimals here to match that expectation.
+      decimalNumbers: true,
     },
 
     define: {

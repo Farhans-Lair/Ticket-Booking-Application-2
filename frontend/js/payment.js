@@ -30,10 +30,10 @@ function renderSummary(breakdown) {
     <h3>${breakdown.event_title}</h3>
     <table>
       <tr><td>Tickets</td><td>${breakdown.tickets_booked}</td></tr>${seatsHtml}
-      <tr><td>Ticket Amount</td><td>₹${breakdown.ticket_amount.toFixed(2)}</td></tr>
-      <tr><td>Convenience Fee</td><td>₹${breakdown.convenience_fee.toFixed(2)}</td></tr>
-      <tr><td>GST (9%)</td><td>₹${breakdown.gst_amount.toFixed(2)}</td></tr>
-      <tr class="total-row"><td><strong>Total Payable</strong></td><td><strong>₹${breakdown.total_paid.toFixed(2)}</strong></td></tr>
+      <tr><td>Ticket Amount</td><td>₹${Number(breakdown.ticket_amount).toFixed(2)}</td></tr>
+      <tr><td>Convenience Fee</td><td>₹${Number(breakdown.convenience_fee).toFixed(2)}</td></tr>
+      <tr><td>GST (9%)</td><td>₹${Number(breakdown.gst_amount).toFixed(2)}</td></tr>
+      <tr class="total-row"><td><strong>Total Payable</strong></td><td><strong>₹${Number(breakdown.total_paid).toFixed(2)}</strong></td></tr>
     </table>
   `;
 }

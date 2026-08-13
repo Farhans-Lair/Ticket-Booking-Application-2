@@ -12,7 +12,7 @@ const sequelizeReplica = new Sequelize(
     dialect: "mysql",
     logging: false,
     pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
-    dialectOptions: { connectTimeout: 20000 },
+    dialectOptions: { connectTimeout: 20000, decimalNumbers: true },
     define: { underscored: true, freezeTableName: true },
   }
 );
