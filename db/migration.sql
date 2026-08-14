@@ -124,16 +124,8 @@ CREATE TABLE IF NOT EXISTS cancellation_policies (
   id                         INT           NOT NULL AUTO_INCREMENT,
   event_id                   INT           NOT NULL,
   organizer_id               INT           NOT NULL,
-  tier1_hours_before         INT           DEFAULT 72,
-  tier1_refund_percent       DECIMAL(5,2)  DEFAULT 100.00,
-  tier2_hours_before         INT           DEFAULT 24,
-  tier2_refund_percent       DECIMAL(5,2)  DEFAULT 50.00,
-  tier3_hours_before         INT           DEFAULT 0,
-  tier3_refund_percent       DECIMAL(5,2)  DEFAULT 0.00,
-  cancellation_fee_flat      DECIMAL(10,2) DEFAULT 0.00,
-  cancellation_fee_percent   DECIMAL(5,2)  DEFAULT 0.00,
-  allow_cancellation         TINYINT(1)    NOT NULL DEFAULT 1,
-  notes                      TEXT          DEFAULT NULL,
+  tiers                      JSON          NOT NULL,
+  is_cancellation_allowed    TINYINT(1)    NOT NULL DEFAULT 1,
   created_at                 TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at                 TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -144,6 +136,12 @@ CREATE TABLE IF NOT EXISTS cancellation_policies (
   CONSTRAINT fk_cancellation_organizer
     FOREIGN KEY (organizer_id) REFERENCES users  (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- NOTE: this CREATE TABLE only runs on a brand-new database (IF NOT EXISTS).
+-- Environments where cancellation_policies already exists with the old
+-- tier1/tier2/tier3 columns are fixed by the Umzug migration
+-- backend/src/migrations/00002-cancellation-policy-tiers.js, which runs
+-- automatically on server startup.
 
 CREATE TABLE IF NOT EXISTS payouts (
   id               INT            NOT NULL AUTO_INCREMENT,
