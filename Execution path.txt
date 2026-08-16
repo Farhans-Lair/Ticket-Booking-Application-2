@@ -1,0 +1,37 @@
+# Step 1 — push code changes safely (checks + tests only, no AWS)
+git checkout main
+git fetch origin
+git pull origin main
+git add .
+git commit -m "feat: all code changes"
+git push origin main
+      ↓
+  checks job runs ✅ (conflict-marker scan)
+  test job runs ✅
+  deploy job skipped ✅ (only runs on manual dispatch now, not on push)
+
+# Step 2 — Phase 1 Terraform (OIDC + ECR only) — unchanged
+terraform apply -target="aws_ecr_repository.ticket_backend" -target="aws_ecr_lifecycle_policy.ticket_backend" -target="aws_iam_openid_connect_provider.github" -target="aws_iam_role.github_ecr_push_role" -target="aws_iam_role_policy_attachment.push_ecr_full" -target="aws_iam_role_policy.github_ecr_push_ssm_deploy" -target="aws_iam_role.backend_ec2_role" -target="aws_iam_role_policy_attachment.ec2_ecr_read" -target="aws_iam_role_policy_attachment.ec2_ssm_core" -target="aws_iam_role_policy_attachment.ec2_cloudwatch_agent" -target="aws_iam_role_policy.ec2_s3_ticket_policy" -target="aws_iam_role_policy.ec2_cloudwatch_put_metrics" -target="aws_iam_instance_profile.backend_instance_profile"
+
+# Step 3 — manually trigger the pipeline (replaces "merge bootstrap into main")
+# GitHub → Actions tab → "CI - Test, Build & Push Backend Image" → Run workflow → main
+      ↓
+  checks job runs ✅
+  test job runs ✅
+  deploy job runs ✅ (OIDC exists, ECR exists — because event is workflow_dispatch)
+  SSM step skips cleanly — no EC2 yet ✅
+
+# Step 4 — Phase 3 full Terraform — unchanged
+terraform apply
+      ↓
+  EC2 boots → pulls image from ECR → app is live ✅
+
+# Every deployment after this — you choose when
+git push origin main
+      ↓
+  checks → test ✅ (deploy does NOT run automatically anymore)
+
+# Whenever you're ready to actually deploy:
+# Actions tab → Run workflow → main
+      ↓
+  checks → test → build → push → SSM deploy ✅
