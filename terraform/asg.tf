@@ -2,9 +2,12 @@
 resource "aws_autoscaling_group" "backend_asg" {
   name = "${var.project_name}-backend-asg"
 
+  # Capped at 1 while the ap-south-1 On-Demand Standard vCPU quota
+  # (L-1216C47A) is still 1. A t2.micro is 1 vCPU, so exactly one instance
+  # fits. Raise max_size back to 3 once the quota increase is approved.
   desired_capacity = 1
   min_size         = 1
-  max_size         = 3
+  max_size         = 1
 
   vpc_zone_identifier = [
     aws_subnet.private_subnet_1.id,
@@ -29,7 +32,11 @@ resource "aws_autoscaling_group" "backend_asg" {
   instance_refresh {
     strategy = "Rolling"
     preferences {
-      min_healthy_percentage = 50
+      # Must be 0 while max_size = 1. At 50 the refresh needs one healthy
+      # instance kept up while a replacement launches, which would push the
+      # group to 2 and exceed max_size — the refresh would hang. Set this
+      # back to 50 when max_size returns to 3.
+      min_healthy_percentage = 0
       instance_warmup        = 120
     }
   }

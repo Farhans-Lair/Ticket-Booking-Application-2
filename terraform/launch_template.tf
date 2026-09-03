@@ -31,7 +31,11 @@ data "aws_caller_identity" "current" {}
 resource "aws_launch_template" "backend_lt" {
   name_prefix   = "${var.project_name}-backend-"
   image_id      = data.aws_ami.amazon_linux.id
-  instance_type = "t3.micro"
+  # t3.micro is 2 vCPUs, which exceeds the current account vCPU quota of 1
+  # in ap-south-1. Every T3 size is 2 vCPUs, including t3.nano, so t2.micro
+  # (1 vCPU) is the only option that launches under this quota.
+  # Revert to t3.micro once the quota increase is approved.
+  instance_type = "t2.micro"
 
   iam_instance_profile {
     name = aws_iam_instance_profile.backend_instance_profile.name
