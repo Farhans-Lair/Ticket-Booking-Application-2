@@ -9,8 +9,12 @@ resource "aws_autoscaling_group" "backend_asg" {
   min_size         = 1
   max_size         = 1
 
+  # Pinned to private_subnet_2 (ap-south-1b) only. AWS reported no t2.micro
+  # capacity in ap-south-1a, and Terraform aborts on the first failed
+  # scaling activity rather than letting the ASG retry in the other AZ.
+  # This gives up AZ redundancy — restore private_subnet_1 below once the
+  # vCPU quota increase lands and the instance type goes back to t3.micro.
   vpc_zone_identifier = [
-    aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id,
   ]
 
