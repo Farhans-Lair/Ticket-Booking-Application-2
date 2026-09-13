@@ -2,32 +2,59 @@
 resource "aws_autoscaling_group" "backend_asg" {
   name = "${var.project_name}-backend-asg"
 
-  # Capped at 1 while the ap-south-1 On-Demand Standard vCPU quota
-  # (L-1216C47A) is still 1. A t2.micro is 1 vCPU, so exactly one instance
-  # fits. Raise max_size back to 3 once the quota increase is approved.
-  desired_capacity = 1
-  min_size         = 1
-  max_size         = 1
+  # 2 instances minimum, one per AZ, so a single instance or AZ failure
+  # never drops capacity to zero.
+  desired_capacity = 2
+  min_size         = 2
+  max_size         = 4
 
-  # Pinned to private_subnet_2 (ap-south-1b) only. AWS reported no t2.micro
-  # capacity in ap-south-1a, and Terraform aborts on the first failed
-  # scaling activity rather than letting the ASG retry in the other AZ.
-  # This gives up AZ redundancy — restore private_subnet_1 below once the
-  # vCPU quota increase lands and the instance type goes back to t3.micro.
   vpc_zone_identifier = [
+    aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id,
   ]
 
-  launch_template {
-    id      = aws_launch_template.backend_lt.id
-    version = "$Latest"
+  # Three interchangeable 2 vCPU / 1 GB types across two AZs = six placement
+  # combinations. If AWS is short on one type in one AZ (the
+  # InsufficientInstanceCapacity error), the ASG falls back automatically
+  # instead of the launch failing outright.
+  #   t3.micro  - Intel, current gen, deepest capacity pool
+  #   t3a.micro - AMD, same specs, usually cheaper
+  #   t2.micro  - previous gen, last resort
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_allocation_strategy = "lowest-price"
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.backend_lt.id
+        version            = "$Latest"
+      }
+
+      override {
+        instance_type = "t3.micro"
+      }
+
+      override {
+        instance_type = "t3a.micro"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+    }
   }
 
   target_group_arns = [aws_lb_target_group.backend_tg.arn]
 
-  health_check_type         = "ELB"
-  health_check_grace_period = 120
-  default_instance_warmup   = 120
+  health_check_type = "ELB"
+
+  # 600s, not 120s. The bootstrap runs yum update, installs Docker and the
+  # CloudWatch agent, then pulls the Node image from ECR over NAT — 5-10
+  # minutes realistically. At 120s the ASG killed instances mid-setup and
+  # looped forever without one ever reaching InService.
+  health_check_grace_period = 600
+  default_instance_warmup   = 600
 
   # Without this, changes to the launch template (e.g. user_data.sh edits)
   # only apply to new instances — existing running instances keep the old
@@ -36,12 +63,8 @@ resource "aws_autoscaling_group" "backend_asg" {
   instance_refresh {
     strategy = "Rolling"
     preferences {
-      # Must be 0 while max_size = 1. At 50 the refresh needs one healthy
-      # instance kept up while a replacement launches, which would push the
-      # group to 2 and exceed max_size — the refresh would hang. Set this
-      # back to 50 when max_size returns to 3.
-      min_healthy_percentage = 0
-      instance_warmup        = 120
+      min_healthy_percentage = 50
+      instance_warmup        = 600
     }
   }
 
